@@ -50,3 +50,14 @@ body {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
+
+/* Skeleton shimmer (src/components/ui/skeleton.tsx) — appended per that
+   component's ownership exception; do not add unrelated rules here. */
+@keyframes shimmer {
+  0% {
+    background-position: -180px 0;
+  }
+  100% {
+    background-position: 180px 0;
+  }
+}

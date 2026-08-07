@@ -57,5 +57,33 @@
   },
   "locale": {
     "label": "Язык"
+  },
+  "wish": {
+    "status": {
+      "free": "Свободно",
+      "reserved": "Забронировано",
+      "reservedByYou": "Забронировано вами",
+      "gifted": "Подарено"
+    },
+    "dream": "Мечта",
+    "noPrice": "нет цены",
+    "priority": {
+      "want": "Очень хочу",
+      "nice": "Было бы приятно",
+      "idea": "Просто идея"
+    },
+    "imageGenerating": "Рисуем…",
+    "imageFailed": "Не получилось нарисовать",
+    "retry": "Повторить",
+    "uploadPhoto": "Загрузить фото",
+    "restrictedVisibility": "Видно не всем",
+    "giftedBy": "от {name}"
+  },
+  "common": {
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "undo": "Отменить",
+    "close": "Закрыть"
   }
 }
