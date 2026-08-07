@@ -12,6 +12,13 @@ export function SignOutButton() {
     <button
       onClick={() =>
         void authClient.signOut().then(() => {
+          // Drafts are per-user data — never leave them for the next account
+          // on a shared device.
+          for (const key of Object.keys(window.localStorage)) {
+            if (key.startsWith("wishka-wish-draft")) {
+              window.localStorage.removeItem(key);
+            }
+          }
           router.refresh();
         })
       }
