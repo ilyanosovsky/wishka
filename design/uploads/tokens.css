@@ -1,0 +1,100 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PAPER LEDGER — DESIGN TOKENS  ·  v1.0  ·  source of truth
+   Extracted verbatim from the production Provider Cabinet (cabinet.css).
+   Every value below is a real, shipped token. Do not invent new ones —
+   compose from these. All custom properties live on :root.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+
+  /* ── COLOR · surfaces ──────────────────────────────────────────────── */
+  --bg:        #f3f0e9;   /* app canvas — warm paper                       */
+  --paper:     #faf8f2;   /* raised sheet / card / panel                   */
+  --zebra:     #f5f2ea;   /* alternating table row, inset fill             */
+
+  /* ── COLOR · rules (hairlines) ─────────────────────────────────────── */
+  --rule:      #e3ddcf;   /* 1px row + soft divider                        */
+  --rule-2:    #cfc7b3;   /* 1px panel + card border (one step darker)     */
+
+  /* ── COLOR · ink (text) ────────────────────────────────────────────── */
+  --ink:       #2b2820;   /* primary text · heavy 2px dividers             */
+  --mute:      #7c7561;   /* secondary text, labels                        */
+  --mute-2:    #a39b85;   /* tertiary text, index numbers, placeholders    */
+
+  /* ── COLOR · accent (one ledger green) ─────────────────────────────── */
+  --accent:      #3c5a4a; /* muted ledger green — CTAs, active, links      */
+  --accent-ink:  #324c3f; /* accent pressed/hover                          */
+  --accent-soft: #e7ede9; /* accent fill — active row, soft chip           */
+
+  /* ── COLOR · NULL (missing manually-kept value) ────────────────────── */
+  --null:      #f6ecd2;   /* NULL pill fill — warm amber paper             */
+  --null-rule: #e2cf9e;   /* NULL pill border                              */
+  --null-txt:  #9a7415;   /* NULL + "needs value" text — ochre             */
+
+  /* ── COLOR · semantic status ───────────────────────────────────────── */
+  --neg:       #a8443a;   /* negative amounts, destructive, payout         */
+  --ok:        #3c5a4a;   /* positive / settled (== accent)                */
+  --ok-soft:   #e7ede9;   /* settled fill (== accent-soft)                 */
+
+  /* ── COLOR · type-badge families (settlement/netting/hybrid/payout) ── */
+  --green-txt:#3c5a4a; --green-rule:#bcccc1; --green-soft:#e7ede9; /* settlement */
+  --blue-txt: #3a5160; --blue-rule:#bcc8ce;  --blue-soft:#e7edf0;  /* netting    */
+  --amber-txt:#6b5326; --amber-rule:#d8cba6; --amber-soft:#f3ecda; /* hybrid     */
+  --red-txt:  #a8443a; --red-rule:#e0c6c2;   --red-soft:#f6e9e7;   /* payout     */
+
+  /* ── TYPE · families ───────────────────────────────────────────────── */
+  --font-serif:'Newsreader', Georgia, serif;          /* headings, names   */
+  --font-sans: 'Inter', system-ui, sans-serif;        /* body, UI          */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace; /* numbers, IDs  */
+
+  /* ── TYPE · scale (px — used at face value, no rem) ────────────────── */
+  --t-name:    27px;  /* provider / record name (serif 600)                */
+  --t-title:   24px;  /* masthead title (serif 600)                        */
+  --t-h2:      19px;  /* sheet heading (serif 600)                         */
+  --t-h3:      17px;  /* block heading (serif 600)                         */
+  --t-val-lg:  18px;  /* emphasised mono value                             */
+  --t-val:     15px;  /* standard mono value                               */
+  --t-field:   14px;  /* mono input value                                  */
+  --t-body:    13px;  /* body / table cell (sans)                          */
+  --t-meta:    12px;  /* meta, sub, nav                                    */
+  --t-small:   11px;  /* captions, mono meta, idx                          */
+  --t-label: 10.5px;  /* UPPERCASE tracked label (column head, field key)  */
+
+  /* ── TYPE · weight ─────────────────────────────────────────────────── */
+  --w-regular:400; --w-medium:500; --w-semibold:600;
+
+  /* ── TYPE · tracking ───────────────────────────────────────────────── */
+  --track-tight:  -.01em;  /* serif headings                               */
+  --track-label:   .10em;  /* uppercase labels / column heads              */
+  --track-badge:   .05em;  /* badge text                                   */
+
+  /* ── TYPE · leading ────────────────────────────────────────────────── */
+  --lead-tight: 1.05;  /* large serif names                               */
+  --lead-body:  1.55;  /* notification / detail copy                      */
+  --lead-prose: 1.65;  /* note prose                                      */
+
+  /* ── SPACE · 4px base grid ─────────────────────────────────────────── */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-7: 30px; --s-8: 40px;
+  /* Working pad rhythm: cells 14–16px · sheet-head 18/24px · wrap 26/30px */
+
+  /* ── BORDER · weights ──────────────────────────────────────────────── */
+  --bd-hair: 1px;   /* hairline rule — everywhere                          */
+  --bd-ink:  2px;   /* heavy ink divider — section + masthead              */
+  --bd-dbl:  3px;   /* double rule — table grand total (border-bottom:3px double) */
+
+  /* ── RADIUS ────────────────────────────────────────────────────────── */
+  --radius: 0;      /* HARD RULE: everything is square …                   */
+  --radius-round: 50%; /* … except avatars + status dots                  */
+
+  /* ── ELEVATION ─────────────────────────────────────────────────────── */
+  --shadow-sheet: 0 1px 0 var(--rule), 0 14px 30px -22px rgba(43,40,32,.4);
+  --shadow-line:  0 1px 0 var(--rule);  /* panel seated on the page        */
+
+  /* ── MOTION · duration ─────────────────────────────────────────────── */
+  --dur-fast: .18s;  /* mask blur, hover tint                             */
+  --dur-base: .24s;  /* save bar slide                                    */
+  --dur-slow: .26s;  /* toast                                             */
+
+  /* ── MOTION · easing ───────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(.22,1,.36,1);  /* the house curve — ease-out-quart */
+}

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Literata:opsz,wght@7..72,500;7..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e5da;font-family:Inter,system-ui,sans-serif;color:#2b2820}
+a{color:#3c5a4a}a:hover{color:#324c3f}
+@keyframes ws-spin{to{transform:rotate(360deg)}}
+@keyframes ws-shim{0%{background-position:-180px 0}100%{background-position:180px 0}}
+@keyframes ws-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:36px 40px 80px">
+<div style="display:flex;align-items:baseline;gap:14px;border-bottom:2px solid #2b2820;padding-bottom:14px">
+  <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:27px;letter-spacing:-.01em">Wishka — мини-система</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c7561">на базе Paper Ledger · итог <span style="border:1px solid #cfc7b3;padding:1px 6px">3a–3c</span> · v1.0</div>
+  <div style="flex:1"></div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a39b85">RU/EN · СВЕТЛАЯ + ТЁМНАЯ</div>
+</div>
+
+<div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);margin-top:26px">
+<div style="padding:16px 24px;border-bottom:1px solid #cfc7b3;display:flex;align-items:baseline;gap:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a">01</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Палитра</span><span style="font-size:11.5px;color:#7c7561">токены Paper Ledger + 3 роли Wishka: охра = мечта/приоритет, зелёный = действие/бронь-вам, чернила = структура</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+<div style="padding:20px 24px;border-right:1px solid #e3ddcf">
+  <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin-bottom:12px">Светлая</div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+    <div><div style="height:44px;background:#f3f0e9;border:1px solid #cfc7b3"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--bg f3f0e9</div></div>
+    <div><div style="height:44px;background:#faf8f2;border:1px solid #cfc7b3"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--paper faf8f2</div></div>
+    <div><div style="height:44px;background:#2b2820"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--ink 2b2820</div></div>
+    <div><div style="height:44px;background:#3c5a4a"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--accent 3c5a4a</div></div>
+    <div><div style="height:44px;background:#f6ecd2;border:1px solid #e2cf9e"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--null f6ecd2</div></div>
+    <div><div style="height:44px;background:#9a7415"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--null-txt 9a7415</div></div>
+    <div><div style="height:44px;background:#e7ede9"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--accent-soft</div></div>
+    <div><div style="height:44px;background:#e3ddcf"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--rule e3ddcf</div></div>
+    <div><div style="height:44px;background:#cfc7b3"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--rule-2 cfc7b3</div></div>
+    <div><div style="height:44px;background:#7c7561"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--mute 7c7561</div></div>
+    <div><div style="height:44px;background:#a39b85"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--mute-2 a39b85</div></div>
+    <div><div style="height:44px;background:#a8443a"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561;margin-top:4px">--neg a8443a</div></div>
+  </div>
+</div>
+<div style="padding:20px 24px;background:#1f1c16">
+  <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a39b85;font-weight:600;margin-bottom:12px">Тёмная · «ночной гроссбух»</div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+    <div><div style="height:44px;background:#1f1c16;border:1px solid #4a4436"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--bg 1f1c16</div></div>
+    <div><div style="height:44px;background:#292519;border:1px solid #4a4436"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--paper 292519</div></div>
+    <div><div style="height:44px;background:#e8e2d2"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--ink e8e2d2</div></div>
+    <div><div style="height:44px;background:#8fb39e"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--accent 8fb39e</div></div>
+    <div><div style="height:44px;background:rgba(216,178,94,.12);border:1px solid #6b5a32"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--null 12%</div></div>
+    <div><div style="height:44px;background:#d8b25e"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--null-txt d8b25e</div></div>
+    <div><div style="height:44px;background:#2e3a32"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--accent-soft</div></div>
+    <div><div style="height:44px;background:#3a352a"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--rule 3a352a</div></div>
+    <div><div style="height:44px;background:#4a4436"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--rule-2 4a4436</div></div>
+    <div><div style="height:44px;background:#a39b85"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--mute a39b85</div></div>
+    <div><div style="height:44px;background:#7c7561"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--mute-2 7c7561</div></div>
+    <div><div style="height:44px;background:#c97a6e"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">--neg c97a6e</div></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);margin-top:26px">
+<div style="padding:16px 24px;border-bottom:1px solid #cfc7b3;display:flex;align-items:baseline;gap:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a">02</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Типографика</span><span style="font-size:11.5px;color:#7c7561">Newsreader (латиница) / Literata (кириллица) · Inter · JetBrains Mono · квадрат везде, круг — только аватар</span></div>
+<div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:27px;line-height:1.05;letter-spacing:-.01em">Список Ильи / Ilya’s list</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">t-name 27 serif 600 · имена, заголовки экранов</div></div>
+    <div><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Кому видно это желание</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">t-h2 19 serif 600 · заголовки шитов и секций</div></div>
+    <div><div style="font-size:13px;line-height:1.55">Вставь ссылку на то, что хочешь — остальное сделаем мы. Карточка соберётся сама за пару секунд.</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">t-body 13 Inter 400 · lead 1.55</div></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500">2 400 ₾ · 800–1200 $ · 120 €</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">t-val-lg 18 mono · цены, всегда в валюте желания, без конвертации</div></div>
+    <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">№ · Желание · Цена · Кому видно</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">t-label 10.5 caps .10em · шапки колонок, ключи полей</div></div>
+    <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561">7 ЖЕЛАНИЙ · /U/ILYA · СТР. 1</div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;margin-top:3px">мета-строка mono caps · счётчики со склонениями: 1 желание / 3 желания / 5 желаний</div></div>
+  </div>
+</div>
+</div>
+
+<div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);margin-top:26px">
+<div style="padding:16px 24px;border-bottom:1px solid #cfc7b3;display:flex;align-items:baseline;gap:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a">03</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Кнопки · поля · чипсы · бейджи</span></div>
+<div style="padding:20px 24px;display:flex;flex-wrap:wrap;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:10px;min-width:230px">
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Кнопки</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="padding:10px 18px;font-size:13px;font-weight:500;background:#3c5a4a;color:#faf8f2;display:inline-flex;align-items:center;gap:7px;min-height:44px;box-sizing:border-box">Добавить в список</span>
+      <span style="padding:10px 18px;font-size:13px;font-weight:500;border:1px solid #cfc7b3;background:#faf8f2;color:#2b2820;display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box">Отмена</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="padding:10px 18px;font-size:13px;font-weight:500;border:1px solid #e0c6c2;background:#faf8f2;color:#a8443a;display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box">Удалить</span>
+      <span style="padding:10px 18px;font-size:13px;font-weight:500;background:#3c5a4a;color:#faf8f2;display:inline-flex;align-items:center;gap:9px;opacity:.75;min-height:44px;box-sizing:border-box"><span style="width:14px;height:14px;border:2px solid rgba(250,248,242,.35);border-top-color:#faf8f2;border-radius:50%;animation:ws-spin .7s linear infinite;flex:none"></span>Сохраняем…</span>
+    </div>
+    <div style="font-size:10.5px;color:#a39b85">в процессе: спиннер + disabled, текст меняется · тап-таргет ≥ 44px</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;min-width:250px">
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Поля</div>
+    <div style="width:250px;background:#faf8f2;border:1px solid #cfc7b3;padding:11px 12px;font-size:14px;font-family:'JetBrains Mono',monospace;color:#a39b85">https://store.com/item…</div>
+    <div style="width:250px;background:#faf8f2;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;padding:11px 12px;font-size:14px;font-family:'JetBrains Mono',monospace">wishka.app/u/ilya<span style="animation:ws-pulse 1s infinite">▎</span></div>
+    <div><div style="width:250px;background:#faf8f2;border:1px solid #a8443a;padding:11px 12px;font-size:14px;font-family:'JetBrains Mono',monospace;color:#2b2820;box-sizing:border-box">ilya@wishka</div><div style="font-size:11px;color:#a8443a;margin-top:4px">Похоже, в адресе опечатка</div></div>
+    <div style="width:250px;background:#f5f2ea;border:1px dashed #cfc7b3;padding:11px 12px;font-size:14px;font-family:'JetBrains Mono',monospace;color:#a39b85;box-sizing:border-box;display:flex;align-items:center;gap:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a39b85" stroke-width="2.4" style="flex:none"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">store.com/item-4812</span><span style="font-family:Inter,sans-serif;font-size:10px;flex:none">ссылка из парсера</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;min-width:230px">
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Чипсы-фильтры · сегменты</div>
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2;align-self:flex-start">
+      <span style="padding:8px 13px;font-size:12px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3">Все <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(250,248,242,.6)">7</span></span>
+      <span style="padding:8px 13px;font-size:12px;color:#7c7561;border-right:1px solid #cfc7b3">Мечты</span>
+      <span style="padding:8px 13px;font-size:12px;color:#7c7561">Дом</span>
+    </div>
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2;align-self:flex-start">
+      <span style="padding:8px 14px;font-size:12px;font-weight:600;background:#3c5a4a;color:#faf8f2;border-right:1px solid #cfc7b3">Точная</span>
+      <span style="padding:8px 14px;font-size:12px;color:#7c7561">Вилка от–до</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span>
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span>
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;background:#3c5a4a;color:#faf8f2;border:1px solid #3c5a4a">Забронировано вами</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px">
+      <span style="transform:rotate(-8deg);font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 8px;background:rgba(250,248,242,.72)">Мечта</span>
+      <span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 9px;border:1px solid #e2cf9e">нет цены</span>
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;background:#2b2820;color:#faf8f2">Подарено</span>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <span style="display:inline-flex;align-items:center;font-size:11px;color:#9a7415;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:5px"></span>Очень хочу</span>
+      <span style="display:inline-flex;align-items:center;font-size:11px;color:#7c7561;font-weight:500"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #a39b85;margin-right:5px"></span>Было бы приятно</span>
+      <span style="font-size:11px;color:#a39b85">Просто идея</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);margin-top:26px">
+<div style="padding:16px 24px;border-bottom:1px solid #cfc7b3;display:flex;align-items:baseline;gap:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a">04</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Bottom sheet · сквозные паттерны</span><span style="font-size:11.5px;color:#7c7561">§3.6 брифа: подтверждение, undo-тост, черновик, кнопка в процессе</span></div>
+<div style="padding:20px 24px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+  <div style="width:300px;background:#8f8878;padding:56px 12px 0;position:relative;overflow:hidden">
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;border-bottom:0;box-shadow:0 -10px 30px rgba(43,40,32,.3)">
+      <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+      <div style="padding:8px 18px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:18px">Новое желание</div>
+      <div style="padding:10px 18px 0">
+        <div style="border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;background:#faf8f2;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a39b85">Вставь ссылку на товар…</div>
+        <div style="display:flex;align-items:center;gap:8px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:7px 10px;margin-top:8px;font-size:11px"><span>Добавить ссылку из буфера?</span><span style="flex:1"></span><b style="color:#3c5a4a">Вставить</b></div>
+      </div>
+      <div style="display:flex;gap:8px;padding:12px 18px 18px">
+        <span style="flex:1;padding:10px 8px;font-size:12px;font-weight:500;border:1px solid #cfc7b3;text-align:center">Добавь словами</span>
+        <span style="flex:1;padding:10px 8px;font-size:12px;font-weight:500;border:1px solid #cfc7b3;text-align:center">Заполнить вручную</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px;flex:1;min-width:340px">
+    <div style="width:300px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 14px 30px -18px rgba(43,40,32,.5)">
+      <div style="padding:16px 18px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Удалить желание?</div>
+      <div style="padding:4px 18px 14px;font-size:12.5px;color:#7c7561;line-height:1.5">«Керамическая ваза» исчезнет из списка. Можно будет отменить в течение 5 секунд.</div>
+      <div style="display:flex;border-top:1px solid #e3ddcf">
+        <span style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:500;border-right:1px solid #e3ddcf">Отмена</span>
+        <span style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:#a8443a">Удалить</span>
+      </div>
+    </div>
+    <div style="width:300px;background:#2b2820;color:#faf8f2;display:flex;align-items:center;gap:10px;padding:12px 14px;position:relative;overflow:hidden">
+      <span style="font-size:12.5px;flex:1">Бронь снята</span>
+      <span style="font-size:12.5px;font-weight:600;color:#9cc3ad;letter-spacing:.02em">Отменить</span>
+      <span style="position:absolute;left:0;bottom:0;height:2px;width:62%;background:#9cc3ad"></span>
+    </div>
+    <div style="width:300px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 14px 30px -18px rgba(43,40,32,.5)">
+      <div style="padding:16px 18px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Сохранить черновик?</div>
+      <div style="padding:4px 18px 14px;font-size:12.5px;color:#7c7561;line-height:1.5">Вернёшься к нему из окна добавления — ничего не потеряется.</div>
+      <div style="display:flex;border-top:1px solid #e3ddcf">
+        <span style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Удалить</span>
+        <span style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:#3c5a4a">Сохранить</span>
+      </div>
+    </div>
+    <div style="font-size:10.5px;color:#a39b85;max-width:300px">Тост живёт 5 с, полоска — таймер undo. Диалоги — по центру, скрим 40% чернил. Деструктивное действие всегда справа и цветом --neg.</div>
+  </div>
+</div>
+</div>
+
+<div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);margin-top:26px">
+<div style="padding:16px 24px;border-bottom:1px solid #cfc7b3;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a">05</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Карточка желания — матрица состояний</span><span style="font-size:11.5px;color:#7c7561">роль × статус × модификаторы · изображение 4:5 cover</span></div>
+<div style="display:flex;align-items:center;gap:13px;background:#2b2820;color:#faf8f2;padding:11px 18px;margin:20px 24px 0">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9cc3ad">§</span>
+  <span style="font-weight:600;font-size:13px">Инвариант сюрприза</span>
+  <span style="font-size:12px;color:rgba(250,248,242,.75)">у владельца бейджа брони не существует ни в одном сочетании — забронированная и свободная карточка для него неотличимы</span>
+</div>
+<div style="padding:18px 24px 6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Роль: владелец</div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;padding:6px 24px 8px">
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%)"></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Керамическая ваза</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap">2 400 ₾</span><span style="display:inline-flex;align-items:center;font-size:9px;color:#9a7415;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:4px"></span>Хочу</span></div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">активно · точная цена (эта же карточка = «забронировано» глазами владельца)</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative"><span style="position:absolute;top:10px;right:6px;transform:rotate(-8deg);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 7px;background:rgba(250,248,242,.72)">Мечта</span></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Полёт на параплане</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap">800–1200 $</span><span style="font-size:9px;color:#a39b85">Идея</span></div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">мечта · вилка цены · $</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:repeating-linear-gradient(45deg,#f5f2ea 0 10px,#efeadd 10px 20px);position:relative;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:#a39b85">ДОМ</span>
+      <span style="position:absolute;bottom:6px;right:6px;width:20px;height:20px;border:1px solid #cfc7b3;background:rgba(250,248,242,.85);display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c7561" stroke-width="2.6"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+    </div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Плед из мериноса</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border:1px solid #e2cf9e;white-space:nowrap">нет цены</span><span style="display:inline-flex;align-items:center;font-size:9px;color:#7c7561;font-weight:500"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #a39b85;margin-right:4px"></span>Приятно</span></div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">без фото → плейсхолдер категории · видимость ограничена (замок) · нет цены</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85">Рисуем…</span></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Поплавать с китами</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap">~3000 €</span><span style="display:inline-flex;align-items:center;font-size:9px;color:#9a7415;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:4px"></span>Хочу</span></div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">AI-картинка в работе · шиммер + подпись · сохранять можно сразу</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:repeating-linear-gradient(45deg,#f5f2ea 0 10px,#efeadd 10px 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#a39b85">ВПЕЧАТЛЕНИЯ</span>
+      <span style="font-size:10px;font-weight:600;color:#3c5a4a;border:1px solid #bcccc1;background:#e7ede9;padding:3px 9px">Повторить</span>
+      <span style="font-size:10px;font-weight:500;color:#7c7561;border:1px solid #cfc7b3;padding:3px 9px">Загрузить фото</span>
+    </div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Сертификат в спа на двоих с массажем и хаммамом</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap">450 ₽</span><span style="font-size:9px;color:#a39b85">Идея</span></div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">генерация не вышла · длинное название = 2 строки + …</div>
+  </div>
+</div>
+<div style="padding:14px 24px 6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Роль: друг / гость (чужой список)</div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;padding:6px 24px 8px">
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative"><span style="position:absolute;top:6px;left:6px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Керамическая ваза</div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap;align-self:flex-start">2 400 ₾</span>
+      <span style="text-align:center;padding:8px;font-size:11.5px;font-weight:600;background:#3c5a4a;color:#faf8f2">Забронирую</span>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">свободно · CTA прямо на карточке</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column;opacity:.86">
+    <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);position:relative"><span style="position:absolute;top:6px;left:6px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span><div style="position:absolute;inset:0;background:rgba(250,248,242,.25)"></div></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25;color:#7c7561">Наушники с шумодавом</div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap;align-self:flex-start;color:#7c7561">28 000 ₽</span>
+      <span style="font-size:10px;color:#3c5a4a;font-weight:600">Посмотреть, что ещё свободно →</span>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">занято другим · без кнопки · призыв дальше</div>
+  </div>
+  <div style="width:158px;background:#faf8f2;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative"><span style="position:absolute;top:6px;left:6px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#3c5a4a;color:#faf8f2">Забронировано вами</span><span style="position:absolute;top:34px;right:6px;transform:rotate(-8deg);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 7px;background:rgba(250,248,242,.72)">Мечта</span></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Полёт на параплане</div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #e3ddcf;padding:2px 5px;white-space:nowrap;align-self:flex-start">800–1200 $</span>
+      <span style="text-align:center;padding:8px;font-size:11.5px;font-weight:500;border:1px solid #cfc7b3;color:#7c7561">Снять бронь</span>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">ваша бронь · рамка-акцент · и для гостя (токен устройства)</div>
+  </div>
+  <div style="width:158px;background:#f5f2ea;border:1px solid #e3ddcf;display:flex;flex-direction:column">
+    <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%);position:relative;filter:grayscale(.5);opacity:.75"><span style="position:absolute;top:6px;left:6px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#2b2820;color:#faf8f2">Подарено</span></div>
+    <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:4px">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25;color:#7c7561">Абонемент в гончарную студию</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85">12.05.2026 · от Маши</div>
+    </div>
+    <div style="border-top:1px solid #e3ddcf;padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#a39b85">архив · приглушено · «кто подарил» — только ручной ввод</div>
+  </div>
+</div>
+<div style="margin:14px 24px 24px;background:#1f1c16;padding:18px 20px">
+  <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a39b85;font-weight:600;margin-bottom:12px">Тёмная тема — те же состояния</div>
+  <div style="display:flex;flex-wrap:wrap;gap:14px">
+    <div style="width:158px;background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column;color:#e8e2d2">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#8a6647 0%,#5c3f26 70%)"></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Керамическая ваза</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #4a4436;padding:2px 5px;white-space:nowrap">2 400 ₾</span><span style="display:inline-flex;align-items:center;font-size:9px;color:#d8b25e;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #d8b25e;margin-right:4px"></span>Хочу</span></div>
+      </div>
+    </div>
+    <div style="width:158px;background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column;color:#e8e2d2">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#4a6a8a 0%,#2b3c52 70%);position:relative"><span style="position:absolute;top:10px;right:6px;transform:rotate(-8deg);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#d8b25e;border:2px solid #d8b25e;padding:2px 7px;background:rgba(31,28,22,.55)">Мечта</span></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Полёт на параплане</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #4a4436;padding:2px 5px;white-space:nowrap">800–1200 $</span><span style="font-size:9px;color:#7c7561">Идея</span></div>
+      </div>
+    </div>
+    <div style="width:158px;background:#292519;border:1px solid #8fb39e;box-shadow:inset 0 0 0 1px #8fb39e;display:flex;flex-direction:column;color:#e8e2d2">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#3a3a44 0%,#1e1e26 75%);position:relative"><span style="position:absolute;top:6px;left:6px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#8fb39e;color:#1f1c16">Забронировано вами</span></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Наушники с шумодавом</div>
+        <span style="text-align:center;padding:8px;font-size:11.5px;font-weight:500;border:1px solid #4a4436;color:#a39b85">Снять бронь</span>
+      </div>
+    </div>
+    <div style="width:158px;background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column;color:#e8e2d2">
+      <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#292519 0%,#332e20 40%,#292519 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px"><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85">Рисуем…</span></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:5px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;line-height:1.25">Поплавать с китами</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;border:1px solid #4a4436;padding:2px 5px;white-space:nowrap">~3000 €</span><span style="display:inline-flex;align-items:center;font-size:9px;color:#d8b25e;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #d8b25e;margin-right:4px"></span>Хочу</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="margin-top:26px;font-size:12px;color:#7c7561;line-height:1.6">Дальше по плану: экраны MVP (§6) на этой системе → кликабельный прототип флоу (§7) → письма. Правки в систему — до старта экранов дешевле всего.</div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Literata:opsz,wght@7..72,500;7..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e5da;font-family:Inter,system-ui,sans-serif;color:#2b2820}
+a{color:#3c5a4a}a:hover{color:#324c3f}
+@keyframes ws-spin{to{transform:rotate(360deg)}}
+@keyframes ws-shim{0%{background-position:-180px 0}100%{background-position:180px 0}}
+@keyframes ws-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+<div style="max-width:1560px;margin:0 auto;padding:36px 40px 80px">
+<div style="display:flex;align-items:baseline;gap:14px;border-bottom:2px solid #2b2820;padding-bottom:14px">
+  <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:27px;letter-spacing:-.01em">Wishka — экраны MVP</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c7561">§6 брифа · система: Wishka Mini-System</div>
+  <div style="flex:1"></div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a39b85">375×812 · SAFE AREA · ТАП ≥44</div>
+</div>
+
+<div data-screen-label="6.1 Вход и онбординг" style="margin-top:30px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.1</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Вход и онбординг</span><span style="font-size:11.5px;color:#7c7561">единый вход по коду · без magic-link</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ВХОД · базовый</div>
+<div style="width:375px;height:812px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;justify-content:flex-end;padding:6px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:6px 12px;font-size:11px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3">RU</span>
+      <span style="padding:6px 12px;font-size:11px;color:#7c7561">EN</span>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px 40px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:56px;height:56px;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;display:flex;align-items:center;justify-content:center">W</div>
+      <div>
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:30px;letter-spacing:-.01em">Wishka</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:#7c7561">СПИСКИ ЖЕЛАНИЙ</div>
+      </div>
+    </div>
+    <div style="font-size:13.5px;color:#7c7561;line-height:1.55;margin-top:18px">Веди список желаний, делись с близкими — они бронируют подарки так, что ты этого не видишь. Сюрприз цел, подарки не дублируются.</div>
+    <div style="display:flex;align-items:center;gap:10px;border:1px solid #cfc7b3;background:#faf8f2;padding:12px 16px;margin-top:28px;font-size:13.5px;font-weight:500;justify-content:center">
+      <span style="width:20px;height:20px;border:1px solid #cfc7b3;font-family:'JetBrains Mono',monospace;font-size:12px;display:inline-flex;align-items:center;justify-content:center;color:#3a5160;flex:none">G</span>
+      Войти через Google
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin:20px 0 14px"><span style="flex:1;height:1px;background:#e3ddcf"></span><span style="font-size:11px;color:#a39b85">или по коду на почту</span><span style="flex:1;height:1px;background:#e3ddcf"></span></div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin-bottom:6px">Почта</div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a39b85">you@example.com</div>
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:13px;font-size:13.5px;font-weight:500;margin-top:10px">Получить код</div>
+  </div>
+  <div style="text-align:center;padding:0 0 28px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:#a39b85">WISHKA.APP · OPEN SOURCE</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ВХОД · состояния</div>
+<div style="width:300px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="background:#faf8f2;border:1px solid #a8443a;padding:11px 12px;font-family:'JetBrains Mono',monospace;font-size:13px">ilya@wishka</div>
+    <div style="font-size:11px;color:#a8443a;margin-top:5px">Похоже, в адресе опечатка — проверь почту</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:12px;font-size:13px;font-weight:500;opacity:.75;display:flex;align-items:center;justify-content:center;gap:9px"><span style="width:13px;height:13px;border:2px solid rgba(250,248,242,.35);border-top-color:#faf8f2;border-radius:50%;animation:ws-spin .7s linear infinite"></span>Отправляем…</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:9px 12px;font-size:11.5px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#3c5a4a;flex:none;margin-top:4px"></span>Письмо отправлено — проверь почту (и спам)</div>
+    <div style="font-size:11.5px;color:#a39b85;margin-top:8px;text-align:center">Отправить ещё раз — <span style="font-family:'JetBrains Mono',monospace">0:47</span></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6e9e7;border:1px solid #e0c6c2;border-left:3px solid #a8443a;padding:9px 12px;font-size:11.5px;line-height:1.5;color:#2b2820"><span style="width:7px;height:7px;border-radius:50%;background:#a8443a;flex:none;margin-top:4px"></span>Не получилось отправить письмо — попробуй войти через Google</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6e9e7;border:1px solid #e0c6c2;border-left:3px solid #a8443a;padding:9px 12px;font-size:11.5px;line-height:1.5;color:#2b2820"><span style="width:7px;height:7px;border-radius:50%;background:#a8443a;flex:none;margin-top:4px"></span>Не удалось войти через Google — войди по коду на почту</div>
+  </div>
+  <div style="font-size:10.5px;color:#a39b85;line-height:1.5">Ошибки — баннером над формой, поле не очищается. Ре-отправка по таймеру 60 с.</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ВВОД КОДА</div>
+<div style="width:375px;height:812px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 20px">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><polyline points="10,2 4,8 10,14" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+  </div>
+  <div style="padding:18px 28px 0">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:24px">Код из письма</div>
+    <div style="font-size:12.5px;color:#7c7561;line-height:1.55;margin-top:8px">Отправили 6 цифр на <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px">ilya@gmail.com</span>. Код живёт 15 минут.</div>
+    <div style="display:flex;gap:8px;margin-top:24px">
+      <span style="width:44px;height:52px;border:1px solid #2b2820;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500">4</span>
+      <span style="width:44px;height:52px;border:1px solid #2b2820;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500">7</span>
+      <span style="width:44px;height:52px;border:1px solid #2b2820;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500">2</span>
+      <span style="width:44px;height:52px;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px"><span style="animation:ws-pulse 1s infinite">▎</span></span>
+      <span style="width:44px;height:52px;border:1px solid #cfc7b3;background:#faf8f2"></span>
+      <span style="width:44px;height:52px;border:1px solid #cfc7b3;background:#faf8f2"></span>
+    </div>
+    <div style="font-size:11.5px;color:#a39b85;margin-top:16px">Отправить ещё раз — <span style="font-family:'JetBrains Mono',monospace">0:47</span></div>
+    <div style="font-size:12.5px;color:#3c5a4a;font-weight:600;margin-top:22px;border-bottom:1px solid #3c5a4a;display:inline-block;padding-bottom:1px">Изменить почту</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">КОД · состояния</div>
+<div style="width:300px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:6px">
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">4</span>
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">7</span>
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">1</span>
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">9</span>
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">0</span>
+      <span style="width:34px;height:40px;border:1px solid #a8443a;background:#f6e9e7;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px">3</span>
+    </div>
+    <div style="font-size:11px;color:#a8443a;margin-top:6px">Код не подошёл — осталось 2 попытки</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:11.5px;color:#7c7561;line-height:1.5">Код просрочен — ему было больше 15 минут.</div>
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:10px;font-size:12.5px;font-weight:500;margin-top:8px">Отправить новый</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6ecd2;border:1px solid #e2cf9e;border-left:3px solid #9a7415;padding:9px 12px;font-size:11.5px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none;margin-top:4px"></span>Слишком много попыток — попробуй через 15 минут</div>
+    <div style="font-size:11px;color:#a39b85;margin-top:8px;text-align:center">Поля ввода заблокированы · <span style="color:#3c5a4a;font-weight:600">Изменить почту</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">МИНИ-ОНБОРДИНГ · 1 экран, всё пропускаемо</div>
+<div style="width:375px;height:812px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;justify-content:flex-end;padding:6px 20px 0"><span style="font-size:12.5px;color:#7c7561;font-weight:500;padding:8px 4px">Пропустить</span></div>
+  <div style="padding:6px 28px 0">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:24px">Почти готово</div>
+    <div style="font-size:12.5px;color:#7c7561;margin-top:6px;line-height:1.5">Пара штрихов — и можно добавлять желания. Всё это можно поменять потом.</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:22px">
+      <div style="width:72px;height:72px;border:1px dashed #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center;flex:none"><svg width="20" height="20" viewBox="0 0 22 22"><line x1="11" y1="4" x2="11" y2="18" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="11" x2="18" y2="11" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg></div>
+      <div style="font-size:12px;color:#3c5a4a;font-weight:600">Добавить фото</div>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:20px 0 6px">Имя</div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px;font-size:14px">Илья</div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Ник — твоя ссылка</div>
+    <div style="display:flex;align-items:center;background:#faf8f2;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a">
+      <span style="padding:12px 0 12px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a39b85">wishka.app/u/</span>
+      <span style="padding:12px 12px 12px 0;font-family:'JetBrains Mono',monospace;font-size:13px;flex:1">ilya</span>
+      <span style="padding:0 12px;color:#3c5a4a;font-weight:600;font-size:14px">✓</span>
+    </div>
+    <div style="font-size:11px;color:#3c5a4a;margin-top:5px">Свободен · пропустишь — сгенерируем сами</div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Базовая валюта</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#faf8f2;border:1px solid #cfc7b3;padding:12px">
+      <span style="font-size:14px"><span style="font-family:'JetBrains Mono',monospace">₾</span> Лари · GEL</span>
+      <svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    </div>
+    <div style="font-size:11px;color:#a39b85;margin-top:5px">Подставляется в новые желания — у каждого можно поменять</div>
+  </div>
+  <div style="margin-top:auto;padding:0 28px 40px">
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:13px;font-size:13.5px;font-weight:500">Готово — к списку</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">НИК · состояния проверки</div>
+<div style="width:300px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:center;background:#faf8f2;border:1px solid #cfc7b3">
+      <span style="padding:10px 0 10px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a39b85">wishka.app/u/</span>
+      <span style="padding:10px 11px 10px 0;font-family:'JetBrains Mono',monospace;font-size:12px;flex:1">ilya</span>
+      <span style="margin:0 11px;width:13px;height:13px;border:2px solid #e3ddcf;border-top-color:#7c7561;border-radius:50%;animation:ws-spin .7s linear infinite;flex:none"></span>
+    </div>
+    <div style="font-size:11px;color:#a39b85;margin-top:5px">Проверяем…</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:center;background:#faf8f2;border:1px solid #e2cf9e">
+      <span style="padding:10px 0 10px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a39b85">wishka.app/u/</span>
+      <span style="padding:10px 11px 10px 0;font-family:'JetBrains Mono',monospace;font-size:12px;flex:1">ilya</span>
+    </div>
+    <div style="font-size:11px;color:#9a7415;margin-top:5px">Занят — попробуй <b style="font-family:'JetBrains Mono',monospace">ilya2</b></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:center;background:#faf8f2;border:1px solid #a8443a">
+      <span style="padding:10px 0 10px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a39b85">wishka.app/u/</span>
+      <span style="padding:10px 11px 10px 0;font-family:'JetBrains Mono',monospace;font-size:12px;flex:1">илья!</span>
+    </div>
+    <div style="font-size:11px;color:#a8443a;margin-top:5px">Только латиница, цифры и дефис</div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.2 Мой список" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.2</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Мой список — состояния</span><span style="font-size:11.5px;color:#7c7561">готовый экран утверждён в ряду 3 (Directions) · здесь — все остальные состояния</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">SKELETON + ОФЛАЙН-ПЛАШКА</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;background:#f6ecd2;border-top:1px solid #e2cf9e;border-bottom:1px solid #e2cf9e;padding:7px 20px;font-size:11px;color:#9a7415"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none"></span>Нет сети — показываем сохранённое</div>
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">ЗАГРУЖАЕМ…</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3">
+      <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:7px">
+        <span style="height:11px;width:85%;background:#efeadd"></span>
+        <span style="height:11px;width:55%;background:#efeadd"></span>
+        <span style="height:14px;width:40%;background:#f5f2ea;border:1px solid #efeadd"></span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3">
+      <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:7px">
+        <span style="height:11px;width:70%;background:#efeadd"></span>
+        <span style="height:11px;width:45%;background:#efeadd"></span>
+        <span style="height:14px;width:52%;background:#f5f2ea;border:1px solid #efeadd"></span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3">
+      <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:7px">
+        <span style="height:11px;width:80%;background:#efeadd"></span>
+        <span style="height:14px;width:45%;background:#f5f2ea;border:1px solid #efeadd"></span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3">
+      <div style="aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:7px">
+        <span style="height:11px;width:65%;background:#efeadd"></span>
+        <span style="height:14px;width:38%;background:#f5f2ea;border:1px solid #efeadd"></span>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ПУСТОЙ СПИСОК · онбординговое состояние</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">0 ЖЕЛАНИЙ · /U/ILYA</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center">
+    <div style="width:130px;aspect-ratio:4/5;background:repeating-linear-gradient(45deg,#f5f2ea 0 10px,#efeadd 10px 20px);border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center;position:relative">
+      <span style="transform:rotate(-8deg);font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 8px;background:rgba(250,248,242,.72)">Пусто</span>
+    </div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px;margin-top:20px">Первая запись — за тобой</div>
+    <div style="font-size:12.5px;color:#7c7561;line-height:1.55;margin-top:8px">Вставь ссылку на то, что хочешь — остальное сделаем мы.</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:12px 24px;font-size:13px;font-weight:500;margin-top:18px">Добавить желание</div>
+  </div>
+  <div style="height:90px"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ПОД ФИЛЬТРЫ НИЧЕГО · нейтральное, не онбординг</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">7 ЖЕЛАНИЙ · ФИЛЬТР: МЕЧТЫ + ЭЛЕКТРОНИКА</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561;border-right:1px solid #cfc7b3">Все</span>
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3">Мечты</span>
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2">Электроника</span>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:34px;color:#cfc7b3">∅</div>
+    <div style="font-size:13px;color:#7c7561;line-height:1.55;margin-top:10px">Под эти фильтры ничего не нашлось</div>
+    <div style="border:1px solid #cfc7b3;background:#faf8f2;padding:10px 20px;font-size:12.5px;font-weight:500;margin-top:14px">Сбросить фильтры</div>
+  </div>
+  <div style="height:90px"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ОШИБКА ЗАГРУЗКИ</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0"><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Ильи</div></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center">
+    <div style="width:44px;height:44px;border:2px solid #a8443a;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;color:#a8443a">!</div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:18px;margin-top:16px">Не получилось загрузить</div>
+    <div style="font-size:12.5px;color:#7c7561;line-height:1.55;margin-top:6px">Что-то с соединением. Желания на месте — попробуем ещё раз?</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:11px 26px;font-size:13px;font-weight:500;margin-top:16px">Повторить</div>
+  </div>
+  <div style="height:90px"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">МЕЛКИЕ ПАТТЕРНЫ СПИСКА</div>
+<div style="width:300px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:2px 0 8px"><span style="width:15px;height:15px;border:2px solid #7c7561;border-top-color:transparent;border-radius:50%;animation:ws-spin .9s linear infinite"></span></div>
+    <div style="font-size:11px;color:#a39b85;text-align:center">Pull-to-refresh: спиннер под шапкой, список сдвигается вниз</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:10px">
+      <div style="flex:1;height:52px;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+      <div style="flex:1;height:52px;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite"></div>
+    </div>
+    <div style="font-size:11px;color:#a39b85;margin-top:8px">Бесконечная прокрутка: пара скелетон-карточек в конце сетки</div>
+  </div>
+  <div style="background:#2b2820;color:#faf8f2;display:flex;align-items:center;gap:10px;padding:12px 14px">
+    <span style="font-size:12.5px;flex:1">Картинка готова</span>
+    <span style="font-size:12.5px;font-weight:600;color:#9cc3ad">Показать</span>
+  </div>
+  <div style="font-size:10.5px;color:#a39b85;line-height:1.5">Нижний паддинг сетки 120px — FAB не перекрывает последнюю карточку. Состояния AI-картинки на карточке — в матрице мини-системы.</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.3 Добавление желания" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.3</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Добавление желания — главный флоу</span><span style="font-size:11.5px;color:#7c7561">шаг 1 точка входа · шаг 2 парсинг · шаг 3 форма</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШАГ 1 · BOTTOM SHEET ПО FAB</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1"><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Ильи</div></div>
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(43,40,32,.4)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:1px solid #cfc7b3;box-shadow:0 -10px 30px rgba(43,40,32,.3)">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:8px 20px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Новое желание</div>
+    <div style="padding:10px 20px 0">
+      <div style="border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;background:#faf8f2;padding:13px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a39b85">Вставь ссылку на товар…</div>
+      <div style="display:flex;align-items:center;gap:8px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:8px 11px;margin-top:8px;font-size:11.5px"><span>Добавить ссылку из буфера?</span><span style="flex:1"></span><b style="color:#3c5a4a">Вставить</b></div>
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 20px 0">
+      <span style="flex:1;padding:11px 8px;font-size:12.5px;font-weight:500;border:1px solid #cfc7b3;text-align:center">Добавь словами</span>
+      <span style="flex:1;padding:11px 8px;font-size:12.5px;font-weight:500;border:1px solid #cfc7b3;text-align:center">Заполнить вручную</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;margin:12px 20px 0;padding:9px 12px;border:1px dashed #cfc7b3;background:#f5f2ea;font-size:11.5px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#a39b85;flex:none">ЧЕРНОВИК</span>
+      <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Поплавать с китами</span>
+      <b style="color:#3c5a4a;flex:none">Продолжить</b>
+    </div>
+    <div style="height:26px"></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШАГ 2 · ПАРСИНГ — БЫСТРЫЙ И МЕДЛЕННЫЙ ПУТЬ</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:16px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:12px">
+      <div style="width:84px;aspect-ratio:4/5;background:linear-gradient(90deg,#f5f2ea 0%,#efeadd 40%,#f5f2ea 80%);background-size:180px 100%;animation:ws-shim 1.2s linear infinite;flex:none"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
+        <span style="height:11px;width:90%;background:#efeadd"></span>
+        <span style="height:11px;width:60%;background:#efeadd"></span>
+        <span style="height:14px;width:45%;background:#f5f2ea;border:1px solid #efeadd"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11.5px;color:#7c7561"><span style="width:13px;height:13px;border:2px solid #e3ddcf;border-top-color:#3c5a4a;border-radius:50%;animation:ws-spin .8s linear infinite;flex:none"></span>Смотрим, что там…</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:10px">0–5 СЕК · БЫСТРЫЙ ПУТЬ</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:16px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:#7c7561"><span style="width:13px;height:13px;border:2px solid #e3ddcf;border-top-color:#9a7415;border-radius:50%;animation:ws-spin .8s linear infinite;flex:none"></span>Магазин отвечает медленно, продолжаем…</div>
+    <div style="border:1px solid #cfc7b3;text-align:center;padding:10px;font-size:12.5px;font-weight:500;margin-top:12px">Заполнить руками</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:10px">5–15 СЕК · ОЖИДАНИЕ НИКОГДА НЕ УДЕРЖИВАЕТ</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:16px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:12px;line-height:1.55">Этот магазин не делится данными — <b>заполним вместе</b></div>
+    <div style="display:flex;align-items:center;gap:8px;border:1px dashed #cfc7b3;background:#f5f2ea;padding:8px 11px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#7c7561"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a39b85" stroke-width="2.4" style="flex:none"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ozon.ru/product/48P-129…</span></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:10px">НЕ ВЫШЛО / СТОП-ЛИСТ (AMAZON И ПОДОБНЫЕ — СРАЗУ СЮДА, БЕЗ ИМИТАЦИИ) · СПОКОЙНЫЙ ТОН, НЕ ОШИБКА</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШАГ 2 · ЧАСТИЧНО · ДУБЛИКАТ · ЗАКРЫТИЕ</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:16px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:12px">
+      <div style="width:64px;aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px">Керамическая ваза</div>
+        <div style="background:#f6ecd2;border:1px solid #e2cf9e;color:#9a7415;font-size:10.5px;padding:5px 8px;margin-top:7px">Цену не нашли — впиши руками</div>
+      </div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:10px">ЧАСТИЧНО → ШАГ 3 С ПОДСВЕЧЕННЫМИ ПУСТЫМИ ПОЛЯМИ</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Это уже есть в твоём списке</div>
+    <div style="display:flex;gap:10px;align-items:center;margin:8px 16px 0;border:1px dashed #cfc7b3;background:#f5f2ea;padding:8px">
+      <div style="width:38px;height:38px;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);flex:none"></div>
+      <div style="flex:1;min-width:0"><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Наушники с шумодавом</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">28 000 ₽ · добавлено 02.08</div></div>
+    </div>
+    <div style="display:flex;border-top:1px solid #e3ddcf;margin-top:12px">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a;border-right:1px solid #e3ddcf">Открыть её</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561">Всё равно добавить</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 4px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Сохранить черновик?</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Вернёшься к нему из окна добавления.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Удалить</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a">Сохранить</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШАГ 3 · ФОРМА КАРТОЧКИ (одна для всех сценариев) · полная прокрутка</div>
+<div style="width:375px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 14 14"><line x1="2" y1="2" x2="12" y2="12" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><line x1="12" y1="2" x2="2" y2="12" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    <div style="flex:1"><div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Новое желание</div></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;color:#a39b85">ЧЕРНОВИК ✓</div>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="display:flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;background:#2b2820;color:#faf8f2;text-align:center;border-right:1px solid #cfc7b3">Товар</span>
+      <span style="flex:1;padding:9px 4px;font-size:11px;color:#7c7561;text-align:center;border-right:1px solid #cfc7b3">Впечатление</span>
+      <span style="flex:1;padding:9px 4px;font-size:11px;color:#7c7561;text-align:center;border-right:1px solid #cfc7b3">Услуга</span>
+      <span style="flex:1;padding:9px 4px;font-size:11px;color:#7c7561;text-align:center">Сертификат</span>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Название <span style="color:#a8443a">*</span></div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px;font-size:14px">Керамическая ваза ручной работы</div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:14px 0 6px">Ссылка</div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">craftstore.ge/vase-terra-042</div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:14px 0 6px">Изображение</div>
+    <div style="display:flex;gap:12px">
+      <div style="width:96px;aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);flex:none;position:relative"><span style="position:absolute;left:5px;bottom:5px;font:8px 'JetBrains Mono',monospace;color:rgba(255,255,255,.75)">из магазина</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        <span style="border:1px solid #cfc7b3;text-align:center;padding:9px;font-size:12px;font-weight:500">Заменить</span>
+        <span style="border:1px solid #cfc7b3;text-align:center;padding:9px;font-size:12px;font-weight:500">Сгенерировать (AI)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85;text-align:center">ОСТАЛОСЬ 2 ГЕНЕРАЦИИ СЕГОДНЯ</span>
+      </div>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Цена</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+        <span style="padding:8px 12px;font-size:11.5px;font-weight:600;background:#3c5a4a;color:#faf8f2;border-right:1px solid #cfc7b3">Точная</span>
+        <span style="padding:8px 12px;font-size:11.5px;color:#7c7561">Вилка</span>
+      </div>
+      <div style="flex:1;background:#faf8f2;border:1px solid #cfc7b3;padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:13px">2 400</div>
+      <div style="border:1px solid #cfc7b3;background:#faf8f2;padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:13px;display:flex;align-items:center;gap:6px">₾ <svg width="10" height="10" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Приоритет</div>
+    <div style="display:flex;gap:8px">
+      <div style="flex:1;border:1px solid #9a7415;background:#f6ecd2;padding:10px 6px;text-align:center">
+        <span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #9a7415"></span>
+        <div style="font-size:10.5px;font-weight:600;color:#9a7415;margin-top:4px">Очень хочу</div>
+      </div>
+      <div style="flex:1;border:1px solid #cfc7b3;background:#faf8f2;padding:10px 6px;text-align:center">
+        <span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #a39b85"></span>
+        <div style="font-size:10.5px;font-weight:500;color:#7c7561;margin-top:4px">Было бы приятно</div>
+      </div>
+      <div style="flex:1;border:1px solid #cfc7b3;background:#faf8f2;padding:10px 6px;text-align:center">
+        <span style="display:inline-block;width:7px;height:7px;background:#a39b85"></span>
+        <div style="font-size:10.5px;font-weight:500;color:#7c7561;margin-top:4px">Просто идея</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;border:1px dashed #cfc7b3;background:#faf8f2;padding:11px 12px;margin-top:10px">
+      <span style="transform:rotate(-8deg);font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 6px;flex:none">Мечта</span>
+      <span style="flex:1;font-size:11px;color:#7c7561;line-height:1.4">Дорогая мечта — на неё копят или дарят вскладчину</span>
+      <span style="width:38px;height:22px;border:1px solid #cfc7b3;background:#f5f2ea;position:relative;flex:none"><span style="position:absolute;left:2px;top:2px;width:16px;height:16px;background:#a39b85"></span></span>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Категория <span style="text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;color:#a39b85">AI подставил — можно поменять</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span style="padding:7px 12px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2">Дом</span>
+      <span style="padding:7px 12px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">Хобби</span>
+      <span style="padding:7px 12px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">Электроника</span>
+      <span style="padding:7px 12px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">Ещё…</span>
+    </div>
+    <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:16px 0 6px">Заметки</div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px;font-size:13px;color:#2b2820;min-height:44px">Лучше в терракотовом, высота до 30 см</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #cfc7b3;background:#faf8f2;padding:12px;margin-top:14px">
+      <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Кому видно</div><div style="font-size:13px;margin-top:3px">Всем</div></div>
+      <svg width="12" height="12" viewBox="0 0 12 12"><polyline points="4,2 8,6 4,10" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    </div>
+  </div>
+  <div style="padding:16px 20px 26px;border-top:1px solid #e3ddcf;margin-top:16px;background:#faf8f2">
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:13px;font-size:13.5px;font-weight:500">Добавить в список</div>
+    <div style="font-size:10px;color:#a39b85;text-align:center;margin-top:6px">Неактивна, только пока пусто название — остальное не блокирует</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШИТЫ ФОРМЫ · «КОМУ ВИДНО» И ВАЛЮТА</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 10px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Кому видно</div>
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-top:1px solid #e3ddcf;background:#e7ede9">
+      <span style="width:16px;height:16px;border:1px solid #3c5a4a;background:#3c5a4a;flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#faf8f2;font-size:10px">✓</span>
+      <div><div style="font-size:13px;font-weight:600">Всем</div><div style="font-size:11px;color:#7c7561;margin-top:2px">Любому, у кого есть ссылка на список</div></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-top:1px solid #e3ddcf">
+      <span style="width:16px;height:16px;border:1px solid #cfc7b3;flex:none;margin-top:1px"></span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Группам</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px"><span style="width:14px;height:14px;border:1px solid #cfc7b3"></span>Семья <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85">4</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px"><span style="width:14px;height:14px;border:1px solid #cfc7b3"></span>Друзья <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a39b85">7</span></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-top:1px solid #e3ddcf">
+      <span style="width:16px;height:16px;border:1px solid #cfc7b3;flex:none;margin-top:1px"></span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Отдельным людям</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;border:1px solid #e3ddcf;padding:7px 9px;font-size:11px;color:#a39b85"><svg width="11" height="11" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line></svg>Поиск по участникам групп…</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px"><span style="width:22px;height:22px;background:#3c5a4a;color:#faf8f2;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">М</span>Маша <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#9a7415;border:1px solid #e2cf9e;background:#f6ecd2;padding:1px 5px">ПАРТНЁР</span></div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 14px;border-top:1px solid #e3ddcf;font-size:10.5px;color:#a39b85;line-height:1.5">Групп ещё нет → видны «Всем» и «Отдельным людям» + ссылка «Создать группу». Сузили видимость после чьей-то брони — бронь сохраняется, даритель получает письмо.</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 10px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Валюта желания</div>
+    <div style="margin:0 16px;display:flex;align-items:center;gap:8px;border:1px solid #cfc7b3;padding:9px 11px;font-size:12px;color:#a39b85"><svg width="12" height="12" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line></svg>Поиск: доллар, GEL, ₾…</div>
+    <div style="padding:12px 16px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a39b85;font-weight:600">Базовая и недавние</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;background:#e7ede9;font-size:13px"><span style="font-family:'JetBrains Mono',monospace;width:20px">₾</span>Лари · GEL<span style="flex:1"></span><span style="color:#3c5a4a;font-weight:600">✓</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;border-top:1px solid #f5f2ea"><span style="font-family:'JetBrains Mono',monospace;width:20px">$</span>Доллар · USD</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;border-top:1px solid #f5f2ea"><span style="font-family:'JetBrains Mono',monospace;width:20px">€</span>Евро · EUR</div>
+    <div style="padding:10px 16px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a39b85;font-weight:600;border-top:1px solid #e3ddcf;margin-top:6px">Все валюты</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px"><span style="font-family:'JetBrains Mono',monospace;width:20px">₽</span>Рубль · RUB</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px 16px;font-size:13px"><span style="font-family:'JetBrains Mono',monospace;width:20px">£</span>Фунт · GBP</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">AI-ПОДСКАЗКИ · ошибки и лимиты не блокируют</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#a39b85">AI · ОПИСАНИЕ</div>
+    <div style="border:1px dashed #cfc7b3;background:#f5f2ea;padding:10px 12px;font-size:12px;line-height:1.5;margin-top:8px">Ваза ручной работы из терракотовой глины, матовая глазурь, ~30 см.</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <span style="flex:1;background:#3c5a4a;color:#faf8f2;text-align:center;padding:9px;font-size:12px;font-weight:500">Принять</span>
+      <span style="flex:1;border:1px solid #cfc7b3;text-align:center;padding:9px;font-size:12px;font-weight:500">Редактировать</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6ecd2;border:1px solid #e2cf9e;border-left:3px solid #9a7415;padding:9px 12px;font-size:11.5px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none;margin-top:4px"></span>Не получилось — попробовать ещё раз или заполнить руками</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <span style="flex:1;border:1px solid #cfc7b3;text-align:center;padding:9px;font-size:12px;font-weight:500">Ещё раз</span>
+      <span style="flex:1;border:1px solid #cfc7b3;text-align:center;padding:9px;font-size:12px;font-weight:500">Руками</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="border:1px solid #cfc7b3;background:#f5f2ea;color:#a39b85;text-align:center;padding:10px;font-size:12px;font-weight:500">Сгенерировать (AI)</div>
+    <div style="font-size:10.5px;color:#9a7415;text-align:center;margin-top:6px">AI-лимит на сегодня исчерпан — загрузи своё фото</div>
+  </div>
+  <div style="font-size:10.5px;color:#a39b85;line-height:1.5">Всё AI — по явной кнопке, лимиты видимы, у каждой функции ручная альтернатива. Сохранение не блокируется никогда.</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.4 Карточка желания" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.4</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Карточка желания</span><span style="font-size:11.5px;color:#7c7561">своя — без единого намёка на брони · чужая — вся механика брони</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">СВОЯ · просмотр (даже если забронирована — вид тот же)</div>
+<div style="width:375px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 10px">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><polyline points="10,2 4,8 10,14" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="flex:1"></div>
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:#7c7561">✎</div>
+  </div>
+  <div style="margin:0 20px;aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative">
+    <div style="position:absolute;left:8px;bottom:7px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.75)">фото товара</div>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:22px;line-height:1.15">Керамическая ваза ручной работы</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;border:1px solid #e3ddcf;padding:3px 9px;background:#faf8f2">2 400 ₾</span>
+      <span style="display:inline-flex;align-items:center;font-size:11px;color:#9a7415;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid #9a7415;margin-right:6px"></span>Очень хочу</span>
+      <span style="flex:1"></span>
+      <span style="display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#7c7561"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c7561" stroke-width="2.4"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>ГРУППА «СЕМЬЯ»</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #cfc7b3;margin-top:14px">
+      <div style="padding:10px 12px;border-right:1px solid #e3ddcf"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Категория</div><div style="font-size:12.5px;margin-top:3px">Дом</div></div>
+      <div style="padding:10px 12px"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Тип</div><div style="font-size:12.5px;margin-top:3px">Товар</div></div>
+      <div style="grid-column:1/3;padding:10px 12px;border-top:1px solid #e3ddcf"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Заметки</div><div style="font-size:12.5px;margin-top:3px;line-height:1.5">Лучше в терракотовом, высота до 30 см</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #cfc7b3;background:#faf8f2;padding:12px;font-size:13px;font-weight:500;margin-top:12px">Открыть в магазине <svg width="11" height="11" viewBox="0 0 12 12"><path d="M4 2h6v6" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path><line x1="10" y1="2" x2="3" y2="9" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="display:flex;border-top:1px solid #e3ddcf;margin-top:16px;background:#faf8f2">
+    <span style="flex:1;text-align:center;padding:14px 4px;font-size:12px;font-weight:500;border-right:1px solid #e3ddcf">Уже подарили</span>
+    <span style="flex:1;text-align:center;padding:14px 4px;font-size:12px;font-weight:500;border-right:1px solid #e3ddcf">Редактировать</span>
+    <span style="flex:1;text-align:center;padding:14px 4px;font-size:12px;font-weight:600;color:#a8443a">Удалить</span>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">СВОЯ · «УЖЕ ПОДАРИЛИ» → АРХИВ</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Уже подарили?</div>
+    <div style="padding:2px 16px 0;font-size:11.5px;color:#7c7561;line-height:1.5">Желание уедет в архив — историю подарков.</div>
+    <div style="padding:12px 16px 0"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin-bottom:5px">Кто подарил <span style="text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;color:#a39b85">необязательно</span></div>
+    <div style="border:1px solid #cfc7b3;background:#faf8f2;padding:10px 11px;font-size:12.5px;color:#a39b85">Имя или выбери из групп…</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #cfc7b3;padding:5px 9px;font-size:11px"><span style="width:18px;height:18px;background:#3c5a4a;color:#faf8f2;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:600">М</span>Маша</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #cfc7b3;padding:5px 9px;font-size:11px"><span style="width:18px;height:18px;background:#3a5160;color:#faf8f2;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:600">Д</span>Дима</span>
+    </div></div>
+    <div style="display:flex;border-top:1px solid #e3ddcf;margin-top:14px">
+      <span style="flex:1;text-align:center;padding:12px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:12px;font-size:12.5px;font-weight:600;color:#3c5a4a">В архив</span>
+    </div>
+  </div>
+  <div style="background:#2b2820;color:#faf8f2;padding:12px 16px;display:flex;gap:12px;align-items:flex-start">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9cc3ad;flex:none">§</span>
+    <span style="font-size:11px;line-height:1.55;color:rgba(250,248,242,.8)">Поле «кто подарил» <b style="color:#faf8f2">никогда не подставляется из бронирований</b> и ничем про них не намекает. Владелец редактирует/удаляет забронированное — предупреждений нет. Дарителю уходит письмо «Подарок отмечен как вручённый».</span>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ЧУЖАЯ · свободно → бронь</div>
+<div style="width:375px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 10px">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><polyline points="10,2 4,8 10,14" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="flex:1;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561">ИЗ СПИСКА МАШИ</div>
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="margin:0 20px;aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative">
+    <span style="position:absolute;top:10px;left:10px;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span>
+    <span style="position:absolute;top:10px;right:10px;transform:rotate(-8deg);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 8px;background:rgba(250,248,242,.72)">Мечта</span>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:22px;line-height:1.15">Полёт на параплане в Гудаури</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;border:1px solid #e3ddcf;padding:3px 9px;background:#faf8f2">800–1200 $</span>
+      <span style="font-size:11px;color:#a39b85">Просто идея</span>
+    </div>
+    <div style="font-size:12.5px;color:#7c7561;line-height:1.55;margin-top:10px">Тандем-полёт с инструктором, 15–20 минут. Лучше утром — меньше ветра.</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #cfc7b3;background:#faf8f2;padding:12px;font-size:13px;font-weight:500;margin-top:12px">Открыть в магазине <svg width="11" height="11" viewBox="0 0 12 12"><path d="M4 2h6v6" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path><line x1="10" y1="2" x2="3" y2="9" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="padding:14px 20px 24px">
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:13px;font-size:13.5px;font-weight:500">Забронирую</div>
+    <div style="font-size:10.5px;color:#a39b85;text-align:center;margin-top:6px">Маша не увидит, что желание забронировано</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ЧУЖАЯ · состояния и конфликты</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Никому не скажем 😉</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Забронируем «Полёт на параплане» за тобой. Маша об этом не узнает.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a">Бронирую</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;background:#3c5a4a;color:#faf8f2">Забронировано вами</span>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;font-weight:500;color:#7c7561;border:1px solid #cfc7b3;padding:6px 11px">Снять бронь</span>
+    </div>
+    <div style="font-size:11px;color:#a39b85;margin-top:8px;line-height:1.5">«Снять бронь» → «Желание снова станет свободным для других» → тост «Бронь снята» с «Отменить»</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span>
+      <span style="flex:1;font-size:11px;color:#3c5a4a;font-weight:600;text-align:right">Что ещё свободно →</span>
+    </div>
+    <div style="font-size:11px;color:#a39b85;margin-top:8px">Занято другим: кнопки брони нет</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Увы, это уже забронировали</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Кто-то успел на секунду раньше. Посмотри, что ещё свободно у Маши.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf"><span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a">Что ещё свободно</span></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Владелец удалил это желание</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf;margin-top:10px"><span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a">К списку Маши</span></div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.5 Чужой список и гость" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.5</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Чужой список (= профиль) и гостевой режим</span><span style="font-size:11.5px;color:#7c7561">FAB скрыт — его место занимает «Создать свой список»</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ГЛАЗАМИ ДРУГА · залогинен</div>
+<div style="width:375px;height:812px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;background:radial-gradient(circle at 35% 30%,#7a9d8a 0%,#3c5a4a 80%);color:#faf8f2;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none">М</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Маши</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">12 ЖЕЛАНИЙ · ГРУППА «СЕМЬЯ»</div>
+    </div>
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="margin:12px 20px 0;border:1px solid #cfc7b3;background:#faf8f2">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px">
+      <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7c7561;flex:1">Что важно знать</span>
+      <svg width="11" height="11" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    </div>
+    <div style="padding:0 14px 11px;display:flex;gap:6px;flex-wrap:wrap">
+      <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:4px 9px;font-size:10.5px">Одежда S</span>
+      <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:4px 9px;font-size:10.5px">Обувь 37</span>
+      <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:4px 9px;font-size:10.5px">Кольцо 16</span>
+      <span style="border:1px solid #e0c6c2;background:#f6e9e7;color:#a8443a;padding:4px 9px;font-size:10.5px">Не дарить: свечи</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3">Все</span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561">Только свободные</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 120px">
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#c8a8b8 0%,#8a5c72 70%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25">Шёлковый платок</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start">95 €</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#d8e4d4 0%,#a8c4a0 100%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#3c5a4a;color:#faf8f2">Забронировано вами</span></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25">Курс керамики</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start">340 ₾</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column;opacity:.86">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span><div style="position:absolute;inset:0;background:rgba(250,248,242,.25)"></div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;color:#7c7561">Электронная книга</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start;color:#7c7561">18 000 ₽</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span><span style="position:absolute;top:32px;right:6px;transform:rotate(-8deg);font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:2px 6px;background:rgba(250,248,242,.72)">Мечта</span></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25">Поездка в Каппадокию</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start">600–900 $</span>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ГЛАЗАМИ ГОСТЯ · по ссылке, без аккаунта</div>
+<div style="width:375px;height:812px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:8px;background:#2b2820;color:#faf8f2;padding:9px 14px;font-size:11px">
+    <span style="flex:1">Вы смотрите список Маши</span>
+    <span style="display:inline-flex;border:1px solid rgba(250,248,242,.3)"><span style="padding:3px 7px;font-size:9.5px;font-weight:600;background:#faf8f2;color:#2b2820">RU</span><span style="padding:3px 7px;font-size:9.5px;color:rgba(250,248,242,.7)">EN</span></span>
+    <span style="font-size:10.5px;font-weight:600;color:#9cc3ad;white-space:nowrap">Создать свой</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;background:radial-gradient(circle at 35% 30%,#7a9d8a 0%,#3c5a4a 80%);color:#faf8f2;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none">М</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Список Маши</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">12 ЖЕЛАНИЙ · ВИДНЫ «ДЛЯ ВСЕХ»</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#c8a8b8 0%,#8a5c72 70%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25">Шёлковый платок</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start">95 €</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column;opacity:.86">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span><div style="position:absolute;inset:0;background:rgba(250,248,242,.25)"></div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;color:#7c7561">Электронная книга</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;white-space:nowrap;align-self:flex-start;color:#7c7561">18 000 ₽</span>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(43,40,32,.4)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:1px solid #cfc7b3;box-shadow:0 -10px 30px rgba(43,40,32,.3)">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 20px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:19px">Как вас записать?</div>
+    <div style="padding:2px 20px 0;font-size:11.5px;color:#7c7561;line-height:1.5">Чтобы Маша не получила два платка — запомним, что этот берёте вы.</div>
+    <div style="padding:12px 20px 0">
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin-bottom:5px">Имя <span style="color:#a8443a">*</span></div>
+      <div style="background:#faf8f2;border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;padding:11px 12px;font-size:13.5px">Бабушка Т.</div>
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin:12px 0 5px">Почта <span style="text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;color:#a39b85">необязательно</span></div>
+      <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:11px 12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a39b85">you@example.com</div>
+      <div style="font-size:10.5px;color:#a39b85;margin-top:5px">Пришлём напоминание и ссылку для управления бронью</div>
+    </div>
+    <div style="padding:14px 20px 26px"><div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:12px;font-size:13px;font-weight:500">Забронировать</div></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ГОСТЬ · состояния и переходы</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:9px 12px;font-size:11.5px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#3c5a4a;flex:none;margin-top:4px"></span>Готово! Мы запомнили вас на этом устройстве</div>
+    <div style="border:1px solid #cfc7b3;background:#faf8f2;padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#a39b85;margin-top:10px">Оставить почту — на всякий случай</div>
+    <div style="font-size:10.5px;color:#a39b85;margin-top:8px;line-height:1.5">+ мягкий призыв: «Создать свой список» — без принуждения</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Забронировано</span>
+      <span style="flex:1;font-size:11px;color:#7c7561;line-height:1.4">Это вы бронировали? Откройте ссылку из письма</span>
+    </div>
+    <div style="font-size:10.5px;color:#a39b85;margin-top:8px;line-height:1.5">Другое устройство: бронь привязана к токену + почте. Письмо содержит «Управлять бронью».</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Нашли 2 ваши брони</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Вы бронировали как гость с этой почты. Перенести брони в аккаунт?</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Не сейчас</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#3c5a4a">Перенести</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:12.5px;color:#7c7561;text-align:center;padding:6px 0">У Маши пока нет желаний</div>
+    <div style="font-size:10.5px;color:#a39b85;text-align:center">для друга: + «загляни в „Что важно знать“»</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:12.5px;color:#7c7561;text-align:center;padding:6px 0">Всё уже разобрали 🎉</div>
+    <div style="font-size:10.5px;color:#a39b85;text-align:center">пустое состояние фильтра «Только свободные» · кнопка «Показать все»</div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.6 Профиль" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.6</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Профиль (свой)</span><span style="font-size:11.5px;color:#7c7561">публичен по умолчанию — приватность регулируется видимостью желаний</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ПРОФИЛЬ · полная прокрутка</div>
+<div style="width:375px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:14px;padding:8px 20px 14px;border-bottom:3px double #2b2820">
+    <div style="width:64px;height:64px;background:radial-gradient(circle at 35% 30%,#8aa393 0%,#3c5a4a 85%);color:#faf8f2;font-weight:600;font-size:22px;display:flex;align-items:center;justify-content:center;flex:none;position:relative">ИК<span style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;background:#2b2820;display:flex;align-items:center;justify-content:center;font-size:10px;color:#faf8f2">✎</span></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:23px">Илья</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#3c5a4a;border-bottom:1px solid #3c5a4a">wishka.app/u/ilya</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;color:#7c7561;border:1px solid #cfc7b3;padding:2px 6px">КОПИРОВАТЬ</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin:12px 20px 0;border:1px solid #cfc7b3;background:#faf8f2;padding:11px 14px">
+    <div style="font-size:11.5px;color:#7c7561;line-height:1.5">Профиль открыт по ссылке — его видит любой, кому ты её отправишь</div>
+    <div style="font-size:12px;color:#3c5a4a;font-weight:600;margin-top:6px">Посмотреть, как видят другие →</div>
+  </div>
+  <div style="margin:12px 20px 0;border:1px solid #cfc7b3;background:#faf8f2">
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 14px">
+      <div><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Партнёр</div><div style="display:flex;align-items:center;gap:7px;margin-top:5px"><span style="width:24px;height:24px;background:radial-gradient(circle at 35% 30%,#7a9d8a 0%,#3c5a4a 80%);color:#faf8f2;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">М</span><span style="font-size:13px">Маша</span></div></div>
+      <span style="flex:1"></span>
+      <span style="font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;padding:6px 11px">Убрать</span>
+    </div>
+    <div style="padding:0 14px 10px;font-size:10.5px;color:#a39b85">Адресат видимости «только партнёру»</div>
+  </div>
+  <div style="margin:12px 20px 0;border:1px solid #cfc7b3;background:#faf8f2">
+    <div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid #e3ddcf">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Размеры</div><div style="font-size:11px;color:#7c7561;margin-top:2px">Одежда M · Обувь 43 · Рост 182</div></div>
+      <svg width="11" height="11" viewBox="0 0 12 12"><polyline points="4,2 8,6 4,10" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    </div>
+    <div style="display:flex;align-items:center;padding:11px 14px">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Вкусы</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+        <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:3px 8px;font-size:10.5px">керамика</span>
+        <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:3px 8px;font-size:10.5px">горы</span>
+        <span style="border:1px solid #e3ddcf;background:#f5f2ea;padding:3px 8px;font-size:10.5px">кофе</span>
+        <span style="border:1px solid #e0c6c2;background:#f6e9e7;color:#a8443a;padding:3px 8px;font-size:10.5px">не дарить: парфюм</span>
+      </div></div>
+      <svg width="11" height="11" viewBox="0 0 12 12" style="flex:none"><polyline points="4,2 8,6 4,10" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    </div>
+  </div>
+  <div style="margin:12px 20px 0;border:1px solid #cfc7b3;background:#faf8f2">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e3ddcf"><span style="font-size:13px">Язык</span><span style="display:inline-flex;border:1px solid #cfc7b3"><span style="padding:4px 10px;font-size:10.5px;font-weight:600;background:#2b2820;color:#faf8f2">RU</span><span style="padding:4px 10px;font-size:10.5px;color:#7c7561">EN</span></span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e3ddcf"><span style="font-size:13px">Тема</span><span style="display:inline-flex;border:1px solid #cfc7b3"><span style="padding:4px 10px;font-size:10.5px;color:#7c7561">Светлая</span><span style="padding:4px 10px;font-size:10.5px;color:#7c7561;border-left:1px solid #cfc7b3">Тёмная</span><span style="padding:4px 10px;font-size:10.5px;font-weight:600;background:#2b2820;color:#faf8f2;border-left:1px solid #cfc7b3">Системная</span></span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e3ddcf"><span style="font-size:13px">Базовая валюта</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px">₾ GEL</span></div>
+    <div style="padding:12px 14px;border-bottom:1px solid #e3ddcf;font-size:13px;font-weight:500">Выйти</div>
+    <div style="padding:12px 14px;font-size:13px;font-weight:600;color:#a8443a">Удалить аккаунт</div>
+  </div>
+  <div style="height:26px"></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ПРЕДПРОСМОТР «КАК ВИДЯТ ДРУГИЕ»</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 10px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Посмотреть глазами…</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid #e3ddcf;background:#e7ede9"><span style="width:16px;height:16px;border:1px solid #3c5a4a;background:#3c5a4a;display:flex;align-items:center;justify-content:center;color:#faf8f2;font-size:10px;flex:none">✓</span><span style="font-size:13px;font-weight:600">Гостя</span><span style="font-size:10.5px;color:#7c7561">только «для всех»</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid #e3ddcf"><span style="width:16px;height:16px;border:1px solid #cfc7b3;flex:none"></span><span style="font-size:13px;font-weight:600">Группы «Семья»</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 16px 15px;border-top:1px solid #e3ddcf"><span style="width:16px;height:16px;border:1px solid #cfc7b3;flex:none"></span><span style="font-size:13px;font-weight:600">Конкретного человека</span><span style="font-size:10.5px;color:#7c7561">Маша</span></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:0;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:center;gap:10px;background:#f6ecd2;border-bottom:1px solid #e2cf9e;padding:8px 14px;font-size:11px;color:#9a7415"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none"></span><span style="flex:1"><b>Предпросмотр:</b> так список видит гость</span><b>Выйти</b></div>
+    <div style="padding:12px 14px;font-size:10.5px;color:#a39b85;line-height:1.5">Жёлтая плашка держится сверху всего предпросмотра. <b style="color:#7c7561">Брони не показываются никогда</b> — даже в предпросмотре глазами друга.</div>
+  </div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561;margin-top:6px">АВАТАР · СМЕНА НИКА · АВТОСОХРАНЕНИЕ</div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf;display:flex;flex-direction:column;gap:9px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:30px;height:30px;border-radius:50%;background:conic-gradient(#3c5a4a 0 62%,#e3ddcf 62% 100%);flex:none"></span><span style="font-size:11.5px;color:#7c7561">Загружаем фото… 62%</span></div>
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6e9e7;border:1px solid #e0c6c2;border-left:3px solid #a8443a;padding:8px 11px;font-size:11px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#a8443a;flex:none;margin-top:3px"></span>Файл слишком большой — до 10 МБ</div>
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6ecd2;border:1px solid #e2cf9e;border-left:3px solid #9a7415;padding:8px 11px;font-size:11px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none;margin-top:3px"></span>Смена ника: «Старая ссылка перестанет работать» + проверка уникальности</div>
+    <div style="background:#2b2820;color:#faf8f2;display:flex;align-items:center;padding:10px 12px;font-size:11.5px">Сохранено<span style="flex:1"></span><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#9cc3ad">АВТО</span></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Удалить аккаунт?</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Список и группы, где ты админ один, удалятся. Чужие брони твоих желаний исчезнут, дарители получат письмо. Это навсегда.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#a8443a">Удалить</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШИТЫ «РАЗМЕРЫ» И «ВКУСЫ»</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 8px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Размеры</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #e3ddcf"><span style="font-size:12.5px">Одежда</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid #cfc7b3;padding:4px 10px">M</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #f5f2ea"><span style="font-size:12.5px">Обувь</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid #cfc7b3;padding:4px 10px">43</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #f5f2ea"><span style="font-size:12.5px">Кольцо</span><span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:3px 9px;border:1px solid #e2cf9e">пусто</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #f5f2ea"><span style="font-size:12.5px">Рост</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid #cfc7b3;padding:4px 10px">182</span></div>
+    <div style="padding:10px 16px 14px;border-top:1px solid #e3ddcf;font-size:12px;color:#3c5a4a;font-weight:600">+ Добавить свой параметр</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 8px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Вкусы</div>
+    <div style="padding:4px 16px 0;display:flex;gap:6px;flex-wrap:wrap">
+      <span style="padding:6px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2">керамика</span>
+      <span style="padding:6px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2">горы</span>
+      <span style="padding:6px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2">кофе</span>
+      <span style="padding:6px 11px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">книги</span>
+      <span style="padding:6px 11px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">винил</span>
+      <span style="padding:6px 11px;font-size:11.5px;color:#7c7561;border:1px solid #cfc7b3;background:#faf8f2">+ свой</span>
+    </div>
+    <div style="margin:12px 16px 0;padding-top:10px;border-top:1px solid #e3ddcf;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a8443a;font-weight:600">Не дарить</div>
+    <div style="padding:8px 16px 14px;display:flex;gap:6px;flex-wrap:wrap">
+      <span style="border:1px solid #e0c6c2;background:#f6e9e7;color:#a8443a;padding:5px 10px;font-size:11.5px">парфюм</span>
+      <span style="border:1px solid #e0c6c2;background:#f6e9e7;color:#a8443a;padding:5px 10px;font-size:11.5px">свечи</span>
+      <span style="border:1px dashed #e0c6c2;color:#a8443a;padding:5px 10px;font-size:11.5px">+ добавить</span>
+    </div>
+  </div>
+  <div style="font-size:10.5px;color:#a39b85;line-height:1.5">Не заполнено → в чужом профиле параметр не показывается; в своём — призыв «Заполни, чтобы тебе дарили точнее».</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.7 Люди: группы и мои брони" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.7</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Люди — Группы и Мои брони</span><span style="font-size:11.5px;color:#7c7561">вкладка таб-бара с двумя табами</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ГРУППЫ · список</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="padding:8px 20px 0;border-bottom:3px double #2b2820">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:23px">Люди</div>
+    <div style="display:flex;margin-top:12px">
+      <span style="padding:9px 16px;font-size:12.5px;font-weight:600;border-bottom:2px solid #3c5a4a;color:#2b2820">Группы</span>
+      <span style="padding:9px 16px;font-size:12.5px;color:#7c7561">Мои брони <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">3</span></span>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;background:#e7ede9;border:1px solid #bcccc1;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">🏡</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Семья</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:#7c7561;margin-top:2px">4 УЧАСТНИКА · ВЫ АДМИН</div>
+      </div>
+      <div style="display:flex">
+        <span style="width:26px;height:26px;background:radial-gradient(circle at 35% 30%,#7a9d8a,#3c5a4a);border:2px solid #faf8f2;color:#faf8f2;font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">М</span>
+        <span style="width:26px;height:26px;background:radial-gradient(circle at 35% 30%,#6a82a0,#3a5160);border:2px solid #faf8f2;color:#faf8f2;font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-left:-8px">Д</span>
+        <span style="width:26px;height:26px;background:radial-gradient(circle at 35% 30%,#b08a6a,#8a5c3a);border:2px solid #faf8f2;color:#faf8f2;font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-left:-8px">Т</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;background:#e7edf0;border:1px solid #bcc8ce;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">🎲</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Друзья</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:#7c7561;margin-top:2px">7 УЧАСТНИКОВ</div>
+      </div>
+      <div style="display:flex">
+        <span style="width:26px;height:26px;background:radial-gradient(circle at 35% 30%,#8a6a8a,#5c3a5c);border:2px solid #faf8f2;color:#faf8f2;font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">К</span>
+        <span style="width:26px;height:26px;background:radial-gradient(circle at 35% 30%,#6a9d92,#3a6058);border:2px solid #faf8f2;color:#faf8f2;font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-left:-8px">А</span>
+        <span style="width:26px;height:26px;background:#f5f2ea;border:2px solid #faf8f2;color:#7c7561;font-size:8px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-left:-8px">+5</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <span style="flex:1;background:#3c5a4a;color:#faf8f2;text-align:center;padding:11px;font-size:12.5px;font-weight:500">Создать группу</span>
+      <span style="flex:1;border:1px solid #cfc7b3;background:#faf8f2;text-align:center;padding:11px;font-size:12.5px;font-weight:500">У меня есть приглашение</span>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ЭКРАН ГРУППЫ «СЕМЬЯ»</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><polyline points="10,2 4,8 10,14" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="width:40px;height:40px;background:#e7ede9;border:1px solid #bcccc1;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none">🏡</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:20px">Семья</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:#7c7561">4 УЧАСТНИКА · ВЫ АДМИН</div>
+    </div>
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;color:#7c7561">⋯</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:7px">
+      <span style="width:48px;height:48px;background:radial-gradient(circle at 35% 30%,#7a9d8a,#3c5a4a);color:#faf8f2;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">М</span>
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px">Маша</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561">12 ЖЕЛАНИЙ</div>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:7px">
+      <span style="width:48px;height:48px;background:radial-gradient(circle at 35% 30%,#6a82a0,#3a5160);color:#faf8f2;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">Д</span>
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px">Дима</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85">СПИСОК ПОКА ПУСТ</div>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:7px">
+      <span style="width:48px;height:48px;background:radial-gradient(circle at 35% 30%,#b08a6a,#8a5c3a);color:#faf8f2;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">Т</span>
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px">Тимур</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7c7561">5 ЖЕЛАНИЙ</div>
+    </div>
+    <div style="border:1px dashed #cfc7b3;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px">
+      <span style="width:48px;height:48px;border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 22 22"><line x1="11" y1="4" x2="11" y2="18" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="11" x2="18" y2="11" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg></span>
+      <div style="font-size:12px;color:#3c5a4a;font-weight:600">Пригласить</div>
+    </div>
+  </div>
+  <div style="margin:14px 20px 0;border:1px dashed #cfc7b3;background:#f5f2ea;padding:11px 14px;display:flex;align-items:center;gap:10px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#a39b85;flex:none">V2</span>
+    <span style="font-size:11px;color:#7c7561;line-height:1.4">Здесь появятся Secret Santa и события — место зарезервировано</span>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">МОИ БРОНИ</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="padding:8px 20px 0;border-bottom:3px double #2b2820">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:23px">Люди</div>
+    <div style="display:flex;margin-top:12px">
+      <span style="padding:9px 16px;font-size:12.5px;color:#7c7561">Группы</span>
+      <span style="padding:9px 16px;font-size:12.5px;font-weight:600;border-bottom:2px solid #3c5a4a;color:#2b2820">Мои брони <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">3</span></span>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:11px 12px;display:flex;gap:11px;align-items:center">
+      <div style="width:44px;height:44px;background:linear-gradient(180deg,#d8e4d4 0%,#a8c4a0 100%);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Курс керамики</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="width:16px;height:16px;background:radial-gradient(circle at 35% 30%,#7a9d8a,#3c5a4a);color:#faf8f2;font-size:7px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">М</span><span style="font-size:10.5px;color:#7c7561">Маша · 340 ₾</span></div>
+      </div>
+      <span style="font-size:11px;font-weight:500;color:#7c7561;border:1px solid #cfc7b3;padding:6px 10px;flex:none">Снять</span>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:11px 12px;display:flex;gap:11px;align-items:center">
+      <div style="width:44px;height:44px;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Термокружка</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="width:16px;height:16px;background:radial-gradient(circle at 35% 30%,#b08a6a,#8a5c3a);color:#faf8f2;font-size:7px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">Т</span><span style="font-size:10.5px;color:#7c7561">Тимур</span><span style="font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid #d8cba6;color:#6b5326;background:#f3ecda">Изменена цена</span></div>
+      </div>
+      <span style="font-size:11px;font-weight:500;color:#7c7561;border:1px solid #cfc7b3;padding:6px 10px;flex:none">Снять</span>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:11px 12px;display:flex;gap:11px;align-items:center;opacity:.85">
+      <div style="width:44px;height:44px;background:repeating-linear-gradient(45deg,#f5f2ea 0 8px,#efeadd 8px 16px);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;color:#7c7561;text-decoration:line-through;text-decoration-color:rgba(124,117,97,.4)">Настольная лампа</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid #e0c6c2;color:#a8443a;background:#f6e9e7">Удалено владельцем</span></div>
+      </div>
+      <span style="font-size:11px;font-weight:500;color:#a39b85;flex:none">Скрыть</span>
+    </div>
+    <div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a39b85;font-weight:600;margin-top:8px">Недавно просмотренные списки</div>
+    <div style="display:flex;gap:8px">
+      <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid #cfc7b3;background:#faf8f2;padding:7px 11px;font-size:11.5px"><span style="width:20px;height:20px;background:radial-gradient(circle at 35% 30%,#8a6a8a,#5c3a5c);color:#faf8f2;font-size:8px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">К</span>Катя</span>
+      <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid #cfc7b3;background:#faf8f2;padding:7px 11px;font-size:11.5px"><span style="width:20px;height:20px;background:radial-gradient(circle at 35% 30%,#6a9d92,#3a6058);color:#faf8f2;font-size:8px;font-weight:600;display:inline-flex;align-items:center;justify-content:center">А</span>Антон</span>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#a39b85" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#3c5a4a" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ГРУППЫ · создание, инвайт, кейсы</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:12.5px;color:#7c7561;text-align:center;line-height:1.5;padding:4px 0">Группы — чтобы видеть списки близких в одном месте</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <span style="flex:1;background:#3c5a4a;color:#faf8f2;text-align:center;padding:10px;font-size:12px;font-weight:500">Создать группу</span>
+      <span style="flex:1;border:1px solid #cfc7b3;text-align:center;padding:10px;font-size:12px;font-weight:500">Есть приглашение</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:10px;text-align:center">ПЕРВЫЙ ЗАПУСК ТАБА «ГРУППЫ»</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 8px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Новая группа</div>
+    <div style="padding:0 16px"><div style="border:1px solid #3c5a4a;box-shadow:inset 0 0 0 1px #3c5a4a;padding:10px 11px;font-size:13px">Коллеги</div></div>
+    <div style="display:flex;gap:6px;padding:10px 16px 0">
+      <span style="width:34px;height:34px;background:#e7ede9;border:1px solid #3c5a4a;display:flex;align-items:center;justify-content:center;font-size:14px">🏡</span>
+      <span style="width:34px;height:34px;background:#faf8f2;border:1px solid #cfc7b3;display:flex;align-items:center;justify-content:center;font-size:14px">🎲</span>
+      <span style="width:34px;height:34px;background:#faf8f2;border:1px solid #cfc7b3;display:flex;align-items:center;justify-content:center;font-size:14px">🎁</span>
+      <span style="width:34px;height:34px;background:#faf8f2;border:1px solid #cfc7b3;display:flex;align-items:center;justify-content:center;font-size:14px">☕</span>
+    </div>
+    <div style="margin:12px 16px 0;border:1px dashed #cfc7b3;background:#f5f2ea;padding:9px 11px;display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">wishka.app/j/x7Kd92</span><b style="font-size:11px;color:#3c5a4a;flex:none">Поделиться</b></div>
+    <div style="padding:12px 16px 16px"><div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:11px;font-size:12.5px;font-weight:500">Создать и пригласить</div></div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:18px 16px;text-align:center">
+    <div style="width:44px;height:44px;background:#e7ede9;border:1px solid #bcccc1;display:inline-flex;align-items:center;justify-content:center;font-size:18px">🏡</div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px;margin-top:8px">Вас позвали в «Семью»</div>
+    <div style="font-size:11.5px;color:#7c7561;margin-top:4px">Маша приглашает вас — войдите, чтобы принять</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:11px;font-size:12.5px;font-weight:500;margin-top:12px">Войти и принять</div>
+    <div style="font-size:10.5px;color:#a39b85;margin-top:8px">Уже состоите → «Вы уже в группе» + «Открыть» · отозвано/истекло → «Попросить новую ссылку»</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Покинуть группу?</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Желания, видимые только «Семье», станут тебе недоступны. Админ уходит → права переходят старейшему участнику.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#a8443a">Покинуть</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px 14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;margin-bottom:8px">Меню группы (⋯)</div>
+    <div style="font-size:12px;line-height:2">Переименовать · Эмодзи и цвет · Ссылка-приглашение · Покинуть группу<br><span style="color:#a8443a">Только админ:</span> Удалить группу · Исключить участника</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="font-size:12.5px;color:#7c7561;text-align:center;padding:4px 0">Тут появятся подарки, которые ты забронируешь</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;text-align:center;margin-top:4px">ПУСТОЕ СОСТОЯНИЕ «МОИХ БРОНЕЙ»</div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.8 Шаринг" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.8</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Шаринг</span><span style="font-size:11.5px;color:#7c7561">единый шит · список / желание / группа</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ШИТ «ПОДЕЛИТЬСЯ»</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 8px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:17px">Поделиться списком</div>
+    <div style="margin:0 16px;border:1px dashed #cfc7b3;background:#f5f2ea;padding:9px 11px;display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#7c7561;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">wishka.app/u/ilya</span><b style="font-size:11px;color:#3c5a4a;flex:none">Скопировать</b></div>
+    <div style="display:flex;gap:8px;padding:12px 16px 0">
+      <span style="flex:1;background:#3c5a4a;color:#faf8f2;text-align:center;padding:10px;font-size:12px;font-weight:500">Поделиться…</span>
+      <span style="border:1px solid #cfc7b3;padding:10px 12px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" fill="none" stroke="#2b2820" stroke-width="1.4"></rect><rect x="8" y="1" width="5" height="5" fill="none" stroke="#2b2820" stroke-width="1.4"></rect><rect x="1" y="8" width="5" height="5" fill="none" stroke="#2b2820" stroke-width="1.4"></rect><rect x="8" y="8" width="2.4" height="2.4" fill="#2b2820"></rect><rect x="10.6" y="10.6" width="2.4" height="2.4" fill="#2b2820"></rect></svg>QR</span>
+    </div>
+    <div style="padding:10px 16px 14px;font-size:10.5px;color:#a39b85;line-height:1.5">Системный share sheet; «Скопировать» — всегда рядом как фолбэк (тост «Скопировано»).</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:14px;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;align-items:flex-start;gap:9px;background:#f6ecd2;border:1px solid #e2cf9e;border-left:3px solid #9a7415;padding:9px 12px;font-size:11.5px;line-height:1.5"><span style="width:7px;height:7px;border-radius:50%;background:#9a7415;flex:none;margin-top:4px"></span>Это желание видно не всем, но по прямой ссылке его откроет любой</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf;margin-top:12px">
+      <span style="flex:1;text-align:center;padding:10px;font-size:12px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:10px;font-size:12px;font-weight:600;color:#3c5a4a">Всё равно поделиться</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:12px 14px;box-shadow:0 1px 0 #e3ddcf;font-size:11px;color:#7c7561;line-height:1.7">
+    <b style="color:#2b2820">Куда ведёт ссылка:</b><br>Список → чужой список (6.5)<br>Желание → карточка глазами гостя (справа)<br>Группа → экран инвайта (6.7), требует входа
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">ОТДЕЛЬНОЕ ЖЕЛАНИЕ ГЛАЗАМИ ГОСТЯ</div>
+<div style="width:375px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:8px;background:#2b2820;color:#faf8f2;padding:9px 14px;font-size:11px">
+    <span style="flex:1">Из списка Маши</span>
+    <span style="display:inline-flex;border:1px solid rgba(250,248,242,.3)"><span style="padding:3px 7px;font-size:9.5px;font-weight:600;background:#faf8f2;color:#2b2820">RU</span><span style="padding:3px 7px;font-size:9.5px;color:rgba(250,248,242,.7)">EN</span></span>
+  </div>
+  <div style="margin:14px 20px 0;aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#c8a8b8 0%,#8a5c72 70%);position:relative">
+    <span style="position:absolute;top:10px;left:10px;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Свободно</span>
+    <div style="position:absolute;left:8px;bottom:7px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.7)">фото товара</div>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:22px;line-height:1.15">Шёлковый платок</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;border:1px solid #e3ddcf;padding:3px 9px;background:#faf8f2">95 €</span>
+      <span style="display:inline-flex;align-items:center;font-size:11px;color:#9a7415;font-weight:600"><span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid #9a7415;margin-right:6px"></span>Очень хочу</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #cfc7b3;background:#faf8f2;padding:12px;font-size:13px;font-weight:500;margin-top:12px">Открыть в магазине <svg width="11" height="11" viewBox="0 0 12 12"><path d="M4 2h6v6" fill="none" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></path><line x1="10" y1="2" x2="3" y2="9" stroke="#3c5a4a" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="padding:12px 20px 8px">
+    <div style="background:#3c5a4a;color:#faf8f2;text-align:center;padding:13px;font-size:13.5px;font-weight:500">Забронирую</div>
+  </div>
+  <div style="text-align:center;padding:4px 20px 24px;font-size:12.5px;color:#3c5a4a;font-weight:600">Посмотреть весь список Маши →</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.9 Архив" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.9</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Архив — история подарков</span><span style="font-size:11.5px;color:#7c7561">вход из шапки «Моего списка», не вкладка</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">АРХИВ · группировка по годам</div>
+<div style="width:375px;height:700px;background:#f3f0e9;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4);position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><polyline points="10,2 4,8 10,14" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Архив</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">5 ПОДАРКОВ · НЕ СЧИТАЮТСЯ В СПИСКЕ</div>
+    </div>
+  </div>
+  <div style="padding:14px 20px 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:#a39b85">— 2026 —</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:10px 20px 0">
+    <div style="background:#f5f2ea;border:1px solid #e3ddcf;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%);filter:grayscale(.5);opacity:.75;position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#2b2820;color:#faf8f2">Подарено</span></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;color:#7c7561;line-height:1.25">Абонемент в гончарную студию</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85">12.05.2026 · от Маши</div>
+      </div>
+    </div>
+    <div style="background:#f5f2ea;border:1px solid #e3ddcf;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);filter:grayscale(.5);opacity:.75;position:relative"><span style="position:absolute;top:8px;left:8px;font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:#2b2820;color:#faf8f2">Подарено</span></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;color:#7c7561;line-height:1.25">Плёночный фотоаппарат</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85">02.01.2026</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:16px 20px 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:#a39b85">— 2025 —</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:10px 20px 0">
+    <div style="background:#f5f2ea;border:1px solid #e3ddcf;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#6a8aa0 0%,#3a5160 70%);filter:grayscale(.5);opacity:.75"></div>
+      <div style="padding:8px 9px 10px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:13.5px;color:#7c7561;line-height:1.25">Рюкзак для походов</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85">28.12.2025 · от Димы</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7c7561">АРХИВ · действия и пустое состояние</div>
+<div style="width:320px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="display:flex;justify-content:center;padding:8px 0 2px"><span style="width:36px;height:3px;background:#cfc7b3"></span></div>
+    <div style="padding:6px 16px 8px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Абонемент в гончарную студию</div>
+    <div style="border-top:1px solid #e3ddcf;padding:12px 16px;font-size:13px;font-weight:500">Вернуть в список</div>
+    <div style="border-top:1px solid #e3ddcf;padding:12px 16px;font-size:13px;font-weight:600;color:#a8443a">Удалить навсегда</div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf">
+    <div style="padding:14px 16px 2px;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px">Удалить навсегда?</div>
+    <div style="padding:2px 16px 12px;font-size:11.5px;color:#7c7561;line-height:1.5">Подарок исчезнет из истории. Вернуть будет нельзя.</div>
+    <div style="display:flex;border-top:1px solid #e3ddcf">
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:500;color:#7c7561;border-right:1px solid #e3ddcf">Отмена</span>
+      <span style="flex:1;text-align:center;padding:11px;font-size:12.5px;font-weight:600;color:#a8443a">Удалить</span>
+    </div>
+  </div>
+  <div style="background:#faf8f2;border:1px solid #cfc7b3;padding:18px 14px;box-shadow:0 1px 0 #e3ddcf;text-align:center">
+    <div style="font-size:12.5px;color:#7c7561">Здесь будут подарки, которые тебе уже вручили</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a39b85;margin-top:4px">ПУСТОЕ СОСТОЯНИЕ</div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div data-screen-label="6.10 Служебные экраны" style="margin-top:44px">
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c5a4a">6.10</span><span style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px">Служебные экраны</span><span style="font-size:11.5px;color:#7c7561">дружелюбный тон, одно действие — никаких тупиков</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:stretch">
+  <div style="width:260px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:26px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+    <div style="width:44px;height:44px;border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;color:#a39b85">?</div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px;line-height:1.25">Ссылка недействительна или список удалён</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:10px 18px;font-size:12px;font-weight:500;margin-top:auto">Создать свой список</div>
+  </div>
+  <div style="width:260px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:26px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+    <div style="width:44px;height:44px;border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a39b85" stroke-width="2.2"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px;line-height:1.25">Этот список виден только участникам группы</div>
+    <div style="font-size:11px;color:#7c7561">Вы вошли, но доступа нет</div>
+    <div style="border:1px solid #cfc7b3;padding:10px 18px;font-size:12px;font-weight:500;margin-top:auto">На главную</div>
+  </div>
+  <div style="width:260px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:26px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+    <div style="width:44px;height:44px;border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;color:#a39b85">⌛</div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px;line-height:1.25">Приглашение истекло</div>
+    <div style="font-size:11px;color:#7c7561">Ссылки-инвайты живут ограниченное время</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:10px 18px;font-size:12px;font-weight:500;margin-top:auto">Попросить новую ссылку</div>
+  </div>
+  <div style="width:260px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;padding:26px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+    <div style="width:44px;height:44px;border:1px dashed #cfc7b3;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;color:#a39b85">→</div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:16px;line-height:1.25">Сессия истекла</div>
+    <div style="font-size:11px;color:#7c7561">После входа вернём ровно туда же</div>
+    <div style="background:#3c5a4a;color:#faf8f2;padding:10px 18px;font-size:12px;font-weight:500;margin-top:auto">Войти снова</div>
+  </div>
+</div>
+</div>
+</div>
+</x-dc>
+</body>
+</html>

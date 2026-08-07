@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# production
+build/
+dist/
+
+# env — never commit secrets
+.env
+.env.*
+!.env.example
+
+# testing
+coverage/
+
+# misc
+.DS_Store
+*.pem
+*.log
+.vercel
+.turbo
+
+# supabase local dev
+supabase/.temp/
+supabase/.branches/
+
+# editor
+.idea/
+.vscode/*
+!.vscode/extensions.json

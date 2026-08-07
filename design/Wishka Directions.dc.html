@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500;1,600&family=Unbounded:wght@500;600;700&family=Onest:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Literata:opsz,wght@7..72,500;7..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0eee9;font-family:system-ui,sans-serif}
+a{color:#2a78d6}a:hover{color:#1c5fb0}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+</style>
+</helmet>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Итог на базе <a class="dv-oid" href="#2c">2c</a>: квадратная аватарка из <a class="dv-oid" href="#2b">2b</a>, поиск и фильтры из <a class="dv-oid" href="#2a">2a</a>, переключатель вида, тёмная тема</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Светлая · вид «карточки»</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f3f0e9;font-family:Inter,system-ui,sans-serif;color:#2b2820;display:flex;flex-direction:column;height:812px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px;letter-spacing:-.01em">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">7 ЖЕЛАНИЙ · /U/ILYA</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3;white-space:nowrap">Все <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:rgba(250,248,242,.6)">7</span></span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561;border-right:1px solid #cfc7b3;white-space:nowrap">Мечты</span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561;white-space:nowrap">Дом</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="width:34px;height:34px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center;flex:none"><svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="2" x2="4" y2="12" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round"></line><polyline points="1.5,9.5 4,12 6.5,9.5" fill="none" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="10" y1="12" x2="10" y2="2" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round"></line><polyline points="7.5,4.5 10,2 12.5,4.5" fill="none" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2;flex:none">
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#2b2820;border-right:1px solid #cfc7b3"><svg width="13" height="13" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" fill="#faf8f2"></rect><rect x="8" y="1" width="5" height="5" fill="#faf8f2"></rect><rect x="1" y="8" width="5" height="5" fill="#faf8f2"></rect><rect x="8" y="8" width="5" height="5" fill="#faf8f2"></rect></svg></span>
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 14 14"><line x1="1" y1="2.5" x2="13" y2="2.5" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="7" x2="13" y2="7" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="11.5" x2="13" y2="11.5" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:9px 14px;margin:12px 20px 0;font-size:11.5px">
+    <span style="width:8px;height:8px;border-radius:50%;background:#3c5a4a;flex:none"></span>
+    <span><b>«Полёт на параплане»</b> добавлен вчера — поделись обновлённым списком</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 120px">
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.75)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;background:#faf8f2;white-space:nowrap;flex:none">2 400 ₾</span>
+          <span style="display:inline-flex;align-items:center;font-size:9.5px;color:#9a7415;font-weight:600;min-width:0"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:5px;flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Очень хочу</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative">
+        <span style="position:absolute;top:12px;right:8px;transform:rotate(-8deg);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:3px 9px;background:rgba(250,248,242,.72)">Мечта</span>
+        <div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(60,50,40,.5)">фото товара</div>
+      </div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;background:#faf8f2;white-space:nowrap;flex:none">800–1200 $</span>
+          <span style="font-size:9.5px;color:#a39b85;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Идея</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.6)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Наушники с шумодавом</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border:1px solid #e2cf9e;white-space:nowrap;flex:none">нет цены</span>
+          <span style="font-size:9.5px;color:#7c7561;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Приятно</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%);position:relative">
+        <span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border:1px solid #cfc7b3;background:rgba(250,248,242,.85);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7c7561" stroke-width="2.4"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+        <div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(60,50,40,.55)">фото товара</div>
+      </div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Абонемент в гончарную студию</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;background:#faf8f2;white-space:nowrap;flex:none">120 €</span>
+          <span style="font-size:9.5px;color:#a39b85;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Идея</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:100px;width:56px;height:56px;background:#faf8f2;border:2px solid #3c5a4a;box-shadow:0 14px 30px -18px rgba(43,40,32,.5);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Светлая · вид «список» (тот же переключатель)</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f3f0e9;font-family:Inter,system-ui,sans-serif;color:#2b2820;display:flex;flex-direction:column;height:812px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #2b2820">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px;letter-spacing:-.01em">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">7 ЖЕЛАНИЙ · /U/ILYA</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3;white-space:nowrap">Все <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:rgba(250,248,242,.6)">7</span></span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561;border-right:1px solid #cfc7b3;white-space:nowrap">Мечты</span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#7c7561;white-space:nowrap">Дом</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="width:34px;height:34px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center;flex:none"><svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="2" x2="4" y2="12" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round"></line><polyline points="1.5,9.5 4,12 6.5,9.5" fill="none" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="10" y1="12" x2="10" y2="2" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round"></line><polyline points="7.5,4.5 10,2 12.5,4.5" fill="none" stroke="#7c7561" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2;flex:none">
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-right:1px solid #cfc7b3"><svg width="13" height="13" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" fill="#7c7561"></rect><rect x="8" y="1" width="5" height="5" fill="#7c7561"></rect><rect x="1" y="8" width="5" height="5" fill="#7c7561"></rect><rect x="8" y="8" width="5" height="5" fill="#7c7561"></rect></svg></span>
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#2b2820"><svg width="13" height="13" viewBox="0 0 14 14"><line x1="1" y1="2.5" x2="13" y2="2.5" stroke="#faf8f2" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="7" x2="13" y2="7" stroke="#faf8f2" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="11.5" x2="13" y2="11.5" stroke="#faf8f2" stroke-width="1.8" stroke-linecap="round"></line></svg></span>
+    </div>
+  </div>
+  <div style="margin:14px 16px 0;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4)">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #cfc7b3">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;flex:1">№ · Желание</span>
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Цена</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed #cfc7b3">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">1</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Керамическая ваза</div>
+        <div style="display:inline-flex;align-items:center;font-size:9.5px;color:#9a7415;font-weight:600;margin-top:3px"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:5px"></span>Очень хочу</div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap">2 400 ₾</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed #cfc7b3;background:#f5f2ea">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">2</span>
+      <div style="width:44px;height:44px;flex:none;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Полёт на параплане</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:3px"><span style="font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1.5px solid #9a7415;color:#9a7415;transform:rotate(-2deg)">Мечта</span><span style="font-size:10px;color:#a39b85">Идея</span></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap">800–1200&nbsp;$</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed #cfc7b3">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">3</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Наушники с шумодавом</div>
+        <div style="font-size:10.5px;color:#7c7561;margin-top:3px">Было бы приятно</div>
+      </div>
+      <span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border:1px solid #e2cf9e;white-space:nowrap">нет цены</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed #cfc7b3;background:#f5f2ea">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">4</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%);position:relative"><span style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#7c7561" stroke-width="2.6"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Абонемент в гончарную студию</div>
+        <div style="font-size:10.5px;color:#7c7561;margin-top:3px">Впечатление · Идея</div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap">120 €</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed #cfc7b3">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">5</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 40% 35%,#b8c8d8 0%,#7a8ea0 70%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Поход к стоматологу</div>
+        <div style="font-size:10.5px;color:#7c7561;margin-top:3px">Услуга · Приятно</div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap">250 ₾</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid #2b2820;border-bottom:3px double #2b2820">
+      <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7c7561;font-weight:600">Всего желаний</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600">7</span>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:100px;width:56px;height:56px;background:#faf8f2;border:2px solid #3c5a4a;box-shadow:0 14px 30px -18px rgba(43,40,32,.5);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3c">
+<div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Тёмная · «ночной гроссбух»</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#1f1c16;font-family:Inter,system-ui,sans-serif;color:#e8e2d2;display:flex;flex-direction:column;height:812px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #e8e2d2;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:3px double #cfc7b3">
+    <div style="width:46px;height:46px;flex:none;background:#e8e2d2;color:#1f1c16;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px;letter-spacing:-.01em">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#a39b85;margin-top:1px">7 ЖЕЛАНИЙ · /U/ILYA</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:38px;height:38px;border:1px solid #4a4436;background:#292519;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:38px;height:38px;border:1px solid #4a4436;background:#292519;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 20px 0">
+    <div style="display:inline-flex;border:1px solid #4a4436;background:#292519">
+      <span style="padding:7px 11px;font-size:11.5px;font-weight:600;background:#e8e2d2;color:#1f1c16;border-right:1px solid #4a4436;white-space:nowrap">Все <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:rgba(31,28,22,.55)">7</span></span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#a39b85;border-right:1px solid #4a4436;white-space:nowrap">Мечты</span>
+      <span style="padding:7px 11px;font-size:11.5px;color:#a39b85;white-space:nowrap">Дом</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="width:34px;height:34px;border:1px solid #4a4436;background:#292519;display:flex;align-items:center;justify-content:center;flex:none"><svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="2" x2="4" y2="12" stroke="#a39b85" stroke-width="1.6" stroke-linecap="round"></line><polyline points="1.5,9.5 4,12 6.5,9.5" fill="none" stroke="#a39b85" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="10" y1="12" x2="10" y2="2" stroke="#a39b85" stroke-width="1.6" stroke-linecap="round"></line><polyline points="7.5,4.5 10,2 12.5,4.5" fill="none" stroke="#a39b85" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+    <div style="display:inline-flex;border:1px solid #4a4436;background:#292519;flex:none">
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#e8e2d2;border-right:1px solid #4a4436"><svg width="13" height="13" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" fill="#1f1c16"></rect><rect x="8" y="1" width="5" height="5" fill="#1f1c16"></rect><rect x="1" y="8" width="5" height="5" fill="#1f1c16"></rect><rect x="8" y="8" width="5" height="5" fill="#1f1c16"></rect></svg></span>
+      <span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 14 14"><line x1="1" y1="2.5" x2="13" y2="2.5" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="7" x2="13" y2="7" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line><line x1="1" y1="11.5" x2="13" y2="11.5" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></line></svg></span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;background:#2e3a32;border:1px solid #4a4436;border-left:3px solid #8fb39e;padding:9px 14px;margin:12px 20px 0;font-size:11.5px;color:#d5e2d9">
+    <span style="width:8px;height:8px;border-radius:50%;background:#8fb39e;flex:none"></span>
+    <span><b style="color:#e8e2d2">«Полёт на параплане»</b> добавлен вчера — поделись обновлённым списком</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 120px">
+    <div style="background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#8a6647 0%,#5c3f26 70%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(232,226,210,.45)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #4a4436;padding:2px 6px;background:#292519;white-space:nowrap;flex:none;color:#e8e2d2">2 400 ₾</span>
+          <span style="display:inline-flex;align-items:center;font-size:9.5px;color:#d8b25e;font-weight:600;min-width:0"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #d8b25e;margin-right:5px;flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Очень хочу</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 30%,#4a6a8a 0%,#2b3c52 70%);position:relative">
+        <span style="position:absolute;top:12px;right:8px;transform:rotate(-8deg);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#d8b25e;border:2px solid #d8b25e;padding:3px 9px;background:rgba(31,28,22,.55)">Мечта</span>
+        <div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(232,226,210,.45)">фото товара</div>
+      </div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #4a4436;padding:2px 6px;background:#292519;white-space:nowrap;flex:none;color:#e8e2d2">800–1200 $</span>
+          <span style="font-size:9.5px;color:#a39b85;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Идея</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 45% 40%,#3a3a44 0%,#1e1e26 75%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(232,226,210,.4)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Наушники с шумодавом</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="background:rgba(216,178,94,.12);color:#d8b25e;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border:1px solid #6b5a32;white-space:nowrap;flex:none">нет цены</span>
+          <span style="font-size:9.5px;color:#a39b85;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Приятно</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#292519;border:1px dashed #4a4436;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#6e5c3e 0%,#453a26 70%);position:relative">
+        <span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border:1px solid #4a4436;background:rgba(41,37,25,.85);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a39b85" stroke-width="2.4"><rect x="5" y="11" width="14" height="9"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+        <div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(232,226,210,.45)">фото товара</div>
+      </div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Абонемент в гончарную студию</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #4a4436;padding:2px 6px;background:#292519;white-space:nowrap;flex:none;color:#e8e2d2">120 €</span>
+          <span style="font-size:9.5px;color:#a39b85;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Идея</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:100px;width:56px;height:56px;background:#292519;border:2px solid #8fb39e;box-shadow:0 14px 30px -14px rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#8fb39e" stroke-width="2.4" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#8fb39e" stroke-width="2.4" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#292519;border-top:2px solid #cfc7b3;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#8fb39e" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#8fb39e" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#8fb39e" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8fb39e">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#7c7561">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#7c7561">Профиль</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Если ок — говорите «одобряю», и я соберу мини-систему и матрицу карточки на этой базе. Правки типа «штамп меньше» / «баннер убрать» тоже принимаются.</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Paper Ledger — три трактовки (токены и правила из uploads: тёплая бумага, гроссбух-зелёный, всё квадратное)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Гроссбух — карточная сетка на бумаге, серифные имена, бейджи-штампы</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f3f0e9;font-family:Inter,system-ui,sans-serif;color:#2b2820;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px;border-bottom:2px solid #2b2820">
+    <div style="width:44px;height:44px;border-radius:50%;background:#3c5a4a;display:flex;align-items:center;justify-content:center;color:#faf8f2;font-weight:600;font-size:15px">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px;letter-spacing:-.01em">Илья</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">7 ЖЕЛАНИЙ · /U/ILYA</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="display:inline-flex;border:1px solid #cfc7b3;background:#faf8f2">
+      <span style="padding:7px 13px;font-size:12px;font-weight:600;background:#2b2820;color:#faf8f2;border-right:1px solid #cfc7b3">Все <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(250,248,242,.6)">7</span></span>
+      <span style="padding:7px 13px;font-size:12px;color:#7c7561;border-right:1px solid #cfc7b3">Мечты</span>
+      <span style="padding:7px 13px;font-size:12px;color:#7c7561;border-right:1px solid #cfc7b3">Дом</span>
+      <span style="padding:7px 13px;font-size:12px;color:#7c7561">Ещё</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.75)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:500">2 400 ₾</div>
+        <span style="align-self:flex-start;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #bcccc1;color:#3c5a4a;background:#e7ede9">Очень хочу</span>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative"><span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #d8cba6;color:#6b5326;background:#f3ecda">Мечта</span><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(60,50,40,.5)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:500">800–1200 $</div>
+        <span style="align-self:flex-start;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid #cfc7b3;color:#7c7561;background:#f5f2ea">Идея</span>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:56px;height:56px;background:#3c5a4a;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -18px rgba(43,40,32,.55);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#faf8f2" stroke-width="2.2" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#faf8f2" stroke-width="2.2" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#2b2820" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#2b2820" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#2b2820" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#2b2820">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:14px;display:flex;gap:14px;align-items:center;background:#fff">
+  <div style="display:flex;gap:6px">
+    <div style="width:26px;height:26px;background:#f3f0e9;border:1px solid rgba(0,0,0,.08)"></div>
+    <div style="width:26px;height:26px;background:#2b2820"></div>
+    <div style="width:26px;height:26px;background:#3c5a4a"></div>
+    <div style="width:26px;height:26px;background:#f6ecd2;border:1px solid #e2cf9e"></div>
+    <div style="width:26px;height:26px;background:#e7ede9"></div>
+  </div>
+  <div style="flex:1;font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;color:#2b2820">Newsreader <span style="font-family:Inter,sans-serif;font-weight:400;font-size:11px;color:#7c7561">+ Inter + JetBrains Mono · кириллица имён — Literata</span></div>
+</div>
+<div class="dv-card" style="width:375px;background:#1f1c16;padding:14px;display:flex;gap:12px">
+  <div style="width:96px;flex:none;background:#292519;border:1px solid #3a352a;padding:5px 5px 8px;display:flex;flex-direction:column;gap:5px">
+    <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#4a6a8a 0%,#2b3c52 70%);position:relative"><span style="position:absolute;top:5px;left:5px;font-size:7.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid #6b5a32;color:#d8b25e;background:rgba(216,178,94,.12)">Мечта</span></div>
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-size:10.5px;font-weight:600;color:#e8e2d2;line-height:1.25;padding:0 2px">Полёт на параплане</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8fb39e;padding:0 2px">800–1200 $</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;justify-content:center">
+    <div style="font-size:12px;font-weight:600;color:#e8e2d2;font-family:Inter,sans-serif">Тёмная тема (общая для 2a–2c)</div>
+    <div style="font-size:11px;color:#a39b85;line-height:1.5;font-family:Inter,sans-serif">«Ночной гроссбух»: чернильная бумага #1f1c16, листы на тон светлее, зелёный высветлен до #8fb39e, охра — до #d8b25e. Линейки остаются, тени уходят.</div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Реестр — список строками, как настоящая учётная книга: №, позиция, цена</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f3f0e9;font-family:Inter,system-ui,sans-serif;color:#2b2820;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 12px">
+    <div style="width:46px;height:46px;flex:none;background:#2b2820;color:#faf8f2;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:17px;display:flex;align-items:center;justify-content:center">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:21px;letter-spacing:-.01em">Список Ильи</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c7561;margin-top:1px">СТР. 1 · 7 ЗАПИСЕЙ</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#7c7561" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="margin:0 16px;background:#faf8f2;border:1px solid #cfc7b3;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -22px rgba(43,40,32,.4)">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #cfc7b3">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600;flex:1">№ · Желание</span>
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7c7561;font-weight:600">Цена</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e3ddcf">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">1</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Керамическая ваза</div>
+        <div style="font-size:10.5px;color:#3c5a4a;font-weight:600;letter-spacing:.04em;margin-top:2px">Очень хочу</div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">2 400 ₾</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e3ddcf;background:#f5f2ea">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">2</span>
+      <div style="width:44px;height:44px;flex:none;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Полёт на параплане</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span style="font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid #d8cba6;color:#6b5326;background:#f3ecda">Мечта</span><span style="font-size:10.5px;color:#a39b85">Идея</span></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">800–1200&nbsp;$</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e3ddcf">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">3</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 45% 40%,#4a4a52 0%,#26262c 75%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Наушники с шумодавом</div>
+        <div style="font-size:10.5px;color:#7c7561;margin-top:2px">Было бы приятно</div>
+      </div>
+      <span style="background:#f6ecd2;color:#9a7415;font-style:italic;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border:1px solid #e2cf9e">нет цены</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e3ddcf;background:#f5f2ea">
+      <span style="width:14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a39b85">4</span>
+      <div style="width:44px;height:44px;flex:none;background:radial-gradient(circle at 40% 35%,#d8c8a8 0%,#a88d5e 70%)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Абонемент в гончарную студию</div>
+        <div style="font-size:10.5px;color:#7c7561;margin-top:2px">Впечатление · Идея</div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">120 €</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid #2b2820;border-bottom:3px double #2b2820">
+      <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7c7561;font-weight:600">Всего желаний</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600">7</span>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:56px;height:56px;background:#3c5a4a;box-shadow:0 1px 0 #e3ddcf,0 14px 30px -18px rgba(43,40,32,.55);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#faf8f2" stroke-width="2.2" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#faf8f2" stroke-width="2.2" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:12px 14px;background:#fff;font:11px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.6)">Плотность учётной книги: больше желаний на экран, мечта и «нет цены» — жёлтые NULL-пилюли, двойная линейка итога. Фото уходят на второй план — вариант для тех, кто живёт текстом.</div>
+</div>
+
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Квитанция — игривый гроссбух: штампы, пунктир, флажки-приоритеты</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f3f0e9;font-family:Inter,system-ui,sans-serif;color:#2b2820;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #2b2820;border-radius:2px;opacity:.7"></span></div>
+  <div style="text-align:center;padding:6px 20px 12px;border-bottom:3px double #2b2820;position:relative">
+    <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:23px;letter-spacing:-.01em">Список Ильи</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:#7c7561;margin-top:3px">WISHKA · 7 ЖЕЛАНИЙ · ОБНОВЛЁН 07.08</div>
+    <div style="position:absolute;right:16px;top:2px;width:38px;height:38px;border:1px solid #cfc7b3;background:#faf8f2;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#7c7561" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;background:#e7ede9;border:1px solid #cfc7b3;border-left:3px solid #3c5a4a;padding:9px 14px;margin:14px 16px 0;font-size:11.5px">
+    <span style="width:8px;height:8px;border-radius:50%;background:#3c5a4a;flex:none"></span>
+    <span><b>«Полёт на параплане»</b> добавлен вчера — поделись обновлённым списком</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 0">
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative"><div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.75)">фото товара</div></div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;background:#faf8f2;white-space:nowrap;flex:none">2 400 ₾</span>
+          <span style="display:inline-flex;align-items:center;font-size:9.5px;color:#9a7415;font-weight:600;min-width:0"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #9a7415;margin-right:5px;flex:none"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Очень хочу</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#faf8f2;border:1px dashed #cfc7b3;display:flex;flex-direction:column">
+      <div style="aspect-ratio:4/5;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative">
+        <span style="position:absolute;top:12px;right:8px;transform:rotate(-8deg);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a7415;border:2px solid #9a7415;padding:3px 9px;background:rgba(250,248,242,.72)">Мечта</span>
+        <div style="position:absolute;left:7px;bottom:6px;font:9px 'JetBrains Mono',monospace;color:rgba(60,50,40,.5)">фото товара</div>
+      </div>
+      <div style="padding:9px 10px 11px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Newsreader,Literata,Georgia,serif;font-weight:600;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;border:1px solid #e3ddcf;padding:2px 6px;background:#faf8f2;white-space:nowrap;flex:none">800–1200 $</span>
+          <span style="font-size:10px;color:#a39b85;font-weight:500">Идея</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:56px;height:56px;background:#faf8f2;border:2px solid #3c5a4a;box-shadow:0 14px 30px -18px rgba(43,40,32,.5);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#3c5a4a" stroke-width="2.4" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#faf8f2;border-top:2px solid #2b2820;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3c5a4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#3c5a4a">Список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="19" height="19" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a39b85" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a39b85" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#a39b85">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:12px 14px;background:#fff;font:11px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.6)">Та же система, но с характером: штамп «МЕЧТА» охрой, пунктирные карточки-квитанции, флажок-приоритет, зелёный баннер-алерт. Игривость — средствами гроссбуха, без скруглений и градиентов в UI.</div>
+</div>
+
+</div>
+<p class="dv-next">Дальше: «беру 2a» · «2b, но карточки с фото побольше» · «2c без штампа, флажки оставь» · «смешай 2a с баннером из 2c»</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Wishka — три визуальных направления · экран «Мой список» + тёмная тема + палитра</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Тёплая бумага — крафт-тепло, терракота, серифные акценты Lora</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#faf5ee;font-family:'Golos Text',sans-serif;color:#2c241d;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font-size:13px;font-weight:600"><span>9:41</span><span style="display:flex;gap:4px"><span style="width:16px;height:8px;border:1.5px solid #2c241d;border-radius:2px;opacity:.7"></span></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 4px">
+    <div style="width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e8a87c,#c96f4a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:16px">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Lora,serif;font-weight:600;font-size:20px">Илья</div>
+      <div style="font-size:13px;color:#8a7a6c">7 желаний</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:40px;height:40px;border-radius:50%;background:#f0e6d9;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#5c4d3f" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#5c4d3f" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:40px;height:40px;border-radius:50%;background:#f0e6d9;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#5c4d3f" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#5c4d3f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#5c4d3f" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;padding:14px 20px 4px;overflow:hidden">
+    <span style="padding:8px 14px;border-radius:999px;background:#2c241d;color:#faf5ee;font-size:13px;font-weight:500;white-space:nowrap">Все</span>
+    <span style="padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #e5d9c9;font-size:13px;white-space:nowrap;color:#5c4d3f">Мечты</span>
+    <span style="padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #e5d9c9;font-size:13px;white-space:nowrap;color:#5c4d3f">Дом</span>
+    <span style="padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #e5d9c9;font-size:13px;white-space:nowrap;color:#5c4d3f">Электроника</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 0">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="aspect-ratio:4/5;border-radius:16px;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(0,0,0,.25),transparent 60%)"></div><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(255,255,255,.75)">фото товара</div></div>
+      <div style="font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:Lora,serif;font-weight:600;font-size:15px">2 400 ₾</span><span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#c96f4a;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#c96f4a"></span>Очень хочу</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="aspect-ratio:4/5;border-radius:16px;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative;overflow:hidden"><div style="position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;background:#2c241d;color:#f5c96f;font-size:11px;font-weight:600"><span style="width:8px;height:8px;background:#f5c96f;transform:rotate(45deg)"></span>Мечта</div><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(60,50,40,.5)">фото товара</div></div>
+      <div style="font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:Lora,serif;font-weight:600;font-size:15px">800–1200 $</span><span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8a7a6c;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:#cbb89f"></span>Идея</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:58px;height:58px;border-radius:20px;background:#c96f4a;box-shadow:0 8px 20px rgba(201,111,74,.4);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#fff" stroke-width="2.4" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#fff" stroke-width="2.4" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:rgba(250,245,238,.94);border-top:1px solid #e5d9c9;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#c96f4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#c96f4a" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#c96f4a" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:11px;font-weight:600;color:#c96f4a">Мой список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#a4917c" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#a4917c" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#a4917c" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:11px;color:#a4917c">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#a4917c" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#a4917c" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:11px;color:#a4917c">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:14px;display:flex;gap:14px;align-items:center;background:#fff">
+  <div style="display:flex;gap:6px">
+    <div style="width:26px;height:26px;border-radius:8px;background:#faf5ee;border:1px solid rgba(0,0,0,.08)"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#2c241d"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#c96f4a"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#f5c96f"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#f0e6d9"></div>
+  </div>
+  <div style="flex:1;font-family:Lora,serif;font-weight:600;font-size:14px;color:#2c241d">Lora <span style="font-family:'Golos Text',sans-serif;font-weight:400;font-size:12px;color:#8a7a6c">+ Golos Text</span></div>
+</div>
+<div class="dv-card" style="width:375px;background:#211b16;padding:14px;display:flex;gap:12px">
+  <div style="width:96px;flex:none;display:flex;flex-direction:column;gap:6px">
+    <div style="aspect-ratio:4/5;border-radius:12px;background:radial-gradient(circle at 40% 35%,#8a6647 0%,#5c3f26 70%);position:relative"><div style="position:absolute;top:6px;left:6px;padding:3px 7px;border-radius:999px;background:#3a2f26;color:#f5c96f;font-size:8px;font-weight:600">Мечта</div></div>
+    <div style="font-size:10px;font-weight:500;color:#ede4d8;line-height:1.3">Полёт на параплане</div>
+    <div style="font-family:Lora,serif;font-weight:600;font-size:11px;color:#e8a87c">800–1200 $</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;justify-content:center">
+    <div style="font-size:12px;font-weight:600;color:#ede4d8">Тёмная тема</div>
+    <div style="font-size:11px;color:#a4917c;line-height:1.5">Тёплый угольно-кофейный фон вместо чистого чёрного; терракота становится персиковой для контраста AA.</div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Конфетти — смелый цвет, коралл + фиалка, дисплейная Unbounded</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#fdf7f5;font-family:Onest,sans-serif;color:#231b26;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font-size:13px;font-weight:600"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #231b26;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 4px">
+    <div style="width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,#ff6b5e,#a05ce6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;transform:rotate(-4deg)">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:17px;letter-spacing:-.02em">Илья</div>
+      <div style="font-size:13px;color:#9b8aa4;font-weight:500">7 желаний</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:40px;height:40px;border-radius:14px;background:#f3e9f2;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#5e4a68" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#5e4a68" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:40px;height:40px;border-radius:14px;background:#f3e9f2;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#5e4a68" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#5e4a68" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#5e4a68" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;padding:14px 20px 4px;overflow:hidden">
+    <span style="padding:8px 16px;border-radius:999px;background:#ff6b5e;color:#fff;font-size:13px;font-weight:600;white-space:nowrap">Все</span>
+    <span style="padding:8px 16px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(35,27,38,.08);font-size:13px;font-weight:500;white-space:nowrap;color:#5e4a68">Мечты</span>
+    <span style="padding:8px 16px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(35,27,38,.08);font-size:13px;font-weight:500;white-space:nowrap;color:#5e4a68">Дом</span>
+    <span style="padding:8px 16px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(35,27,38,.08);font-size:13px;font-weight:500;white-space:nowrap;color:#5e4a68">Электроника</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 0">
+    <div style="background:#fff;border-radius:24px;padding:8px 8px 12px;box-shadow:0 2px 10px rgba(35,27,38,.06);display:flex;flex-direction:column;gap:8px">
+      <div style="aspect-ratio:4/5;border-radius:18px;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative;overflow:hidden"><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(255,255,255,.75)">фото товара</div></div>
+      <div style="font-size:13.5px;font-weight:600;line-height:1.3;padding:0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px"><span style="font-weight:700;font-size:14px">2 400 ₾</span><span style="padding:3px 8px;border-radius:999px;background:#ffe3e0;color:#e04b3d;font-size:10px;font-weight:700">Очень хочу</span></div>
+    </div>
+    <div style="background:#fff;border-radius:24px;padding:8px 8px 12px;box-shadow:0 2px 10px rgba(35,27,38,.06);display:flex;flex-direction:column;gap:8px;position:relative">
+      <div style="aspect-ratio:4/5;border-radius:18px;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative;overflow:hidden"><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(60,50,40,.5)">фото товара</div></div>
+      <div style="position:absolute;top:-6px;right:-4px;padding:6px 12px;border-radius:999px;background:#a05ce6;color:#fff;font-size:11px;font-weight:700;transform:rotate(4deg);box-shadow:0 4px 10px rgba(160,92,230,.35)">Мечта ✦</div>
+      <div style="font-size:13.5px;font-weight:600;line-height:1.3;padding:0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px"><span style="font-weight:700;font-size:14px">800–1200 $</span><span style="padding:3px 8px;border-radius:999px;background:#f3e9f2;color:#9b8aa4;font-size:10px;font-weight:700">Идея</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ff6b5e,#a05ce6);box-shadow:0 8px 22px rgba(224,75,61,.4);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#fff" stroke-width="2.6" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#fff" stroke-width="2.6" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:14px;right:14px;bottom:14px;background:#231b26;border-radius:24px;display:flex;padding:12px 0;box-shadow:0 8px 24px rgba(35,27,38,.25)">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><svg width="20" height="20" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#ff8a7e" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#ff8a7e" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#ff8a7e" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:10px;font-weight:700;color:#ff8a7e">Мой список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#8d7f96" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#8d7f96" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#8d7f96" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:10px;font-weight:500;color:#8d7f96">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#8d7f96" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#8d7f96" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:10px;font-weight:500;color:#8d7f96">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:14px;display:flex;gap:14px;align-items:center;background:#fff">
+  <div style="display:flex;gap:6px">
+    <div style="width:26px;height:26px;border-radius:8px;background:#fdf7f5;border:1px solid rgba(0,0,0,.08)"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#231b26"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#ff6b5e"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#a05ce6"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#f3e9f2"></div>
+  </div>
+  <div style="flex:1;font-family:Unbounded,sans-serif;font-weight:600;font-size:12px;color:#231b26">Unbounded <span style="font-family:Onest,sans-serif;font-weight:400;font-size:12px;color:#9b8aa4">+ Onest</span></div>
+</div>
+<div class="dv-card" style="width:375px;background:#1b141f;padding:14px;display:flex;gap:12px">
+  <div style="width:96px;flex:none;background:#271e2c;border-radius:16px;padding:5px 5px 8px;display:flex;flex-direction:column;gap:5px">
+    <div style="aspect-ratio:4/5;border-radius:12px;background:radial-gradient(circle at 40% 35%,#4a6a8a 0%,#2b3c52 70%);position:relative"><div style="position:absolute;top:5px;left:5px;padding:3px 7px;border-radius:999px;background:#a05ce6;color:#fff;font-size:8px;font-weight:700">Мечта ✦</div></div>
+    <div style="font-size:10px;font-weight:600;color:#f0e8f4;line-height:1.3;padding:0 3px">Полёт на параплане</div>
+    <div style="font-weight:700;font-size:11px;color:#ff8a7e;padding:0 3px">800–1200 $</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;justify-content:center">
+    <div style="font-size:12px;font-weight:700;color:#f0e8f4">Тёмная тема</div>
+    <div style="font-size:11px;color:#8d7f96;line-height:1.5">Баклажановый фон, карточки-«леденцы» на тон светлее; коралл и фиалка почти не меняются — они и так яркие.</div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Вечерний сад — спокойный, шалфей + слива, сдержанный Rubik</div>
+<div class="dv-card" style="width:375px">
+<div style="width:375px;background:#f4f5f1;font-family:Rubik,sans-serif;color:#232a24;display:flex;flex-direction:column;height:720px;position:relative;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font-size:13px;font-weight:500"><span>9:41</span><span style="width:16px;height:8px;border:1.5px solid #232a24;border-radius:2px;opacity:.7"></span></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 4px">
+    <div style="width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#9db89a,#5f7d5c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:16px">ИК</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;font-size:20px;letter-spacing:-.01em">Илья</div>
+      <div style="font-size:13px;color:#77816f">7 желаний</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #e2e5dc;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 17 17"><circle cx="7" cy="7" r="5" fill="none" stroke="#4a5744" stroke-width="1.8"></circle><line x1="11" y1="11" x2="15" y2="15" stroke="#4a5744" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+      <div style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #e2e5dc;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="12" x2="8" y2="2" stroke="#4a5744" stroke-width="1.8" stroke-linecap="round"></line><polyline points="4,6 8,2 12,6" fill="none" stroke="#4a5744" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="3" y1="14" x2="13" y2="14" stroke="#4a5744" stroke-width="1.8" stroke-linecap="round"></line></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;padding:14px 20px 4px;overflow:hidden">
+    <span style="padding:8px 14px;border-radius:10px;background:#3f5140;color:#f4f5f1;font-size:13px;font-weight:500;white-space:nowrap">Все</span>
+    <span style="padding:8px 14px;border-radius:10px;background:#fff;border:1px solid #e2e5dc;font-size:13px;white-space:nowrap;color:#4a5744">Мечты</span>
+    <span style="padding:8px 14px;border-radius:10px;background:#fff;border:1px solid #e2e5dc;font-size:13px;white-space:nowrap;color:#4a5744">Дом</span>
+    <span style="padding:8px 14px;border-radius:10px;background:#fff;border:1px solid #e2e5dc;font-size:13px;white-space:nowrap;color:#4a5744">Электроника</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 0">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="aspect-ratio:4/5;border-radius:14px;background:radial-gradient(circle at 40% 35%,#e8cbb0 0%,#c98d5e 55%,#93582f 100%);position:relative;overflow:hidden"><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(255,255,255,.75)">фото товара</div><div style="position:absolute;bottom:8px;right:8px;width:22px;height:22px;border-radius:7px;background:rgba(35,42,36,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:50%;border:2px solid #fff"></span></div></div>
+      <div style="font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Керамическая ваза ручной работы</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:600;font-size:15px">2 400 ₾</span><span style="font-size:11px;color:#5f7d5c;font-weight:600;border-bottom:2px solid #9db89a;padding-bottom:1px">Очень хочу</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="aspect-ratio:4/5;border-radius:14px;background:linear-gradient(180deg,#a8c8e8 0%,#d4e4f4 60%,#f0ead9 100%);position:relative;overflow:hidden"><div style="position:absolute;top:8px;left:8px;padding:4px 10px;border-radius:8px;background:#6b4d75;color:#f2e8f5;font-size:10.5px;font-weight:600;letter-spacing:.03em">МЕЧТА</div><div style="position:absolute;left:8px;bottom:8px;font:10px ui-monospace,monospace;color:rgba(60,50,40,.5)">фото товара</div></div>
+      <div style="font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Полёт на параплане в Гудаури</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:600;font-size:15px">800–1200 $</span><span style="font-size:11px;color:#77816f">Идея</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:96px;width:58px;height:58px;border-radius:50%;background:#3f5140;box-shadow:0 8px 20px rgba(63,81,64,.35);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="3" x2="11" y2="19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"></line><line x1="3" y1="11" x2="19" y2="11" stroke="#fff" stroke-width="2.2" stroke-linecap="round"></line></svg></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:rgba(244,245,241,.95);border-top:1px solid #e2e5dc;display:flex;padding:10px 0 22px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><line x1="4" y1="5" x2="16" y2="5" stroke="#3f5140" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="10" x2="16" y2="10" stroke="#3f5140" stroke-width="2" stroke-linecap="round"></line><line x1="4" y1="15" x2="11" y2="15" stroke="#3f5140" stroke-width="2" stroke-linecap="round"></line></svg><span style="font-size:11px;font-weight:600;color:#3f5140">Мой список</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.2" fill="none" stroke="#98a191" stroke-width="1.8"></circle><circle cx="14" cy="9" r="2.4" fill="none" stroke="#98a191" stroke-width="1.8"></circle><path d="M2.5 17c.6-3 2.4-4.5 4.5-4.5s3.9 1.5 4.5 4.5" fill="none" stroke="#98a191" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:11px;color:#98a191">Люди</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2" fill="none" stroke="#98a191" stroke-width="1.8"></circle><path d="M4 17c.8-3.4 3.2-5 6-5s5.2 1.6 6 5" fill="none" stroke="#98a191" stroke-width="1.8" stroke-linecap="round"></path></svg><span style="font-size:11px;color:#98a191">Профиль</span></div>
+  </div>
+</div>
+</div>
+<div class="dv-card" style="width:375px;padding:14px;display:flex;gap:14px;align-items:center;background:#fff">
+  <div style="display:flex;gap:6px">
+    <div style="width:26px;height:26px;border-radius:8px;background:#f4f5f1;border:1px solid rgba(0,0,0,.08)"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#232a24"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#3f5140"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#6b4d75"></div>
+    <div style="width:26px;height:26px;border-radius:8px;background:#9db89a"></div>
+  </div>
+  <div style="flex:1;font-family:Rubik,sans-serif;font-weight:600;font-size:14px;color:#232a24">Rubik <span style="font-weight:400;font-size:12px;color:#77816f">один на всё</span></div>
+</div>
+<div class="dv-card" style="width:375px;background:#171c18;padding:14px;display:flex;gap:12px">
+  <div style="width:96px;flex:none;display:flex;flex-direction:column;gap:6px">
+    <div style="aspect-ratio:4/5;border-radius:11px;background:radial-gradient(circle at 40% 35%,#42586e 0%,#28343f 70%);position:relative"><div style="position:absolute;top:6px;left:6px;padding:3px 7px;border-radius:6px;background:#8a6a94;color:#fff;font-size:8px;font-weight:600;letter-spacing:.03em">МЕЧТА</div></div>
+    <div style="font-size:10px;font-weight:500;color:#e2e5dc;line-height:1.3">Полёт на параплане</div>
+    <div style="font-weight:600;font-size:11px;color:#b0c4ad">800–1200 $</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;justify-content:center">
+    <div style="font-size:12px;font-weight:600;color:#e2e5dc">Тёмная тема</div>
+    <div style="font-size:11px;color:#98a191;line-height:1.5">Тёмная хвоя, шалфей высветляется; сдержанный стиль почти не теряет ничего в тёмной теме.</div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Дальше: «беру 1a» · «1b, но спокойнее с поворотами» · «смешай: сетка из 1c + цвет 1a» · «покажи ещё направления»</p>
+</section>
+</x-dc>
+</body>
+</html>

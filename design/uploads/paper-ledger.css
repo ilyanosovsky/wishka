@@ -1,0 +1,149 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PAPER LEDGER — COMPONENT LIBRARY  ·  v1.0
+   Pairs with tokens.css. Curated from the production cabinet.css.
+   These are the shipped components — class names are stable, copy freely.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── base ──────────────────────────────────────────────────────────────── */
+.pl-mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.pl-serif{font-family:var(--font-serif)}
+
+/* ── badge · record type ───────────────────────────────────────────────── */
+.tbadge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;padding:3px 9px;border:1px solid var(--rule-2);
+  color:var(--mute);white-space:nowrap;background:transparent}
+.tbadge.settlement{color:var(--green-txt);border-color:var(--green-rule);background:var(--green-soft)}
+.tbadge.netting   {color:var(--blue-txt); border-color:var(--blue-rule); background:var(--blue-soft)}
+.tbadge.hybrid    {color:var(--amber-txt);border-color:var(--amber-rule);background:var(--amber-soft)}
+.tbadge.payout    {color:var(--red-txt);  border-color:var(--red-rule);  background:var(--red-soft)}
+
+/* ── badge · origin (synced vs manual) ─────────────────────────────────── */
+.origin{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid;white-space:nowrap}
+.origin.synced{color:var(--mute);border-color:var(--rule-2);background:var(--zebra)}
+.origin.manual{color:var(--accent);border-color:var(--green-rule);background:var(--accent-soft)}
+.origin svg{width:10px;height:10px}
+
+/* ── badge · audit kind ────────────────────────────────────────────────── */
+.ak{display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;padding:3px 8px;border:1px solid;white-space:nowrap}
+.ak.blue {color:var(--blue-txt); border-color:var(--blue-rule); background:var(--blue-soft)}
+.ak.green{color:var(--accent);   border-color:var(--green-rule);background:var(--accent-soft)}
+.ak.amber{color:var(--null-txt); border-color:var(--null-rule); background:var(--null)}
+.ak.neg  {color:var(--neg);      border-color:var(--red-rule);  background:var(--red-soft)}
+.ak.grey {color:var(--mute);     border-color:var(--rule-2);    background:var(--zebra)}
+
+/* ── NULL pill ─────────────────────────────────────────────────────────── */
+.nullpill{display:inline-block;background:var(--null);color:var(--null-txt);
+  font-style:italic;font-family:var(--font-mono);font-size:12px;padding:3px 11px;
+  border:1px solid var(--null-rule)}
+
+/* ── status text ───────────────────────────────────────────────────────── */
+.st{font-size:11px;letter-spacing:.04em;white-space:nowrap}
+.st.ok{color:var(--ok)}
+.st.need{color:var(--null-txt);font-weight:600}
+.st.paused{color:var(--mute-2)}
+
+/* ── lock chip ─────────────────────────────────────────────────────────── */
+.lock{display:inline-flex;align-items:center;gap:5px;color:var(--mute-2);
+  font-size:10px;font-family:var(--font-mono)}
+.lock svg{width:11px;height:11px}
+
+/* ── flag (missing-value triangle) ─────────────────────────────────────── */
+.flag{display:inline-block;width:0;height:0;border-left:5px solid transparent;
+  border-right:5px solid transparent;border-bottom:8px solid var(--null-txt);
+  margin-right:7px;vertical-align:1px}
+
+/* ── buttons ───────────────────────────────────────────────────────────── */
+.btn{padding:8px 15px;font-size:12.5px;font-weight:500;border:1px solid var(--rule-2);
+  background:var(--paper);letter-spacing:.01em;display:inline-flex;align-items:center;
+  gap:7px;cursor:pointer;color:var(--ink);font-family:var(--font-sans)}
+.btn:hover{background:var(--bg)}
+.btn.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-ink)}
+.btn.danger{color:var(--neg);border-color:var(--red-rule)}
+.btn svg{width:14px;height:14px}
+
+/* ── segmented / filter tabs ───────────────────────────────────────────── */
+.tabs{display:inline-flex;border:1px solid var(--rule-2)}
+.tab{padding:7px 14px;font-size:12px;color:var(--mute);border-right:1px solid var(--rule-2);
+  display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;background:var(--paper)}
+.tab:last-child{border-right:0}
+.tab.on{background:var(--ink);color:var(--paper);font-weight:600}
+.tab .ct{font-family:var(--font-mono);font-size:10px;color:var(--mute-2)}
+.tab.on .ct{color:rgba(250,248,242,.6)}
+
+/* ── register table ────────────────────────────────────────────────────── */
+table.reg{width:100%;border-collapse:collapse;font-size:13px}
+table.reg thead th{text-align:left;font-size:10.5px;letter-spacing:.10em;text-transform:uppercase;
+  color:var(--mute);font-weight:600;padding:9px 16px;border-bottom:1px solid var(--rule-2)}
+table.reg thead th.r{text-align:right}
+table.reg tbody td{padding:11px 16px;border-bottom:1px solid var(--rule);vertical-align:middle}
+table.reg tbody tr.line:nth-child(4n+3) td{background:var(--zebra)}
+table.reg tbody tr.line{cursor:pointer}
+table.reg tbody tr.line:hover td{background:var(--accent-soft)}
+td.idx{width:34px;text-align:right;color:var(--mute-2);font-family:var(--font-mono);font-size:11px}
+td.id{font-family:var(--font-mono);font-size:12px}
+td.amt{font-family:var(--font-mono);text-align:right;font-weight:500}
+td.amt.neg{color:var(--neg)}
+.pname{font-weight:600;font-size:13.5px}
+
+/* ── grand-total double rule ───────────────────────────────────────────── */
+.dbl-total{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;
+  border-top:1px solid var(--ink);border-bottom:3px double var(--ink)}
+.dbl-total .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.dbl-total .v{font-family:var(--font-mono);font-size:15px;font-weight:600}
+
+/* ── term grid (label / value) ─────────────────────────────────────────── */
+.terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--rule-2)}
+.terms.one{grid-template-columns:1fr}
+.trow{display:flex;flex-direction:column;gap:7px;padding:14px 16px;
+  border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.terms .trow:nth-child(2n){border-right:0}
+.terms.one .trow{border-right:0}
+.trow .tlabel{font-size:10.5px;letter-spacing:.10em;text-transform:uppercase;color:var(--mute);
+  font-weight:600;display:flex;align-items:center;gap:8px}
+.trow .tlabel .hint{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;
+  color:var(--mute-2);white-space:nowrap}
+.trow .tval{font-family:var(--font-mono);font-size:15px;font-weight:500}
+.trow .tval.big{font-size:18px}
+.trow .tval .unit{color:var(--mute);font-size:12px;margin-left:3px}
+.trow .tval.muted{color:var(--mute)}
+
+/* ── edit fields ───────────────────────────────────────────────────────── */
+.fin{width:100%;background:var(--paper);border:1px solid var(--rule-2);border-radius:0;
+  padding:9px 11px;font-size:14px;font-family:var(--font-mono);outline:none;color:var(--ink)}
+.fin:focus{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.fin.locked{background:var(--zebra);color:var(--mute-2);cursor:not-allowed;border-style:dashed}
+
+/* ── audit diff chips ──────────────────────────────────────────────────── */
+.adiffs{display:flex;flex-wrap:wrap;gap:6px}
+.adiff{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+  border:1px solid var(--rule);padding:2px 4px 2px 8px;background:var(--paper)}
+.adiff .af{color:var(--mute)}
+.adiff .ao{color:var(--null-txt);background:var(--null);padding:1px 6px;font-style:italic}
+.adiff .ao.plain{color:var(--neg);background:var(--red-soft);font-style:normal;
+  text-decoration:line-through;text-decoration-color:rgba(168,68,58,.4)}
+.adiff .ar{color:var(--mute-2)}
+.adiff .an{color:var(--accent);background:var(--accent-soft);padding:1px 6px}
+
+/* ── avatar ────────────────────────────────────────────────────────────── */
+.av{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--paper);
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+  font-family:var(--font-sans);flex:none}
+.av.lg{width:36px;height:36px;font-size:12px}
+.mark{width:54px;height:54px;flex:none;background:var(--ink);color:var(--paper);
+  font-family:var(--font-mono);font-weight:500;font-size:20px;display:flex;align-items:center;
+  justify-content:center;letter-spacing:.02em}
+
+/* ── slack banner ──────────────────────────────────────────────────────── */
+.slack{display:flex;align-items:center;gap:12px;background:var(--accent-soft);
+  border:1px solid var(--rule-2);border-left:3px solid var(--accent);padding:10px 16px;
+  font-size:12.5px;color:var(--ink)}
+.slack .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;animation:pl-pulse 2s infinite}
+@keyframes pl-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.slack .k{font-family:var(--font-mono);font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+
+/* ── data mask (always-on privacy blur) ────────────────────────────────── */
+.mask{transition:filter .18s ease;border-radius:1px}
+.masked .mask{filter:blur(6px);user-select:none;cursor:default;pointer-events:none}

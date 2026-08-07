@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Patterns — Paper Ledger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="paper-ledger.css">
+<link rel="stylesheet" href="docs.css">
+<style>
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--rule-2)}
+  .flow .step{padding:18px 16px;border-right:1px solid var(--rule)}
+  .flow .step:last-child{border-right:0}
+  .flow .sn{font-family:var(--font-mono);font-size:10px;color:var(--paper);background:var(--accent);width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .flow .st{font-family:var(--font-serif);font-size:15px;font-weight:600;margin-bottom:6px}
+  .flow .sd{font-size:11.5px;color:var(--mute);line-height:1.5}
+  @media(max-width:760px){.flow{grid-template-columns:1fr;}.flow .step{border-right:0;border-bottom:1px solid var(--rule)}}
+  .mockwin{border:1px solid var(--rule-2);background:var(--paper);box-shadow:var(--shadow-sheet)}
+  .mockbar{display:flex;align-items:center;gap:14px;padding:0 20px;height:48px;border-top:2px solid var(--ink);background:var(--paper)}
+</style>
+</head>
+<body>
+
+<div class="mast">
+  <div class="row">
+    <div class="title">Paper Ledger<span class="small">design system · v1.0 · 2026-05-29</span></div>
+    <div class="grow"></div>
+    <div class="nav">
+      <a class="ntab" href="index.html">Overview</a>
+      <a class="ntab" href="foundations.html">Foundations</a>
+      <a class="ntab" href="components.html">Components</a>
+      <a class="ntab active" href="patterns.html">Patterns</a>
+      <a class="ntab" href="developer.html">Developer</a>
+    </div>
+    <span class="badge" style="margin-left:16px">handoff</span>
+  </div>
+</div>
+
+<div class="docwrap">
+  <nav class="sindex">
+    <div class="lbl">Patterns</div>
+    <a href="#dossier" class="on"><span class="n">01</span>Dossier layout</a>
+    <a href="#edit"><span class="n">02</span>Edit &amp; save</a>
+    <a href="#mask"><span class="n">03</span>Data masking</a>
+    <a href="#audit"><span class="n">04</span>Audit journal</a>
+    <a href="#alerts"><span class="n">05</span>Alert routing</a>
+    <div class="note">Patterns compose components into the recurring workflows of the cabinet.</div>
+  </nav>
+
+  <main class="content">
+    <div class="pintro">
+      <div class="kick">/ patterns</div>
+      <h1>Patterns</h1>
+      <p>How components combine into the cabinet’s repeating workflows. These are prescriptive — follow the structure so every screen behaves the same way under a clerk’s hands.</p>
+    </div>
+
+    <!-- 01 DOSSIER -->
+    <section class="sheet" id="dossier">
+      <div class="sheet-head"><div><div class="h"><span class="n">01</span> Dossier layout</div><div class="sub">The detail view for one record. A header band, a section index or section tabs, then stacked term blocks.</div></div></div>
+      <div class="sheet-body">
+        <div class="anatomy">
+          <div class="stage">
+            <div style="width:100%;max-width:360px" class="mockwin">
+              <div style="display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--rule-2)">
+                <span class="mark" style="width:40px;height:40px;font-size:15px">CG</span>
+                <div><div style="font-family:var(--font-serif);font-size:18px;font-weight:600">CoinGate Settlements</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--mute);margin-top:2px">PRV-0041 · <span class="tbadge settlement" style="font-size:8px;padding:2px 6px">Settlement</span></div></div>
+                <div style="flex:1"></div><button class="btn primary" style="padding:6px 11px;font-size:11px">Edit</button>
+              </div>
+              <div style="display:flex;border-bottom:1px solid var(--rule-2);font-size:10px">
+                <div style="padding:9px 14px;border-right:1px solid var(--rule);color:var(--ink);font-weight:600;border-bottom:2px solid var(--accent)">Overview</div>
+                <div style="padding:9px 14px;border-right:1px solid var(--rule);color:var(--mute)">Terms</div>
+                <div style="padding:9px 14px;border-right:1px solid var(--rule);color:var(--mute)">Wallet</div>
+                <div style="padding:9px 14px;color:var(--mute)">Log</div>
+              </div>
+              <div style="padding:14px 16px">
+                <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600;margin-bottom:8px">01 · Operational terms</div>
+                <div class="terms" style="font-size:10px">
+                  <div class="trow" style="padding:9px 11px;gap:4px"><div class="tlabel" style="font-size:8px">Crypto fee</div><div class="tval" style="font-size:12px">0.5%</div></div>
+                  <div class="trow" style="padding:9px 11px;gap:4px"><div class="tlabel" style="font-size:8px">FX markup</div><div class="tval" style="font-size:12px">+1.8%</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="li"><span class="num">1</span><div><b>Header band</b><span>Square <span class="tok-inline">.mark</span> stamp · serif name · mono ID + type badge · edit action.</span></div></div>
+            <div class="li"><span class="num">2</span><div><b>Section nav</b><span>Tabs (compact) or a sticky left index (one-sheet). Active edge in accent.</span></div></div>
+            <div class="li"><span class="num">3</span><div><b>Numbered blocks</b><span>Each opens with a mono <span class="tok-inline">NN ·</span> index and a serif h3, then a term grid.</span></div></div>
+            <div class="li"><span class="num">4</span><div><b>Two layouts</b><span>“Tabbed” for focus; “one-sheet” for an at-a-glance printout. Same data.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 EDIT & SAVE -->
+    <section class="sheet" id="edit">
+      <div class="sheet-head"><div><div class="h"><span class="n">02</span> Edit &amp; save flow</div><div class="sub">No queue, no modal. A clerk enters edit mode in place, fills NULLs, and commits via a docked save bar.</div></div></div>
+      <div class="sheet-body">
+        <div class="flow">
+          <div class="step"><span class="sn">1</span><div class="st">Enter</div><div class="sd">Hit <b>Edit terms</b>. Manual fields unlock to inputs; synced commissions stay dashed &amp; locked.</div></div>
+          <div class="step"><span class="sn">2</span><div class="st">Fill</div><div class="sd">Editable zones get an accent inset edge. The save bar counts remaining <b>NULLs</b> live.</div></div>
+          <div class="step"><span class="sn">3</span><div class="st">Commit</div><div class="sd"><b>Save terms</b> writes the record and slides the bar away. A toast confirms.</div></div>
+          <div class="step"><span class="sn">4</span><div class="st">Record</div><div class="sd">The diff lands in the append-only <b>audit</b> with before→after chips.</div></div>
+        </div>
+
+        <div class="mockwin" style="margin-top:18px">
+          <div class="mockbar">
+            <span style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;color:var(--accent)">✎ Editing terms — manual fields unlocked. Commissions stay locked.</span>
+            <span style="font-size:12px;color:var(--mute)">Still empty <b style="color:var(--null-txt);font-family:var(--font-mono);font-weight:600;margin-left:6px">2</b></span>
+            <span style="flex:1"></span>
+            <button class="btn">Cancel</button>
+            <button class="btn primary">Save terms</button>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><span class="ic">▸</span><span class="tx">The save bar is <b>fixed to the viewport bottom</b>, full-width, on a 2px ink rule. It slides up with <span class="tok-inline">--dur-base · --ease-out</span> only while editing — it is the single global commit affordance.</span></div>
+      </div>
+    </section>
+
+    <!-- 03 MASK -->
+    <section class="sheet" id="mask">
+      <div class="sheet-head"><div><div class="h"><span class="n">03</span> Data masking</div><div class="sub">Sensitive values render blurred by default. The privacy posture is on, not opt-in.</div></div></div>
+      <div class="sheet-body">
+        <div class="demo center" style="gap:30px">
+          <div style="text-align:center"><div class="masked"><span class="mask" style="font-family:var(--font-mono);font-size:18px;font-weight:500">412,880.20</span></div><div style="font-family:var(--font-mono);font-size:10px;color:var(--mute);margin-top:8px">masked (default)</div></div>
+          <div style="text-align:center"><span style="font-family:var(--font-mono);font-size:18px;font-weight:500">412,880.20</span><div style="font-family:var(--font-mono);font-size:10px;color:var(--mute);margin-top:8px">revealed</div></div>
+        </div>
+        <p class="lead" style="margin-top:16px">Wrap any sensitive value in <span class="tok-inline">&lt;span class="mask"&gt;</span>. While <span class="tok-inline">body.masked</span> is set, those spans get a <b>6px blur</b>, are un-selectable, and ignore pointer events — so a shoulder-surfer or a screen-share leaks nothing. Reveal is a deliberate, audited gesture, not a hover.</p>
+        <div class="dd" style="margin-top:18px">
+          <div class="col do"><div class="hd">Do</div><ul><li>Mask names, amounts, wallet addresses, contact details by default.</li><li>Keep IDs, types, statuses and dates visible — they’re needed to navigate.</li></ul></div>
+          <div class="col dont"><div class="hd">Don’t</div><ul><li>Reveal on hover — masking must survive a screenshot.</li><li>Mask structure (column heads, labels) — only the values.</li></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 AUDIT -->
+    <section class="sheet" id="audit">
+      <div class="sheet-head"><div><div class="h"><span class="n">04</span> Audit journal</div><div class="sub">Append-only, immutable, admin-only. Every action — inbound, edit, access — is one timestamped row.</div></div></div>
+      <div class="sheet-body flush">
+        <div style="display:flex;align-items:center;gap:13px;background:var(--ink);color:var(--paper);padding:11px 18px;margin:24px 24px 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9cc3ad" stroke-width="2" style="width:16px;height:16px;flex:none"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <span style="font-weight:600;font-size:13px">System activity journal</span>
+          <span style="flex:1"></span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:rgba(250,248,242,.6)">append-only · immutable · every action recorded</span>
+        </div>
+        <div style="padding:18px 24px 24px">
+          <table class="reg"><thead><tr><th>Time</th><th>Actor</th><th>Event</th><th>Record</th><th>Detail</th></tr></thead><tbody>
+            <tr class="line"><td class="mono" style="font-size:11px;color:var(--mute)">09:14:55</td><td style="font-weight:500">M. Petrov</td><td><span class="ak green">Terms</span></td><td class="mono" style="font-size:11px">PRV-0041</td><td><div class="adiffs"><span class="adiff"><span class="af">fx_markup</span><span class="ao plain">+1.6%</span><span class="ar">→</span><span class="an">+1.8%</span></div></div></td></tr>
+            <tr class="line"><td class="mono" style="font-size:11px;color:var(--mute)">08:41:20</td><td style="font-weight:500">E. Volkova</td><td><span class="ak blue">Txn edit</span></td><td class="mono" style="font-size:11px">TXN-0848</td><td><div class="adiffs"><span class="adiff"><span class="af">amount</span><span class="ao">NULL</span><span class="ar">→</span><span class="an">884302.41</span></div></div></td></tr>
+            <tr class="line"><td class="mono" style="font-size:11px;color:var(--mute)">07:30:02</td><td style="color:var(--mute);font-family:var(--font-mono);font-size:12px">◆ System</td><td><span class="ak grey">Access</span></td><td class="mono" style="font-size:11px;color:var(--mute)">—</td><td style="font-size:12px;color:var(--mute)">Signed in · 188.43.142.7 · Moscow.</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 ALERTS -->
+    <section class="sheet" id="alerts">
+      <div class="sheet-head"><div><div class="h"><span class="n">05</span> Alert routing</div><div class="sub">Work arrives as a banner, not a notification center. The system points the clerk at the next thing.</div></div></div>
+      <div class="sheet-body">
+        <div class="slack"><span class="dot"></span><span class="k">Slack · #recon-alerts</span><span class="grow" style="flex:1"><b>Whitepay</b> processed a new settlement — its working terms aren’t on file yet. <a style="color:var(--accent);font-weight:600;border-bottom:1px solid var(--accent)">Open provider →</a></span></div>
+        <p class="lead" style="margin-top:16px">An inbound event from processing posts to <span class="tok-inline">#recon-alerts</span> and surfaces as a banner at the top of the register. The <b>jump link</b> deep-routes straight to the flagged record in edit mode — closing the loop from “something happened” to “fill the values” in one click. There is no separate inbox to triage.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a href="components.html"><span class="d">← Prev</span><span class="t">Components</span></a>
+      <a class="next" href="developer.html"><span class="d">Next →</span><span class="t">Developer</span></a>
+    </div>
+  </main>
+</div>
+
+<div class="foot">
+  <span>Paper Ledger · v1.0</span>
+  <span class="grow"></span>
+  <span>Patterns</span>
+</div>
+
+<script>
+(function(){
+  const links=[...document.querySelectorAll('.sindex a[href^="#"]')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const obs=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));map.get(e.target.id)?.classList.add('on');}});
+  },{rootMargin:'-110px 0px -70% 0px'});
+  document.querySelectorAll('.sheet[id]').forEach(s=>obs.observe(s));
+})();
+</script>
+</body>
+</html>
