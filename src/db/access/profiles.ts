@@ -1,0 +1,115 @@
+import { and, eq, ne, sql } from "drizzle-orm";
+
+import type { Db } from "../index";
+import { profiles } from "../schema";
+import { isUniqueViolation } from "./errors";
+import { NICKNAME_RE } from "@/lib/nickname";
+
+export type Profile = typeof profiles.$inferSelect;
+
+/**
+ * Someone claimed the nickname between the availability check and the write.
+ * Callers should re-render the form with the field marked as taken.
+ */
+export class NicknameTakenError extends Error {
+  readonly nickname: string;
+
+  constructor(nickname: string) {
+    super(`Nickname already taken: ${nickname}`);
+    this.name = "NicknameTakenError";
+    this.nickname = nickname;
+  }
+}
+
+export type ProfileInput = {
+  userId: string;
+  nickname: string;
+  baseCurrency?: string;
+  partnerId?: string | null;
+  sizes?: Record<string, string>;
+  tastes?: string[];
+  noGift?: string[];
+};
+
+/** Public URLs are `/u/<nickname>`, so nicknames are lowercase and url-safe.
+ *  Single source: src/lib/nickname.ts (client-safe module). */
+export const NICKNAME_PATTERN = NICKNAME_RE;
+
+export function isValidNickname(nickname: string): boolean {
+  return NICKNAME_PATTERN.test(nickname);
+}
+
+export async function getProfile(
+  db: Db,
+  userId: string,
+): Promise<Profile | null> {
+  const rows = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertProfile(
+  db: Db,
+  input: ProfileInput,
+): Promise<Profile> {
+  if (!isValidNickname(input.nickname)) {
+    throw new Error(`Invalid nickname: ${input.nickname}`);
+  }
+
+  const values = {
+    nickname: input.nickname,
+    ...(input.baseCurrency !== undefined
+      ? { baseCurrency: input.baseCurrency }
+      : {}),
+    ...(input.partnerId !== undefined ? { partnerId: input.partnerId } : {}),
+    ...(input.sizes !== undefined ? { sizes: input.sizes } : {}),
+    ...(input.tastes !== undefined ? { tastes: input.tastes } : {}),
+    ...(input.noGift !== undefined ? { noGift: input.noGift } : {}),
+  };
+
+  try {
+    const [row] = await db
+      .insert(profiles)
+      .values({ userId: input.userId, ...values })
+      .onConflictDoUpdate({
+        target: profiles.userId,
+        set: { ...values, updatedAt: new Date() },
+      })
+      .returning();
+    return row;
+  } catch (error) {
+    // The row's own primary key is handled by ON CONFLICT, so the only unique
+    // constraints left to break are the two on `nickname`.
+    if (isUniqueViolation(error)) {
+      throw new NicknameTakenError(input.nickname);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Nicknames are compared case-insensitively (a `lower(nickname)` unique index
+ * backs this up). An invalidly formatted nickname is never available.
+ */
+export async function isNicknameAvailable(
+  db: Db,
+  nickname: string,
+  excludeUserId?: string,
+): Promise<boolean> {
+  if (!isValidNickname(nickname)) return false;
+
+  const sameNickname = sql`lower(${profiles.nickname}) = lower(${nickname})`;
+  const rows = await db
+    .select({ userId: profiles.userId })
+    .from(profiles)
+    .where(
+      excludeUserId === undefined
+        ? sameNickname
+        : and(sameNickname, ne(profiles.userId, excludeUserId)),
+    )
+    .limit(1);
+  return rows.length === 0;
+}
