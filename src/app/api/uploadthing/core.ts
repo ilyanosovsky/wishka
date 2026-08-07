@@ -47,6 +47,23 @@ export const uploadRouter = {
       }
       return { url: file.ufsUrl };
     }),
+
+  /** Wish photos (manual entry / replacement). Client downscales first; the
+   *  returned URL is validated server-side on save (must be our CDN host). */
+  wishImage: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async () => {
+      const session = await getAuth().api.getSession({
+        headers: await headers(),
+      });
+      if (!session) throw new UploadThingError("Unauthorized");
+      if (!(await consumeUploadQuota(session.user.id))) {
+        throw new UploadThingError("Upload limit reached for today");
+      }
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type UploadRouter = typeof uploadRouter;

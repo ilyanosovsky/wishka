@@ -1,12 +1,13 @@
 # Architecture
 
-> Living document; updated by every PR that changes structure. Current as of Phase 1 (scaffold).
+> Living document; updated by every PR that changes structure. Current as of Phase 4 (My list).
 
 ## Layout
 
 ```
 src/
-  app/          Next.js App Router (layout, pages, globals.css)
+  app/          App Router: (list)/ my list · wishes/new · wishes/[id](+/edit)
+                · archive · people · profile · login · welcome · api/*
   components/   Shared UI components
   i18n/         next-intl config: locale detection, server actions
   lib/          Business logic & utilities (theme, later: db, storage, parsing)

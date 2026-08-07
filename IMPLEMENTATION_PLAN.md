@@ -11,8 +11,8 @@
 | 0 | Bootstrap: docs, license, repo, protection | — (direct, pre-protection) | ✅ done |
 | 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | ✅ done |
 | 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | ✅ done |
-| 3 | Design system: components + wish card matrix | PR #4 | 🔵 in review |
-| 4 | My list: CRUD, filters, detail, archive | — | ⬜ |
+| 3 | Design system: components + wish card matrix | PR #4 | ✅ done |
+| 4 | My list: CRUD, filters, detail, archive | PR #5 | 🔵 in review |
 | 5 | Add by URL: parsing pipeline + image re-hosting | — | ⬜ |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | — (7a/7b) | ⬜ |
@@ -72,9 +72,9 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 **Goal:** the owner's core loop without parsing/AI.
 
-- ⬜ My list screen: header (share icon, archive entry, search), filter chips + sort, **card view (3a) / ledger list view (3b) switcher** (design addition — keep it), 2-col grid, all states (skeleton+offline, empty, filtered-empty, error, pull-to-refresh, infinite scroll).
-- ⬜ Manual add/edit form (§6.3 step 3, sans AI): type tabs, price exact/range + currency sheet, priority + dream toggle, category, notes, visibility summary row (stub until Phase 8: "everyone" only), draft persistence + "Сохранить черновик?".
-- ⬜ Own wish detail; "Уже подарили" sheet ("кто подарил" free-text / group suggestions — **never from reservations**); delete with undo toast; archive screen (year groups, restore, permanent delete).
+- ✅ My list screen: archive entry, search, filter chips + sort, **card view (3a) / ledger list view (3b) switcher**, 2-col grid; states: skeleton (route group), offline banner, empty, filtered-empty, error boundary. Deferred: share button (hidden until public lists, Phase 7), pull-to-refresh + infinite scroll (list loads fully at current scale — revisit if lists grow).
+- ✅ Manual add/edit form (§6.3 step 3, sans AI): type tabs, photo upload (proportional client downscale + our-CDN-only server validation), price exact/range/none + currency sheet with recents, priority + dream toggle, category, notes, visibility stub, per-user draft persistence + save-draft dialog, i18n-mapped server errors.
+- ✅ Own wish detail; "Уже подарили" sheet (free text — **never from reservations**); delete with 5s undo (commits on unmount — reviewed); archive screen (year groups, restore, permanent delete). URL scheme validation (http/https only) added after review.
 - **Wiki:** update `Architecture.md`. **Model:** Opus (list orchestration/drafts), Sonnet (archive, forms).
 
 ## Phase 5 — Add by URL: parsing pipeline (next PR)
