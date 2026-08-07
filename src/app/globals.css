@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Map Paper Ledger tokens to Tailwind v4 theme so utilities like
+   bg-paper, text-ink, border-rule, font-serif resolve to live CSS vars
+   (theme switching keeps working because values stay var() references). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-paper: var(--paper);
+  --color-zebra: var(--zebra);
+  --color-rule: var(--rule);
+  --color-rule-2: var(--rule-2);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-mute-2: var(--mute-2);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-null: var(--null);
+  --color-null-rule: var(--null-rule);
+  --color-null-txt: var(--null-txt);
+  --color-neg: var(--neg);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-toast-accent: var(--toast-accent);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Square world: neutralize Tailwind's default radius scale. */
+  --radius-*: initial;
+  --radius-none: 0;
+  --radius-round: 50%;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: var(--lead-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
