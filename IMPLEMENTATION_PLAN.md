@@ -10,8 +10,8 @@
 |---|---|---|---|
 | 0 | Bootstrap: docs, license, repo, protection | — (direct, pre-protection) | ✅ done |
 | 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | ✅ done |
-| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | 🔵 in review |
-| 3 | Design system: components + wish card matrix | — | ⬜ |
+| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | ✅ done |
+| 3 | Design system: components + wish card matrix | PR #4 | 🔵 in review |
 | 4 | My list: CRUD, filters, detail, archive | — | ⬜ |
 | 5 | Add by URL: parsing pipeline + image re-hosting | — | ⬜ |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
@@ -48,7 +48,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 **Goal:** login works end-to-end; schema + data-access layer enforce the product's privacy core.
 
-- ✅ Railway Postgres provisioned by Ilya; migration applied via `npm run db:migrate`. ⬜ Verify backups enabled (user action).
+- ✅ Railway Postgres provisioned by Ilya; migrations applied. ⚠️ Backups unavailable on Railway Hobby tier — accepted for now; revisit before launch (Phase 9): pg_dump cron or tier upgrade.
 - ✅ Drizzle ORM + drizzle-kit migrations in `drizzle/`; typed schema (14 tables).
 - ✅ Schema v1: `profiles` (nickname unique, base_currency, partner_id, sizes jsonb, tastes jsonb, no_gift jsonb), `wishes` (type, title, url, image_key, description, price exact/range + currency, priority, is_dream, category, notes, visibility mode, status, archived fields), `wish_visibility` (wish ↔ group/person), `groups`, `group_members` (role), `group_invites`, `reservations` (wish, reserver profile **or** guest identity, state), `guest_identities` (token, email), `parsed_url_cache`, `ai_usage` + Better Auth tables (user/session/account/verification via Drizzle adapter).
 - ✅ **Data-access layer (`src/db/access/`) — the surprise invariant:** DB is server-only; owner-facing query builders **cannot select reservation data by construction** (viewer-role-scoped modules + DTOs). Visibility rules (everyone / groups / persons / partner) live in the same layer. Vitest proves both against in-process PGlite running the real migrations (no docker needed) — 32 DB tests.
@@ -61,11 +61,11 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 **Goal:** the Paper Ledger kit, so feature phases assemble instead of invent.
 
-- ⬜ Base: Button (primary/danger/loading ≥44px), Field (focus/error/locked/parsed-link), segmented Tabs (ink-active and accent-active variants), Chips, BottomSheet (square, drag-handle, up-shadow), Dialog (+destructive-right rule), Toast (undo with 5s progress bar), Avatar (round) + square masthead avatar, TabBar (3 tabs, 2px top rule), square FAB, alert banners, OTP input, skeleton/shimmer.
-- ⬜ Badges: status (Свободно / Забронировано / Забронировано вами / Подарено), rotated "Мечта" stamp, nullpill "нет цены", priority flag triangle, visibility lock badge.
-- ⬜ **WishCard with the full state matrix** (role × status × modifiers: dream, priority, restricted visibility, no-image category placeholder, generating shimmer, generation failed, 2-line clamp, price range, no price, any currency). Owner variant renders **identically** with or without reservations — test asserts the component API doesn't even accept reservation data in owner mode.
-- ⬜ Icons: lucide-react, strokeWidth ≈2.4, fill none.
-- ⬜ `/dev/ui` playground route (dev-only) showing every component in both themes.
+- ✅ Base: Button (primary/danger/loading ≥44px), Field (focus/error/locked/parsed-link), segmented Tabs (ink-active and accent-active variants), Chips, BottomSheet (square, drag-handle, up-shadow), Dialog (+destructive-right rule), Toast (undo with 5s progress bar), Avatar (round) + square masthead avatar, TabBar (3 tabs, 2px top rule), square FAB, alert banners, OTP input, skeleton/shimmer.
+- ✅ Badges: status (Свободно / Забронировано / Забронировано вами / Подарено), rotated "Мечта" stamp, nullpill "нет цены", priority flag triangle, visibility lock badge.
+- ✅ **WishCard with the full state matrix** (role × status × modifiers: dream, priority, restricted visibility, no-image category placeholder, generating shimmer, generation failed, 2-line clamp, price range, no price, any currency). Owner variant renders **identically** with or without reservations — test asserts the component API doesn't even accept reservation data in owner mode.
+- ✅ Icons: lucide-react, strokeWidth ≈2.4, fill none.
+- ✅ `/dev/ui` playground route (dev-only) showing every component in both themes.
 - **Wiki:** `Design-System.md`. **Model:** Opus (WishCard, BottomSheet), Sonnet (rest).
 
 ## Phase 4 — My list & wish CRUD (next PR)

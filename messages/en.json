@@ -57,5 +57,33 @@
   },
   "locale": {
     "label": "Language"
+  },
+  "wish": {
+    "status": {
+      "free": "Available",
+      "reserved": "Reserved",
+      "reservedByYou": "Reserved by you",
+      "gifted": "Gifted"
+    },
+    "dream": "Dream",
+    "noPrice": "no price",
+    "priority": {
+      "want": "Really want",
+      "nice": "Would be nice",
+      "idea": "Just an idea"
+    },
+    "imageGenerating": "Painting…",
+    "imageFailed": "Couldn't paint it",
+    "retry": "Retry",
+    "uploadPhoto": "Upload a photo",
+    "restrictedVisibility": "Not visible to everyone",
+    "giftedBy": "from {name}"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "undo": "Undo",
+    "close": "Close"
   }
 }
