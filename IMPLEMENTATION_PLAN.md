@@ -9,8 +9,8 @@
 | Phase | Scope | PR | Status |
 |---|---|---|---|
 | 0 | Bootstrap: docs, license, repo, protection | — (direct, pre-protection) | ✅ done |
-| 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | 🔵 in review |
-| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | next | ⬜ |
+| 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | ✅ done |
+| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | 🔵 in review |
 | 3 | Design system: components + wish card matrix | — | ⬜ |
 | 4 | My list: CRUD, filters, detail, archive | — | ⬜ |
 | 5 | Add by URL: parsing pipeline + image re-hosting | — | ⬜ |
@@ -42,19 +42,19 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Vercel project connected (user action: import repo at vercel.com/new; preview deploys on PRs).
 - **Wiki:** `Local-Setup.md`, `Architecture.md` — done in this PR. **Model:** done inline (Fable), theme system hand-authored.
 
-## Phase 2 — Database, auth, onboarding (next PR)
+## Phase 2 — Database, auth, onboarding (PR #3)
 
 > Stack revised 07.08.2026 (Supabase → Railway/Better Auth, see VISION.md §5.1): Supabase free tier caps at 2 active projects per account; Railway Hobby is already paid with unused credits.
 
 **Goal:** login works end-to-end; schema + data-access layer enforce the product's privacy core.
 
-- ⬜ Railway: new `wishka` project with Postgres service (enable backups); `DATABASE_URL` into `.env.local`/Vercel.
-- ⬜ Drizzle ORM + drizzle-kit migrations in `drizzle/`; typed schema.
-- ⬜ Schema v1: `profiles` (nickname unique, base_currency, partner_id, sizes jsonb, tastes jsonb, no_gift jsonb), `wishes` (type, title, url, image_key, description, price exact/range + currency, priority, is_dream, category, notes, visibility mode, status, archived fields), `wish_visibility` (wish ↔ group/person), `groups`, `group_members` (role), `group_invites`, `reservations` (wish, reserver profile **or** guest identity, state), `guest_identities` (token, email), `parsed_url_cache`, `ai_usage` + Better Auth tables (user/session/account/verification via Drizzle adapter).
-- ⬜ **Data-access layer (`lib/db/`) — the surprise invariant:** DB is server-only; owner-facing query builders **cannot select reservation data by construction** (viewer-role-scoped modules + DTOs). Visibility rules (everyone / groups / persons / partner) live in the same layer. Vitest proves both against a local Postgres (docker; CI job included).
-- ⬜ Better Auth: Google OAuth + email OTP plugin (6-digit codes sent via Resend), sessions in Postgres, middleware, protected routes.
-- ⬜ Login + code screens with all mocked states (§6.1); mini-onboarding (name, avatar upload+crop+compress client-side, nickname with live availability, base currency); skippable.
-- ⬜ `lib/storage/` adapter interface + UploadThing implementation (used for avatars here, product images in Phase 5).
+- ✅ Railway Postgres provisioned by Ilya; migration applied via `npm run db:migrate`. ⬜ Verify backups enabled (user action).
+- ✅ Drizzle ORM + drizzle-kit migrations in `drizzle/`; typed schema (14 tables).
+- ✅ Schema v1: `profiles` (nickname unique, base_currency, partner_id, sizes jsonb, tastes jsonb, no_gift jsonb), `wishes` (type, title, url, image_key, description, price exact/range + currency, priority, is_dream, category, notes, visibility mode, status, archived fields), `wish_visibility` (wish ↔ group/person), `groups`, `group_members` (role), `group_invites`, `reservations` (wish, reserver profile **or** guest identity, state), `guest_identities` (token, email), `parsed_url_cache`, `ai_usage` + Better Auth tables (user/session/account/verification via Drizzle adapter).
+- ✅ **Data-access layer (`src/db/access/`) — the surprise invariant:** DB is server-only; owner-facing query builders **cannot select reservation data by construction** (viewer-role-scoped modules + DTOs). Visibility rules (everyone / groups / persons / partner) live in the same layer. Vitest proves both against in-process PGlite running the real migrations (no docker needed) — 32 DB tests.
+- ✅ Better Auth: Google OAuth + email OTP (6-digit via Resend), sessions in Postgres, server-side route guards.
+- ✅ Login + code screens with §6.1 states (errors, resend timer, lockout); mini-onboarding (name, avatar client-side downscale + upload, nickname live availability, base currency); skippable.
+- ✅ `src/lib/storage/` adapter (StoragePort) + UploadThing implementation; avatar upload route with session authz.
 - **Wiki:** `Data-Model.md`, update `Local-Setup.md` (Railway, Google OAuth, Resend, UploadThing). **Model:** Opus (schema/data-access/auth), Sonnet (screens).
 
 ## Phase 3 — Design system components (next PR)

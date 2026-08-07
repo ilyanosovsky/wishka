@@ -15,7 +15,19 @@ cp .env.example .env.local   # see the table in CLAUDE.md for every key
 npm run dev                  # http://localhost:3000
 ```
 
-The scaffold phase needs **no external services** — the app boots without any env vars. Database (Railway Postgres), auth (Better Auth: Google OAuth + email codes via Resend) and image storage (UploadThing) arrive in Phase 2+; their keys are documented in [`.env.example`](https://github.com/ilyanosovsky/wishka/blob/main/.env.example).
+Required services (all free tiers): a Postgres database (we use Railway), [Resend](https://resend.com) for auth-code emails, [UploadThing](https://uploadthing.com) for images, and a Google OAuth client. Every key is documented in [`.env.example`](https://github.com/ilyanosovsky/wishka/blob/main/.env.example).
+
+### Database
+
+```bash
+npm run db:migrate    # applies drizzle/ migrations to DATABASE_URL
+```
+
+Tests do NOT need a database — they run the same migrations on in-process PGlite.
+
+### Google OAuth
+
+Google Cloud Console → Credentials → OAuth client (Web): authorized redirect URI = `<NEXT_PUBLIC_APP_URL>/api/auth/callback/google` (add both `http://localhost:3000/...` and the production URL).
 
 ## Quality gate (same as CI)
 

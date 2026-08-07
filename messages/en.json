@@ -6,7 +6,48 @@
   "home": {
     "status": "UNDER CONSTRUCTION",
     "underConstruction": "The wishlist service will live here soon. For now — a Paper Ledger design-system smoke test.",
-    "wishesCount": "{count, plural, one {# wish} other {# wishes}}"
+    "wishesCount": "{count, plural, one {# wish} other {# wishes}}",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "greeting": "Hi, {name}! Your wishlist arrives here in Phase 4."
+  },
+  "auth": {
+    "login": {
+      "google": "Sign in with Google",
+      "orByCode": "or with an email code",
+      "emailLabel": "Email",
+      "invalidEmail": "That email looks mistyped",
+      "getCode": "Get a code",
+      "sending": "Sending…",
+      "sendFailed": "Couldn't send the email — try signing in with Google",
+      "oauthFailed": "Google sign-in failed — use an email code instead"
+    },
+    "code": {
+      "title": "Code from the email",
+      "sentTo": "We sent a 6-digit code to {email}. Check the spam folder too.",
+      "changeEmail": "Change email",
+      "wrong": "{count, plural, =0 {That code didn't work} one {That code didn't work — # attempt left} other {That code didn't work — # attempts left}}",
+      "expired": "The code expired — request a new one",
+      "tooMany": "Too many attempts — try again later or change the email",
+      "resend": "Send a new code",
+      "resendIn": "Resend available in {seconds}s"
+    },
+    "onboarding": {
+      "title": "Almost there",
+      "subtitle": "A couple of touches and you can start your list. Everything can be changed later.",
+      "avatar": "Add a photo",
+      "avatarUploading": "Preparing the photo…",
+      "avatarError": "Upload failed — try another photo",
+      "name": "Name",
+      "nickname": "Nickname",
+      "nicknameTaken": "Taken — try another one",
+      "nicknameInvalid": "Only lowercase letters, digits and dashes, 3+ characters",
+      "currency": "Base currency",
+      "currencyHint": "Pre-filled for new wishes; each wish can use its own",
+      "done": "Done — to my list",
+      "saving": "Saving…",
+      "skip": "Skip — I'll fill it in later"
+    }
   },
   "theme": {
     "label": "Theme",

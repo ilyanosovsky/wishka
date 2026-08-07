@@ -7,7 +7,7 @@
 - **Home** — this page
 - [Local Setup](Local-Setup) — clone, run, quality gate
 - [Architecture](Architecture) — layout, key decisions, diagram
-- _Data model_ — coming with the database PR
+- [Data Model](Data-Model) — schema, surprise invariant, visibility rules
 - _Parsing pipeline_ — coming with the parsing PR
 
 ## How this wiki works
