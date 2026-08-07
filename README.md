@@ -22,11 +22,13 @@ Our old “wishlist” was a shared iPhone note. It worked until it didn’t: du
 | Layer | Choice |
 |---|---|
 | Framework | Next.js (App Router), TypeScript strict |
-| Database / Auth / Storage | Supabase (Postgres + RLS, Google OAuth + email OTP, Storage) |
+| Database | Postgres (Railway) + Drizzle ORM |
+| Auth | Better Auth (Google OAuth + 6-digit email codes) |
+| Image storage | UploadThing (behind a small storage adapter) |
 | Styling | Tailwind CSS, design tokens from the “Paper Ledger” design system |
 | i18n | next-intl (RU / EN) |
 | AI | OpenAI (`gpt-5.6-luna` for extraction, `gpt-5-mini` for the gift assistant, `gpt-image-2` for images) — all model names via env |
-| Email | Resend (Supabase SMTP + transactional) |
+| Email | Resend (auth codes + transactional) |
 | Testing | Vitest + Testing Library |
 | Hosting | Vercel |
 
@@ -38,11 +40,11 @@ Design: a warm, paper-ledger aesthetic — serif headings (Newsreader), hairline
 git clone https://github.com/ilyanosovsky/wishka.git
 cd wishka
 npm install
-cp .env.example .env.local   # fill in Supabase + OpenAI keys
+cp .env.example .env.local   # fill in database + OpenAI keys
 npm run dev
 ```
 
-You’ll need a (free) [Supabase](https://supabase.com) project and an [OpenAI](https://platform.openai.com) API key. See [`.env.example`](.env.example) for every variable and [`CLAUDE.md`](CLAUDE.md) for the full setup notes (Google OAuth, Resend SMTP).
+You’ll need a Postgres database (any provider — we use [Railway](https://railway.com)), an [OpenAI](https://platform.openai.com) API key, and free accounts for [Resend](https://resend.com) (emails) and [UploadThing](https://uploadthing.com) (images). See [`.env.example`](.env.example) for every variable and [`CLAUDE.md`](CLAUDE.md) for full setup notes (Google OAuth, etc.).
 
 ### Scripts
 

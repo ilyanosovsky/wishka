@@ -77,6 +77,17 @@ Mobile-first веб-сервис вишлистов: личный пет-про�
 
 **Имена моделей — только через env/config**: OpenAI в конце 2026 выключает половину дешёвых моделей (gpt-5-mini/nano, gpt-4.1-nano, вся gpt-image-1 семья) — миграция должна быть заменой одной строки.
 
+### 5.1 Поправка 07.08.2026 — уход с Supabase
+
+Выяснилось: лимит бесплатного Supabase «2 активных проекта» действует **на аккаунт** (подтверждено сотрудником Supabase), оба слота у Ильи заняты, а Pro стоит $25–45/мес — нерационально для некоммерческого проекта. Решение (после ресёрча Railway/Clerk/Neon/R2 с ценами):
+
+| Было (Supabase) | Стало |
+|---|---|
+| Postgres + RLS | **Railway Postgres** (~$0–3/мес внутри уже оплаченных кредитов Hobby-плана) + Drizzle; инвариант сюрприза — в data-access слое (БД server-only), покрыт тестами |
+| Supabase Auth (+ Resend SMTP) | **Better Auth** (self-hosted, $0): Google OAuth + 6-значные email-коды через Resend. Clerk отклонён: production требует собственный домен; NextAuth — в maintenance-режиме у команды Better Auth |
+| Supabase Storage | **UploadThing** (2 ГБ free, уже есть аккаунт) за адаптером `lib/storage/`; запасной вариант — Railway Buckets (S3, $0.015/ГБ, бесплатный egress) |
+| Пауза после 7 дней, keep-alive cron | Не нужно: Railway Postgres always-on |
+
 ### Парсинг товарной ссылки — слоёный pipeline
 
 Живой тест (авг 2026): простой server-side fetch **работает** на Shopify-магазинах и обычных магазинах, **блокируется** на Amazon, eBay, AliExpress, Zara, H&M, Ozon, Wildberries, Walmart, Etsy, Best Buy (антиботы Akamai/PerimeterX и свои).
