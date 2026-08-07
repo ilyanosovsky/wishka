@@ -5,10 +5,10 @@
 ## Pages
 
 - **Home** — this page
-- _Architecture_ — coming with the scaffold PR
-- _Data model & RLS_ — coming with the database PR
+- [Local Setup](Local-Setup) — clone, run, quality gate
+- [Architecture](Architecture) — layout, key decisions, diagram
+- _Data model_ — coming with the database PR
 - _Parsing pipeline_ — coming with the parsing PR
-- _Local setup_ — coming with the scaffold PR
 
 ## How this wiki works
 

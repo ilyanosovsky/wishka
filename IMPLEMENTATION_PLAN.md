@@ -9,15 +9,15 @@
 | Phase | Scope | PR | Status |
 |---|---|---|---|
 | 0 | Bootstrap: docs, license, repo, protection | — (direct, pre-protection) | ✅ done |
-| 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #1 | ⬜ |
-| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #2 | ⬜ |
-| 3 | Design system: components + wish card matrix | PR #3 | ⬜ |
-| 4 | My list: CRUD, filters, detail, archive | PR #4 | ⬜ |
-| 5 | Add by URL: parsing pipeline + image re-hosting | PR #5 | ⬜ |
-| 6 | AI assists: text-to-wish, suggestions, image gen, quotas | PR #6 | ⬜ |
-| 7 | Sharing & reservations: public lists, guests, surprise mode | PR #7 (7a/7b) | ⬜ |
-| 8 | Groups, partner, visibility, view-as | PR #8 | ⬜ |
-| 9 | Polish & launch: i18n/dark audit, a11y, prod config | PR #9 | ⬜ |
+| 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | 🔵 in review |
+| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | next | ⬜ |
+| 3 | Design system: components + wish card matrix | — | ⬜ |
+| 4 | My list: CRUD, filters, detail, archive | — | ⬜ |
+| 5 | Add by URL: parsing pipeline + image re-hosting | — | ⬜ |
+| 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
+| 7 | Sharing & reservations: public lists, guests, surprise mode | — (7a/7b) | ⬜ |
+| 8 | Groups, partner, visibility, view-as | — | ⬜ |
+| 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
 
@@ -27,22 +27,22 @@ Design-debt items carried from mockup analysis are folded into phases 1 and 3 (s
 
 Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README, MIT license, .env.example, PR template, wiki sync workflow (`docs/wiki/` → GitHub Wiki on merge), `design/` mockups. `main` protected: PRs only, linear history, no force pushes. *Everything after this phase goes through PRs.*
 
-## Phase 1 — Scaffold & tooling (PR #1)
+## Phase 1 — Scaffold & tooling (PR #2)
 
 **Goal:** empty but deployable app with the full quality gate.
 
-- ⬜ `create-next-app` (TypeScript, App Router, no src dir decision documented in wiki), strict tsconfig.
-- ⬜ Tailwind wired to **CSS variables from `design/uploads/tokens.css`** (keep var names). Fix `--font-serif` to `'Newsreader','Literata',Georgia,serif` (Cyrillic!).
-- ⬜ Dark theme: author `:root[data-theme="dark"]` override from the "night ledger" palette (`bg #1f1c16 · paper #292519 · ink #e8e2d2 · accent #8fb39e · accent-soft #2e3a32 · rule #3a352a · rule-2 #4a4436 · null-txt #d8b25e · neg #c97a6e`); derive missing dark tokens (zebra, soft families, shadows) and mint tokens for ad-hoc colors (undo-toast green `#9cc3ad`, 40% ink scrim). 3-way toggle Light/Dark/System (persisted, no-flash script).
-- ⬜ Fonts via `next/font` (Newsreader, Literata, Inter, JetBrains Mono).
-- ⬜ next-intl: RU + EN message catalogs, browser-language default, locale switcher primitive.
-- ⬜ ESLint (`next/core-web-vitals`) + Prettier + `npm run typecheck`.
-- ⬜ Vitest + @testing-library/react + happy-dom; example test.
-- ⬜ CI workflow `.github/workflows/ci.yml`: lint → typecheck → test (job name `ci`); after merge, add `ci` to required status checks on `main`.
-- ⬜ Vercel project connected (preview deploys on PRs).
-- **Wiki:** `Local-Setup.md`, `Architecture.md`. **Model:** Sonnet (scaffolding), Opus (theme/token system).
+- ✅ `create-next-app` (TypeScript, App Router, `src/` dir + `@/*` alias — documented in wiki), strict tsconfig.
+- ✅ Tailwind v4 wired to **CSS variables from `design/uploads/tokens.css`** (var names kept, mapped via `@theme inline`). `--font-serif` fixed to Newsreader→Literata→Georgia (Cyrillic).
+- ✅ Dark theme `[data-theme="dark"]` + system media fallback authored in `src/styles/tokens.css`; missing dark tokens derived (zebra, badge families, shadows); minted `--toast-accent`, `--scrim`. 3-way Light/Dark/System toggle, persisted, no-flash inline script. Verified: computed `--bg/--ink/--accent` correct in both themes.
+- ✅ Fonts via `next/font` (Newsreader, Literata, Inter, JetBrains Mono; Cyrillic subsets where available).
+- ✅ next-intl **without locale routing** (cookie + browser-language default), RU+EN catalogs, locale switcher; catalog key-parity enforced by test.
+- ✅ ESLint (`next/core-web-vitals`, `design/` excluded) + Prettier + `npm run typecheck`.
+- ✅ Vitest + @testing-library/react + happy-dom; 8 tests (messages parity, theme utils).
+- ✅ CI workflow `.github/workflows/ci.yml`: lint → typecheck → test (job `ci`). ⬜ After merge: add `ci` to required status checks on `main`.
+- ⬜ Vercel project connected (user action: import repo at vercel.com/new; preview deploys on PRs).
+- **Wiki:** `Local-Setup.md`, `Architecture.md` — done in this PR. **Model:** done inline (Fable), theme system hand-authored.
 
-## Phase 2 — Database, auth, onboarding (PR #2)
+## Phase 2 — Database, auth, onboarding (next PR)
 
 > Stack revised 07.08.2026 (Supabase → Railway/Better Auth, see VISION.md §5.1): Supabase free tier caps at 2 active projects per account; Railway Hobby is already paid with unused credits.
 
@@ -57,7 +57,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ `lib/storage/` adapter interface + UploadThing implementation (used for avatars here, product images in Phase 5).
 - **Wiki:** `Data-Model.md`, update `Local-Setup.md` (Railway, Google OAuth, Resend, UploadThing). **Model:** Opus (schema/data-access/auth), Sonnet (screens).
 
-## Phase 3 — Design system components (PR #3)
+## Phase 3 — Design system components (next PR)
 
 **Goal:** the Paper Ledger kit, so feature phases assemble instead of invent.
 
@@ -68,7 +68,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ `/dev/ui` playground route (dev-only) showing every component in both themes.
 - **Wiki:** `Design-System.md`. **Model:** Opus (WishCard, BottomSheet), Sonnet (rest).
 
-## Phase 4 — My list & wish CRUD (PR #4)
+## Phase 4 — My list & wish CRUD (next PR)
 
 **Goal:** the owner's core loop without parsing/AI.
 
@@ -77,7 +77,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Own wish detail; "Уже подарили" sheet ("кто подарил" free-text / group suggestions — **never from reservations**); delete with undo toast; archive screen (year groups, restore, permanent delete).
 - **Wiki:** update `Architecture.md`. **Model:** Opus (list orchestration/drafts), Sonnet (archive, forms).
 
-## Phase 5 — Add by URL: parsing pipeline (PR #5)
+## Phase 5 — Add by URL: parsing pipeline (next PR)
 
 **Goal:** paste a link → card assembles; failure is a calm, first-class path.
 
@@ -87,7 +87,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
 
-## Phase 6 — AI assists & quotas (PR #6)
+## Phase 6 — AI assists & quotas (next PR)
 
 **Goal:** AI fills gaps — on explicit tap, within budget.
 
@@ -98,7 +98,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Tests: quota accounting, prompt-builder unit tests, job state machine.
 - **Wiki:** `AI-Features.md` (+ costs note). **Model:** Opus (async job + quotas), Sonnet (form UI).
 
-## Phase 7 — Sharing, guests, reservations (PR #7 — split: 7a public lists, 7b reservations)
+## Phase 7 — Sharing, guests, reservations (split: 7a public lists, 7b reservations)
 
 **Goal:** the reason Wishka exists — sharing + surprise-safe reservations.
 
@@ -113,7 +113,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Service screens (§6.10): invalid link, no access, expired invite, expired session.
 - **Wiki:** `Reservations-and-Surprise-Mode.md`, `Guest-Access.md`. **Model:** Opus (both halves — this is the crown jewel), Sonnet (emails, service screens).
 
-## Phase 8 — Groups, partner, visibility (PR #8)
+## Phase 8 — Groups, partner, visibility (next PR)
 
 **Goal:** the social fabric + real per-wish privacy.
 
@@ -123,7 +123,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ "Посмотреть, как видят другие": view-as guest/group/person with preview banner; **reservations never shown in preview**.
 - **Wiki:** `Groups-and-Visibility.md`. **Model:** Opus (visibility+RLS integration), Sonnet (group CRUD UI).
 
-## Phase 9 — Polish & launch (PR #9)
+## Phase 9 — Polish & launch (next PR)
 
 - ⬜ EN localization pass on all screens (long-string stress test, plurals); dark-theme audit of every screen; a11y sweep (44px targets, AA contrast, focus states).
 - ⬜ Empty/error state sweep vs DESIGN_BRIEF §6 checklist; email templates final pass.

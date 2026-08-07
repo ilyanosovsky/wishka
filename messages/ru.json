@@ -1,0 +1,20 @@
+{
+  "app": {
+    "title": "Wishka",
+    "tagline": "Вишлист, которым приятно делиться"
+  },
+  "home": {
+    "status": "СТРОИТСЯ",
+    "underConstruction": "Здесь скоро появится сервис вишлистов. Пока — проверка дизайн-системы Paper Ledger.",
+    "wishesCount": "{count, plural, one {# желание} few {# желания} other {# желаний}}"
+  },
+  "theme": {
+    "label": "Тема",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "system": "Системная"
+  },
+  "locale": {
+    "label": "Язык"
+  }
+}

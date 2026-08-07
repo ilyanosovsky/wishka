@@ -1,0 +1,20 @@
+{
+  "app": {
+    "title": "Wishka",
+    "tagline": "A wishlist you'll love to share"
+  },
+  "home": {
+    "status": "UNDER CONSTRUCTION",
+    "underConstruction": "The wishlist service will live here soon. For now — a Paper Ledger design-system smoke test.",
+    "wishesCount": "{count, plural, one {# wish} other {# wishes}}"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "locale": {
+    "label": "Language"
+  }
+}
