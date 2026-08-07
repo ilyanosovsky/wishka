@@ -10,7 +10,7 @@
 |---|---|---|---|
 | 0 | Bootstrap: docs, license, repo, protection | — (direct, pre-protection) | ✅ done |
 | 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #1 | ⬜ |
-| 2 | Supabase: schema, RLS, auth, onboarding | PR #2 | ⬜ |
+| 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #2 | ⬜ |
 | 3 | Design system: components + wish card matrix | PR #3 | ⬜ |
 | 4 | My list: CRUD, filters, detail, archive | PR #4 | ⬜ |
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #5 | ⬜ |
@@ -44,14 +44,18 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 ## Phase 2 — Database, auth, onboarding (PR #2)
 
-**Goal:** login works end-to-end; schema + RLS enforce the product's privacy core.
+> Stack revised 07.08.2026 (Supabase → Railway/Better Auth, see VISION.md §5.1): Supabase free tier caps at 2 active projects per account; Railway Hobby is already paid with unused credits.
 
-- ⬜ Supabase project; Supabase CLI + `supabase/migrations/`; generated TS types.
-- ⬜ Schema v1: `profiles` (nickname unique, base_currency, partner_id, sizes jsonb, tastes jsonb, no_gift jsonb), `wishes` (type, title, url, image_path, description, price exact/range + currency, priority, is_dream, category, notes, visibility mode, status, archived fields), `wish_visibility` (wish ↔ group/person), `groups`, `group_members` (role), `group_invites`, `reservations` (wish, reserver profile **or** guest identity, state), `guest_identities` (token, email), `parsed_url_cache`, `ai_usage`.
-- ⬜ **RLS — the surprise invariant:** owner has **no read path** to reservations of own wishes (policy-level, not UI). Wish visibility policies (everyone / groups / persons / partner). Tests that prove both (vitest against local Supabase).
-- ⬜ Auth: Google OAuth + email OTP (6-digit); **Resend as custom SMTP** (built-in Supabase mail is 2/hour — unusable); auth middleware, protected routes.
+**Goal:** login works end-to-end; schema + data-access layer enforce the product's privacy core.
+
+- ⬜ Railway: new `wishka` project with Postgres service (enable backups); `DATABASE_URL` into `.env.local`/Vercel.
+- ⬜ Drizzle ORM + drizzle-kit migrations in `drizzle/`; typed schema.
+- ⬜ Schema v1: `profiles` (nickname unique, base_currency, partner_id, sizes jsonb, tastes jsonb, no_gift jsonb), `wishes` (type, title, url, image_key, description, price exact/range + currency, priority, is_dream, category, notes, visibility mode, status, archived fields), `wish_visibility` (wish ↔ group/person), `groups`, `group_members` (role), `group_invites`, `reservations` (wish, reserver profile **or** guest identity, state), `guest_identities` (token, email), `parsed_url_cache`, `ai_usage` + Better Auth tables (user/session/account/verification via Drizzle adapter).
+- ⬜ **Data-access layer (`lib/db/`) — the surprise invariant:** DB is server-only; owner-facing query builders **cannot select reservation data by construction** (viewer-role-scoped modules + DTOs). Visibility rules (everyone / groups / persons / partner) live in the same layer. Vitest proves both against a local Postgres (docker; CI job included).
+- ⬜ Better Auth: Google OAuth + email OTP plugin (6-digit codes sent via Resend), sessions in Postgres, middleware, protected routes.
 - ⬜ Login + code screens with all mocked states (§6.1); mini-onboarding (name, avatar upload+crop+compress client-side, nickname with live availability, base currency); skippable.
-- **Wiki:** `Data-Model-and-RLS.md`, update `Local-Setup.md` (Supabase, Google OAuth, Resend). **Model:** Opus (schema/RLS), Sonnet (screens).
+- ⬜ `lib/storage/` adapter interface + UploadThing implementation (used for avatars here, product images in Phase 5).
+- **Wiki:** `Data-Model.md`, update `Local-Setup.md` (Railway, Google OAuth, Resend, UploadThing). **Model:** Opus (schema/data-access/auth), Sonnet (screens).
 
 ## Phase 3 — Design system components (PR #3)
 
@@ -78,7 +82,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 **Goal:** paste a link → card assembles; failure is a calm, first-class path.
 
 - ⬜ `/api/parse`: **L0** fetch + open-graph-scraper (OG+JSON-LD, real UA, 8s timeout, challenge-page detection) → **L1** LLM extraction over cleaned HTML (`OPENAI_MODEL_TEXT`, structured outputs) → **L2** Jina Reader (`r.jina.ai`) → **L3** Firecrawl (free 1000/mo) → give up gracefully. Stop-list (Amazon-class) → manual immediately. Cache results in `parsed_url_cache` (one parse per URL globally).
-- ⬜ **Image re-hosting:** server-side fetch, content-type/size validation, store copy in Supabase Storage; `next/image` remotePatterns = own storage host only.
+- ⬜ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); `next/image` remotePatterns = our storage host only.
 - ⬜ Add-by-URL UI: clipboard suggestion, parsing states (fast <3s / slow >5s with escape hatch / partial with highlights / failed calm / stop-list / duplicate detection).
 - ⬜ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
@@ -103,7 +107,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ Profile screen (§6.6): public-status line, sizes/tastes/no-gift sheets, settings (language, theme, currency, logout, delete account).
 
 **7b:**
-- ⬜ Reservation lifecycle: reserve (auth or guest), conflict handling (race → "уже забронировали"), unreserve with confirmation+undo; owner-side: zero traces (RLS from Phase 2 + e2e-style tests).
+- ⬜ Reservation lifecycle: reserve (auth or guest), conflict handling (race → "уже забронировали"), unreserve with confirmation+undo; owner-side: zero traces (data-access layer from Phase 2 + e2e-style tests).
 - ⬜ Guest identity: device token + optional email; success screen, other-device state, "manage booking" email link (Resend); guest→account merge on signup.
 - ⬜ "Мои брони" tab: list with owner avatars, changed/deleted-by-owner states, recently-viewed lists, empty state. Emails: booking confirmation, owner-changed/deleted booked wish, gift-marked-given.
 - ⬜ Service screens (§6.10): invalid link, no access, expired invite, expired session.
@@ -115,7 +119,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 - ⬜ Groups: list, first-run, create sheet (emoji/color, invite link), group detail (member grid, admin meatball menu), roles (creator=admin, transfer on leave), invite acceptance (+already-member, expired), leave/remove confirmations with visibility-consequence copy, V2 placeholder block.
 - ⬜ Partner: assign/remove in profile (from group members).
-- ⬜ "Кому видно" sheet live: everyone / groups / persons (partner pinned); RLS integration; narrowing-after-reservation rule (reservation survives, reserver loses access, email sent).
+- ⬜ "Кому видно" sheet live: everyone / groups / persons (partner pinned); wired into the data-access visibility rules; narrowing-after-reservation rule (reservation survives, reserver loses access, email sent).
 - ⬜ "Посмотреть, как видят другие": view-as guest/group/person with preview banner; **reservations never shown in preview**.
 - **Wiki:** `Groups-and-Visibility.md`. **Model:** Opus (visibility+RLS integration), Sonnet (group CRUD UI).
 
@@ -123,7 +127,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 - ⬜ EN localization pass on all screens (long-string stress test, plurals); dark-theme audit of every screen; a11y sweep (44px targets, AA contrast, focus states).
 - ⬜ Empty/error state sweep vs DESIGN_BRIEF §6 checklist; email templates final pass.
-- ⬜ Production config: Vercel env vars, Supabase prod (SMTP, OAuth redirects, storage buckets/policies), keep-alive cron (daily, `CRON_SECRET`), Supabase→Vercel deploy checklist in wiki.
+- ⬜ Production config: Vercel env vars, Railway Postgres backups verified, Google OAuth prod redirect URIs, Resend domain, UploadThing prod app; deploy checklist in wiki.
 - ⬜ README: screenshots, live demo link; `CONTRIBUTING.md` if community shows up.
 - **Wiki:** `Deployment.md`. **Model:** Sonnet sweeps, Opus for anything structural that surfaces.
 

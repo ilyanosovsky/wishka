@@ -39,34 +39,37 @@ Key documents (read before non-trivial work):
 
 ## Product invariants — never violate
 
-1. **The owner must never see reservations of their own wishes.** Enforced at the RLS/database level, not just hidden in UI. Covered by tests. No owner-facing screen may render anything derived from reservations.
-2. Item-level visibility (everyone / selected groups / selected people) is enforced by RLS.
+1. **The owner must never see reservations of their own wishes.** The database is server-only (the client never queries it directly); enforcement lives in the data-access layer: owner-facing query paths must not even select reservation columns — separate query builders/DTOs by viewer role, so leaking is impossible by construction. Covered by tests. No owner-facing screen may render anything derived from reservations.
+2. Item-level visibility (everyone / selected groups / selected people) is enforced in the same data-access layer, covered by tests — never only in components.
 3. Adding a wish never blocks on parsing or AI success — manual entry is a first-class path.
 4. AI actions run only on explicit user action, with per-user daily quotas. Model names come **only from env vars** (OpenAI retires models Dec 2026 — swap must be a one-line change).
 5. No payments and no monetization UI whatsoever (Vercel Hobby ToS prohibits even donation buttons).
-6. External product images are re-hosted into Supabase Storage on wish creation. No hotlinking, no `remotePatterns` wildcards.
+6. External product images are re-hosted into our storage on wish creation. No hotlinking, no `remotePatterns` wildcards. All storage calls go through our own adapter (`lib/storage/`) — UploadThing today, swappable to Railway Buckets in one file.
 7. RU + EN and light + dark theme from day one: every UI string goes through i18n messages (no hardcoded strings); UI changes must be checked in both themes.
 
-## Stack (fixed decisions)
+## Stack (fixed decisions — revised 07.08.2026, see VISION.md §5.1)
 
-Next.js App Router on Vercel Hobby · Supabase free tier (Postgres + Auth + Storage; SQL migrations in `supabase/migrations/` via Supabase CLI) · next-intl (RU/EN) · Tailwind CSS with tokens mapped from `design/uploads/tokens.css` · Vitest · OpenAI (text extraction/descriptions: `gpt-5.6-luna`; gift assistant: `gpt-5-mini`; images: `gpt-image-2` — all via env) · Resend (custom SMTP for Supabase auth emails + app transactional emails) · URL parsing pipeline: OG/JSON-LD fetch → LLM extraction → Jina Reader → Firecrawl → manual entry; results cached by URL; Amazon-class stop-list goes straight to manual.
+Next.js App Router on Vercel Hobby · **Railway Postgres** (Drizzle ORM, migrations via drizzle-kit in `drizzle/`) · **Better Auth** (Google OAuth + 6-digit email OTP via Resend; sessions in Postgres) · next-intl (RU/EN) · Tailwind CSS with tokens mapped from `design/uploads/tokens.css` · Vitest · OpenAI (text extraction/descriptions: `gpt-5.6-luna`; gift assistant: `gpt-5-mini`; images: `gpt-image-2` — all via env) · Resend (auth codes + transactional emails) · **UploadThing** for image storage (2 GB free; behind `lib/storage/` adapter; fallback: Railway Buckets) · URL parsing pipeline: OG/JSON-LD fetch → LLM extraction → Jina Reader → Firecrawl → manual entry; results cached by URL; Amazon-class stop-list goes straight to manual.
+
+Why not Supabase: free tier caps at 2 active projects per account (both slots taken); Pro is $25–45/mo — irrational for a non-commercial project. Railway is already paid for ($5/mo Hobby with mostly unused credits).
 
 ## Environment variables
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `.env.local`, Vercel | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `.env.local`, Vercel | Supabase anon key (RLS-guarded) |
-| `SUPABASE_SERVICE_ROLE_KEY` | `.env.local`, Vercel (sensitive) | Server-only: storage re-hosting, quota accounting |
+| `DATABASE_URL` | `.env.local`, Vercel (sensitive) | Railway Postgres connection string |
+| `BETTER_AUTH_SECRET` | `.env.local`, Vercel (sensitive) | Better Auth session signing (`openssl rand -base64 32`) |
+| `GOOGLE_CLIENT_ID` | `.env.local`, Vercel | Google OAuth client |
+| `GOOGLE_CLIENT_SECRET` | `.env.local`, Vercel (sensitive) | Google OAuth client secret |
 | `OPENAI_API_KEY` | `.env.local`, Vercel (sensitive) | All AI features |
 | `OPENAI_MODEL_TEXT` | `.env.local`, Vercel | Default `gpt-5.6-luna` |
 | `OPENAI_MODEL_ASSISTANT` | `.env.local`, Vercel | Default `gpt-5-mini` |
 | `OPENAI_MODEL_IMAGE` | `.env.local`, Vercel | Default `gpt-image-2` |
-| `RESEND_API_KEY` | `.env.local`, Vercel (sensitive) | Transactional emails |
+| `RESEND_API_KEY` | `.env.local`, Vercel (sensitive) | Auth OTP codes + transactional emails |
 | `EMAIL_FROM` | `.env.local`, Vercel | Sender address |
+| `UPLOADTHING_TOKEN` | `.env.local`, Vercel (sensitive) | Image storage (UploadThing app) |
 | `FIRECRAWL_API_KEY` | `.env.local`, Vercel (optional) | Parsing layer 3 |
 | `JINA_API_KEY` | `.env.local`, Vercel (optional) | Parsing layer 2 (higher rate limits) |
 | `NEXT_PUBLIC_APP_URL` | `.env.local`, Vercel | Absolute URLs in emails/share links |
-| `CRON_SECRET` | Vercel | Protects cron endpoints (keep-alive) |
 
-Configured in dashboards, not env: Google OAuth client (Google Cloud Console → Supabase Auth), Resend SMTP relay (Supabase Auth → SMTP settings), Supabase redirect URLs. CI needs no secrets — tests must run without external services.
+Configured in dashboards, not env: Google OAuth client + authorized redirect URIs (Google Cloud Console → point at our own `/api/auth/callback/google`), Railway Postgres provisioning + backups, UploadThing app, Resend domain verification. CI needs no secrets — tests must run without external services (DB-dependent tests run against a local Postgres via docker in CI or are mocked at the data-access boundary).
