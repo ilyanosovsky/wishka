@@ -275,6 +275,12 @@ export async function setWishAudience(
   audience: WishAudience,
 ): Promise<SetAudienceResult> {
   if (!isUuid(wishId)) return { ok: false, error: "not_found" };
+  // A hand-crafted payload is not typed. An audience that is not an object at
+  // all is refused like any other malformed value — never dereferenced, the
+  // same rule `normalizeIds` applies to the subject lists.
+  if (typeof audience !== "object" || audience === null) {
+    return { ok: false, error: "invalid_subject" };
+  }
   if (audience.mode !== "everyone" && audience.mode !== "restricted") {
     return { ok: false, error: "invalid_subject" };
   }

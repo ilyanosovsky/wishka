@@ -10,6 +10,10 @@ import { useTranslations } from "next-intl";
  * `viewAs.note` states flatly that bookings are never shown in a preview —
  * unconditional copy, because the preview genuinely cannot show them
  * (`getWishesAsSeenBy` collapses every wish to `free`).
+ *
+ * «Выйти» leads to /profile, not to /u/<nickname>: for the owner that list is
+ * still an anonymous preview, only without this banner to say so. The profile
+ * is also where the lens picker lives, so leaving lands next to it.
  */
 
 export type ViewAsLens =
@@ -19,11 +23,9 @@ export type ViewAsLens =
 
 export type ViewAsBannerProps = {
   lens: ViewAsLens;
-  /** Where «Выйти» goes — the same list without `?as=`. */
-  nickname: string;
 };
 
-export function ViewAsBanner({ lens, nickname }: ViewAsBannerProps) {
+export function ViewAsBanner({ lens }: ViewAsBannerProps) {
   const t = useTranslations("viewAs");
 
   const label =
@@ -41,7 +43,7 @@ export function ViewAsBanner({ lens, nickname }: ViewAsBannerProps) {
           <p className="truncate text-[11px] text-mute">{t("note")}</p>
         </div>
         <Link
-          href={`/u/${nickname}`}
+          href="/profile"
           className="text-[12px] font-medium text-accent underline"
         >
           {t("exit")}

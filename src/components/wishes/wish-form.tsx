@@ -17,6 +17,7 @@ import { useUploadThing } from "@/lib/uploadthing-client";
 import { downscaleForWish } from "@/lib/wish-image";
 import { CurrencySheet } from "./currency-sheet";
 import {
+  addressableAudience,
   audienceSubjectCount,
   EMPTY_AUDIENCE_OPTIONS,
   EVERYONE_AUDIENCE,
@@ -136,7 +137,10 @@ function draftKey(scope: string | undefined): string {
   return `wishka-wish-draft:${scope}`;
 }
 
-function readDraft(key: string): WishFormValues | null {
+function readDraft(
+  key: string,
+  candidates: AudienceOptions,
+): WishFormValues | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(key);
@@ -151,7 +155,7 @@ function readDraft(key: string): WishFormValues | null {
     return {
       ...DEFAULT_VALUES,
       ...parsed,
-      audience: normalizeAudience(parsed.audience),
+      audience: normalizeAudience(parsed.audience, candidates),
     };
   } catch {
     return null;
@@ -159,9 +163,15 @@ function readDraft(key: string): WishFormValues | null {
 }
 
 /** A draft is whatever localStorage happened to hold — a wish saved before
- *  audiences existed, or a half-written key. Anything unrecognizable falls
- *  back to "everyone" rather than proposing subjects the server would reject. */
-function normalizeAudience(value: unknown): WishAudienceValue {
+ *  audiences existed, a half-written key, or subjects that were addressable
+ *  when it was written and are not any more. Anything unrecognizable falls
+ *  back to "everyone", and subjects with no candidate row are dropped, rather
+ *  than proposing an audience the server would reject (see
+ *  `addressableAudience`). */
+function normalizeAudience(
+  value: unknown,
+  candidates: AudienceOptions,
+): WishAudienceValue {
   if (!value || typeof value !== "object") return EVERYONE_AUDIENCE;
   const draft = value as Partial<WishAudienceValue>;
   if (draft.mode !== "restricted") return EVERYONE_AUDIENCE;
@@ -169,11 +179,14 @@ function normalizeAudience(value: unknown): WishAudienceValue {
     Array.isArray(list)
       ? list.filter((id): id is string => typeof id === "string")
       : [];
-  return {
-    mode: "restricted",
-    groupIds: ids(draft.groupIds),
-    userIds: ids(draft.userIds),
-  };
+  return addressableAudience(
+    {
+      mode: "restricted",
+      groupIds: ids(draft.groupIds),
+      userIds: ids(draft.userIds),
+    },
+    candidates,
+  );
 }
 
 function writeDraft(key: string, values: WishFormValues) {
@@ -219,6 +232,12 @@ export function WishForm({
   const [linkEditing, setLinkEditing] = useState(!parsedUrl);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  // The audience is a whole sheet away from the submit button, so a rejected
+  // audience gets its own line next to the «Кому видно» row instead of the
+  // generic banner — otherwise nothing points at the control to fix.
+  const [audienceError, setAudienceError] = useState<
+    "empty" | "invalid" | null
+  >(null);
   const [serverPriceError, setServerPriceError] = useState(false);
   const [priceBlockedAttempt, setPriceBlockedAttempt] = useState(false);
 
@@ -244,7 +263,7 @@ export function WishForm({
   useEffect(() => {
     if (!enableDraft) return;
     const offerDraftIfAny = () => {
-      const draft = readDraft(draftStorageKey);
+      const draft = readDraft(draftStorageKey, candidates);
       if (draft && draft.title.trim()) {
         setPendingDraft(draft);
         setDraftBannerOpen(true);
@@ -383,8 +402,20 @@ export function WishForm({
 
     setSubmitting(true);
     setSubmitError(false);
-    const result = await onSubmit(values);
-    setSubmitting(false);
+    setAudienceError(null);
+
+    let result: WishFormResult;
+    try {
+      result = await onSubmit(values);
+    } catch {
+      // A server action can throw (network drop, a failed revalidate) instead
+      // of resolving. Without this the button would sit on "Saving…" forever
+      // behind an unhandled rejection.
+      setSubmitError(true);
+      return;
+    } finally {
+      setSubmitting(false);
+    }
 
     if (result.ok) {
       if (enableDraft) clearDraft(draftStorageKey);
@@ -396,6 +427,13 @@ export function WishForm({
       setServerPriceError(true);
     } else if (result.error === "url") {
       setUrlError(true);
+    } else if (result.error === "empty_audience") {
+      setAudienceError("empty");
+    } else if (result.error === "invalid_subject") {
+      // A subject that stopped being addressable between opening the sheet and
+      // saving. Nothing on this screen can name it, so the message only says
+      // the save failed — re-picking in the sheet is the way out.
+      setAudienceError("invalid");
     } else {
       // Every other server code (currency, image, category, not_found, …)
       // is not a per-field error the form has a slot for — a generic,
@@ -702,23 +740,32 @@ export function WishForm({
         rows={3}
       />
 
-      <button
-        type="button"
-        onClick={() => setVisibilitySheetOpen(true)}
-        className="flex min-h-11 cursor-pointer items-center gap-2 border border-rule-2 bg-paper px-3 py-2.5 text-left"
-      >
-        <span className="flex flex-1 flex-col gap-0.5">
-          <span className={LABEL_CLASS}>{t("form.visibilityLabel")}</span>
-          <span className="text-[13px]">
-            {values.audience.mode === "everyone"
-              ? t("visibility.summaryEveryone")
-              : t("visibility.summaryRestricted", {
-                  count: audienceSubjectCount(values.audience),
-                })}
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => setVisibilitySheetOpen(true)}
+          className="flex min-h-11 cursor-pointer items-center gap-2 border border-rule-2 bg-paper px-3 py-2.5 text-left"
+        >
+          <span className="flex flex-1 flex-col gap-0.5">
+            <span className={LABEL_CLASS}>{t("form.visibilityLabel")}</span>
+            <span className="text-[13px]">
+              {values.audience.mode === "everyone"
+                ? t("visibility.summaryEveryone")
+                : t("visibility.summaryRestricted", {
+                    count: audienceSubjectCount(values.audience),
+                  })}
+            </span>
           </span>
-        </span>
-        <ChevronDown aria-hidden size={12} strokeWidth={2.2} />
-      </button>
+          <ChevronDown aria-hidden size={12} strokeWidth={2.2} />
+        </button>
+        {audienceError && (
+          <p className="text-[11px] text-neg">
+            {audienceError === "empty"
+              ? t("visibility.emptyAudience")
+              : t("common.actionFailed")}
+          </p>
+        )}
+      </div>
 
       {submitError && (
         <AlertBanner tone="error">{t("form.errorGeneric")}</AlertBanner>
@@ -752,7 +799,10 @@ export function WishForm({
         onClose={() => setVisibilitySheetOpen(false)}
         value={values.audience}
         candidates={candidates}
-        onConfirm={(audience) => updateValue({ audience })}
+        onConfirm={(audience) => {
+          updateValue({ audience });
+          setAudienceError(null);
+        }}
       />
 
       <Dialog

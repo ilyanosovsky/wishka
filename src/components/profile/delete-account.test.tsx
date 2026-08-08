@@ -94,4 +94,22 @@ describe("DeleteAccount", () => {
       expect(deleteAccountActionMock).toHaveBeenCalledTimes(1),
     );
   });
+
+  it("ignores a second confirm while the first is still in flight", async () => {
+    // The second call would fail on an already-deleted account and flash a
+    // false error over the first one's redirect.
+    deleteAccountActionMock.mockReturnValue(new Promise(() => {}));
+    renderControl();
+
+    fireEvent.click(screen.getByRole("button", { name: "Удалить аккаунт" }));
+    fireEvent.click(screen.getByRole("button", { name: "Удалить навсегда" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Удаляем…" }),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Удаляем…" }));
+
+    expect(deleteAccountActionMock).toHaveBeenCalledTimes(1);
+  });
 });

@@ -3,15 +3,24 @@ import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "../index";
 import { reservations, wishes } from "../schema";
 import { isUuid } from "./ids";
-import type { ReservationStatus, Viewer, ViewerWish } from "./types";
+import type {
+  PreviewIdentity,
+  PreviewViewer,
+  RealViewer,
+  ReservationStatus,
+  Viewer,
+  ViewerWish,
+} from "./types";
 
 /**
  * Viewer-facing reads: someone else's list, seen through the visibility rules.
  *
  * This is the only module allowed to join wishes to reservation rows, and two
  * paths deliberately skip that join: the list owner reading their own list, and
- * the "see how others see it" preview. Both go through `selectVisible`, which
- * cannot reach reservation data at all.
+ * the "see how others see it" preview — every lens of it, since a preview is
+ * recognisable by shape (`previewAs`) and not by which identity it happens to
+ * replay. Both go through `selectVisible`, which cannot reach reservation data
+ * at all.
  */
 
 const columns = {
@@ -34,24 +43,43 @@ const columns = {
   createdAt: wishes.createdAt,
 };
 
-function viewerUserId(viewer: Viewer): string | null {
-  return "userId" in viewer ? viewer.userId : null;
+/**
+ * The owner looking through somebody else's eyes. All three lenses — guest,
+ * group, person — answer here, because the simulated identity is wrapped in
+ * `previewAs` (see `Viewer` in `types.ts`) instead of being passed bare. Every
+ * path that would otherwise join reservations collapses to `free` for them.
+ */
+function isPreviewLens(viewer: Viewer): viewer is PreviewViewer {
+  return "previewAs" in viewer;
 }
 
-function viewerGuestId(viewer: Viewer): string | null {
-  return "guestId" in viewer && isUuid(viewer.guestId) ? viewer.guestId : null;
+/** Whose sight the visibility rules replay: the simulated identity for a
+ *  preview, the viewer themselves otherwise. */
+function sightOf(viewer: Viewer): RealViewer | PreviewIdentity {
+  return isPreviewLens(viewer) ? viewer.previewAs : viewer;
 }
 
-function viewerGroupId(viewer: Viewer): string | null {
-  return "groupId" in viewer && isUuid(viewer.groupId) ? viewer.groupId : null;
+function sightUserId(viewer: Viewer): string | null {
+  const sight = sightOf(viewer);
+  return "userId" in sight ? sight.userId : null;
+}
+
+function sightGroupId(viewer: Viewer): string | null {
+  const sight = sightOf(viewer);
+  return "groupId" in sight && isUuid(sight.groupId) ? sight.groupId : null;
 }
 
 /**
- * A viewer with no identity to match a booking against. It is a preview lens,
- * so every path that would otherwise join reservations collapses to `free`.
+ * The identities a booking may be matched against. Both read the viewer's own
+ * top level and deliberately never look through `previewAs`: a preview is the
+ * owner looking, holds nothing, and must never come back `reserved_by_you`.
  */
-function isPreviewLens(viewer: Viewer): boolean {
-  return "groupId" in viewer;
+function reserverUserId(viewer: Viewer): string | null {
+  return "userId" in viewer ? viewer.userId : null;
+}
+
+function reserverGuestId(viewer: Viewer): string | null {
+  return "guestId" in viewer && isUuid(viewer.guestId) ? viewer.guestId : null;
 }
 
 /**
@@ -68,7 +96,7 @@ export function visibleTo(viewer: Viewer): SQL {
   // never a wish someone was named in individually. The owner-membership test
   // mirrors the signed-in branch below, so a group the owner has since left
   // stays as shut in the preview as it is in reality.
-  const groupId = viewerGroupId(viewer);
+  const groupId = sightGroupId(viewer);
   if (groupId !== null) {
     const restrictedToGroup = sql`exists (
       select 1 from "wish_visibility" wv
@@ -85,7 +113,7 @@ export function visibleTo(viewer: Viewer): SQL {
     return or(isPublic, restrictedToGroup) as SQL;
   }
 
-  const userId = viewerUserId(viewer);
+  const userId = sightUserId(viewer);
   if (!userId) return isPublic;
 
   // Owners always see their own wishes regardless of visibility — e.g. opening
@@ -140,21 +168,26 @@ function isListOwner(listOwnerId: string, viewer: Viewer): boolean {
   return "userId" in viewer && viewer.userId === listOwnerId;
 }
 
+/** The shape both reservation-free paths return: no booking was ever read. */
+function asFree(rows: Omit<ViewerWish, "reservationStatus">[]): ViewerWish[] {
+  return rows.map((wish) => ({ ...wish, reservationStatus: "free" as const }));
+}
+
 /**
  * "Посмотреть, как видят другие" — replays the visibility rules for a simulated
  * viewer while the *owner* is the one looking at the screen. Every wish comes
  * back as `free`: the preview must never become a back door onto reservations.
+ *
+ * Takes a `PreviewViewer` and nothing else, so a real viewer cannot be handed
+ * to the preview read by accident, nor a preview lens escape into a path that
+ * joins reservations.
  */
 export async function getWishesAsSeenBy(
   db: Db,
   ownerId: string,
-  simulatedViewer: Viewer,
+  lens: PreviewViewer,
 ): Promise<ViewerWish[]> {
-  const rows = await selectVisible(db, ownerId, simulatedViewer);
-  return rows.map((wish) => ({
-    ...wish,
-    reservationStatus: "free" as const,
-  }));
+  return asFree(await selectVisible(db, ownerId, lens));
 }
 
 /**
@@ -188,15 +221,15 @@ export async function getVisibleWish(
     .limit(1);
   if (!wish) return null;
 
-  const userId = viewerUserId(viewer);
+  const userId = reserverUserId(viewer);
   // The owner learns nothing about bookings on their own wish — collapse to
   // `free` before ever reading a reservation row. A preview lens is the owner
-  // looking too, so it takes the same exit.
+  // looking too, so it takes the same exit, whichever identity it replays.
   if (isPreviewLens(viewer) || (userId !== null && wish.ownerId === userId)) {
     return { ...wish, reservationStatus: "free" };
   }
 
-  const guestId = viewerGuestId(viewer);
+  const guestId = reserverGuestId(viewer);
   const [held] = await db
     .select({
       heldByUserId: reservations.reserverUserId,
@@ -225,14 +258,15 @@ export async function getVisibleWishes(
 ): Promise<ViewerWish[]> {
   // The owner reading their own list gets the reservation-free query, not a
   // filtered result — nothing to leak if the join never happens. A preview lens
-  // is routed the same way here as well, so a caller that reaches for the wrong
-  // function still cannot turn view-as into a booking oracle.
+  // is routed the same way here as well, whichever identity it replays, so a
+  // caller that reaches for the wrong function still cannot turn view-as into a
+  // booking oracle.
   if (isListOwner(listOwnerId, viewer) || isPreviewLens(viewer)) {
-    return getWishesAsSeenBy(db, listOwnerId, viewer);
+    return asFree(await selectVisible(db, listOwnerId, viewer));
   }
 
-  const userId = viewerUserId(viewer);
-  const guestId = viewerGuestId(viewer);
+  const userId = reserverUserId(viewer);
+  const guestId = reserverGuestId(viewer);
 
   const rows = await db
     .select({

@@ -24,6 +24,10 @@ export function DeleteAccount() {
   const [failed, setFailed] = useState(false);
 
   async function confirmDelete() {
+    // A second tap while the first request is in flight would delete twice:
+    // the second call fails on an already-deleted account and flashes a false
+    // error over the first one's redirect.
+    if (deleting) return;
     setDeleting(true);
     try {
       const result = await deleteAccountAction();

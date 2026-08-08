@@ -3,7 +3,13 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Db } from "../index";
-import { groupMembers, groups, reservations, wishVisibility } from "../schema";
+import {
+  groupMembers,
+  groups,
+  reservations,
+  wishVisibility,
+  wishes,
+} from "../schema";
 import {
   addGroupMember,
   createReservation,
@@ -14,6 +20,7 @@ import {
 } from "../test-support";
 import { deleteAccount } from "./account";
 import { createGroup } from "./groups";
+import { getVisibleWishes } from "./viewer";
 
 describe("deleteAccount", () => {
   let ctx: TestDb;
@@ -95,6 +102,42 @@ describe("deleteAccount", () => {
       .from(wishVisibility)
       .where(eq(wishVisibility.subjectId, groupId));
     expect(rows).toEqual([]);
+  });
+
+  it("clears the rows naming the deleted user on someone else's wish", async () => {
+    const leaver = await createUser(db);
+    const otherOwner = await createUser(db);
+    const wishId = await createWish(db, {
+      ownerId: otherOwner,
+      title: "For that one person",
+      visibility: "restricted",
+    });
+    await db
+      .insert(wishVisibility)
+      .values({ wishId, subjectType: "user", subjectId: leaver });
+
+    await deleteAccount(db, leaver);
+
+    const rows = await db
+      .select()
+      .from(wishVisibility)
+      .where(eq(wishVisibility.subjectId, leaver));
+    expect(rows).toEqual([]);
+
+    // The wish is left with no subjects at all. It stays `restricted` — seen by
+    // nobody but its owner, who can re-address it — rather than being published
+    // to everyone on an event its owner never saw.
+    const [wish] = await db
+      .select({ visibility: wishes.visibility })
+      .from(wishes)
+      .where(eq(wishes.id, wishId))
+      .limit(1);
+    expect(wish?.visibility).toBe("restricted");
+
+    const bystander = await createUser(db);
+    expect(
+      await getVisibleWishes(db, otherOwner, { userId: bystander }),
+    ).toEqual([]);
   });
 
   it("removes bookings the deleted account held on someone else's list", async () => {

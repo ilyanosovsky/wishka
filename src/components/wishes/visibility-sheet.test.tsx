@@ -168,6 +168,56 @@ describe("VisibilitySheet — confirming", () => {
   });
 });
 
+describe("VisibilitySheet — subjects the owner can no longer address", () => {
+  // A stale id has no row to untick, so seeding it would ride along on every
+  // later confirm and get the whole save rejected as `invalid_subject`.
+  it("drops a group the owner has left instead of adding it to the picked ones", () => {
+    const { onConfirm } = renderSheet({
+      value: { mode: "restricted", groupIds: ["g-gone"], userIds: [] },
+    });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Семья/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+    expect(onConfirm).toHaveBeenCalledWith({
+      mode: "restricted",
+      groupIds: ["g-1"],
+      userIds: [],
+    });
+  });
+
+  it("drops a person who is no longer a candidate", () => {
+    const { onConfirm } = renderSheet({
+      value: { mode: "restricted", groupIds: [], userIds: ["u-gone"] },
+    });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Борис/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+    expect(onConfirm).toHaveBeenCalledWith({
+      mode: "restricted",
+      groupIds: [],
+      userIds: ["u-2"],
+    });
+  });
+
+  it("asks for a subject rather than confirming a stale one on its own", () => {
+    const { onConfirm } = renderSheet({
+      candidates: { groups: [], people: CANDIDATES.people },
+      value: { mode: "restricted", groupIds: ["g-gone"], userIds: [] },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+    expect(
+      screen.getByText(
+        "Выбери хотя бы одного — иначе желание увидишь только ты",
+      ),
+    ).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+});
+
 describe("VisibilitySheet — people", () => {
   it("marks the partner and filters by the search field", () => {
     renderSheet();

@@ -225,6 +225,26 @@ describe("wish audience", () => {
       });
     });
 
+    it("refuses an audience that is not an object at all", async () => {
+      const wishId = await createWish(db, { ownerId, title: "No audience" });
+      // A hand-crafted payload can carry anything; none of it may be
+      // dereferenced into a TypeError instead of a validation result.
+      for (const malformed of [null, undefined, "everyone", 42]) {
+        expect(
+          await setWishAudience(
+            db,
+            ownerId,
+            wishId,
+            malformed as unknown as WishAudience,
+          ),
+        ).toEqual({ ok: false, error: "invalid_subject" });
+      }
+      expect(await subjects(wishId)).toEqual([]);
+      expect((await getWishAudience(db, ownerId, wishId))?.mode).toBe(
+        "everyone",
+      );
+    });
+
     it("refuses a group id that is not a uuid", async () => {
       const wishId = await createWish(db, { ownerId, title: "Not a uuid" });
       expect(

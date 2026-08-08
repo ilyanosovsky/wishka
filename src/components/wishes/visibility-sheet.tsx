@@ -66,6 +66,33 @@ export function audienceSubjectCount(value: WishAudienceValue): number {
   return value.groupIds.length + value.userIds.length;
 }
 
+/**
+ * The subjects of `value` this owner can still address, dropping the rest.
+ *
+ * A wish can name a group the owner has since left, or a person who has left
+ * every shared group: the id is real, but it has no row in `candidates` to
+ * untick, so carrying it into a draft would put it into every later confirm —
+ * and the data layer rejects the whole write as `invalid_subject`, rolling back
+ * the entire edit, not just the audience.
+ *
+ * The mode is left alone: a restricted wish never silently reopens to everyone
+ * here. Dropping every subject leaves an audience the owner has to re-pick,
+ * which is a visible, blocked state rather than a silent widening.
+ */
+export function addressableAudience(
+  value: WishAudienceValue,
+  candidates: AudienceOptions,
+): WishAudienceValue {
+  if (value.mode !== "restricted") return EVERYONE_AUDIENCE;
+  const groups = new Set(candidates.groups.map((group) => group.id));
+  const people = new Set(candidates.people.map((person) => person.userId));
+  return {
+    mode: "restricted",
+    groupIds: value.groupIds.filter((id) => groups.has(id)),
+    userIds: value.userIds.filter((id) => people.has(id)),
+  };
+}
+
 /** The three modes §6.3 offers; `restricted` is split by subject kind here. */
 type SheetMode = "everyone" | "groups" | "people";
 
@@ -105,9 +132,17 @@ export function VisibilitySheet({
 }: VisibilitySheetProps) {
   const t = useTranslations();
 
+  // Only ids with a row to untick enter the draft (see `addressableAudience`);
+  // the mode still follows the stored value, so a wish restricted to a group
+  // the owner has left keeps offering the groups row.
+  const seed = useMemo(
+    () => addressableAudience(value, candidates),
+    [value, candidates],
+  );
+
   const [mode, setMode] = useState<SheetMode>(() => modeOf(value));
-  const [groupIds, setGroupIds] = useState<string[]>(value.groupIds);
-  const [userIds, setUserIds] = useState<string[]>(value.userIds);
+  const [groupIds, setGroupIds] = useState<string[]>(seed.groupIds);
+  const [userIds, setUserIds] = useState<string[]>(seed.userIds);
   const [query, setQuery] = useState("");
   const [emptyAttempt, setEmptyAttempt] = useState(false);
 
@@ -119,8 +154,8 @@ export function VisibilitySheet({
     setWasOpen(open);
     if (open) {
       setMode(modeOf(value));
-      setGroupIds(value.groupIds);
-      setUserIds(value.userIds);
+      setGroupIds(seed.groupIds);
+      setUserIds(seed.userIds);
       setQuery("");
       setEmptyAttempt(false);
     }

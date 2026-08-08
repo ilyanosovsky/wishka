@@ -9,19 +9,21 @@ afterEach(cleanup);
 function renderBanner(lens: ViewAsLens) {
   render(
     <NextIntlClientProvider locale="ru" messages={messages}>
-      <ViewAsBanner lens={lens} nickname="ilya" />
+      <ViewAsBanner lens={lens} />
     </NextIntlClientProvider>,
   );
 }
 
 describe("ViewAsBanner", () => {
-  it("names the guest lens and exits to the plain list", () => {
+  // /u/<nickname> is still a preview for its owner, only without this banner —
+  // leaving has to land somewhere that is not one.
+  it("names the guest lens and exits to the profile, not back into a preview", () => {
     renderBanner({ kind: "guest" });
 
     expect(screen.getByText("Предпросмотр: глазами гостя")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Выйти" })).toHaveAttribute(
       "href",
-      "/u/ilya",
+      "/profile",
     );
   });
 

@@ -410,7 +410,7 @@
     "noPeople": "Nobody to pick yet — invite people to a group first",
     "emptyAudience": "Pick at least one — otherwise only you will see this wish",
     "summaryEveryone": "Everyone",
-    "summaryRestricted": "{count, plural, one {# person} other {# people}}",
+    "summaryRestricted": "{count, plural, one {# recipient} other {# recipients}}",
     "narrowNote": "Narrowing this after someone reserved the wish keeps their booking, but they lose access and get an email.",
     "done": "Done"
   },
@@ -443,7 +443,7 @@
   "account": {
     "delete": "Delete account",
     "deleteTitle": "Delete your account?",
-    "deleteBody": "Your list, archive and profile will be deleted. Groups you administer pass to their other members — and disappear with you if you're the only one left. Bookings you made on other people's lists are released. This cannot be undone.",
+    "deleteBody": "Your list, archive and profile will be deleted. Groups you administer pass to their other members — and disappear with you if you're the only one left. Bookings you made on other people's lists are released, and bookings other people made on your wishes disappear along with your list. This cannot be undone.",
     "deleteConfirm": "Delete forever",
     "deleting": "Deleting…",
     "deleteFailed": "Couldn't delete — please try again"

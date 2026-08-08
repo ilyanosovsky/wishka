@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { Db } from "../index";
-import { groupMembers, user } from "../schema";
+import { groupMembers, user, wishVisibility } from "../schema";
 import { leaveGroup } from "./groups";
 
 /**
@@ -38,6 +38,25 @@ export async function deleteAccount(
       // hand off, so it is not a failure of this deletion.
       await leaveGroup(tx, groupId, userId);
     }
+
+    // `wish_visibility.subject_id` is plain text with no foreign key, so the
+    // user cascade cannot reach the rows naming this account on OTHER people's
+    // wishes — exactly what `deleteGroupRows` clears for group subjects. Left
+    // behind they are dangling forever, and a recycled id would hand a stranger
+    // someone's restricted wish.
+    //
+    // A wish left with no subjects at all stays `restricted` on purpose: it
+    // then reaches nobody but its owner, who can re-address it. Widening it to
+    // `everyone` would publish a wish its owner deliberately narrowed, on an
+    // event they never saw.
+    await tx
+      .delete(wishVisibility)
+      .where(
+        and(
+          eq(wishVisibility.subjectType, "user"),
+          eq(wishVisibility.subjectId, userId),
+        ),
+      );
 
     const deleted = await tx
       .delete(user)

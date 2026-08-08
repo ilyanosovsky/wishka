@@ -11,7 +11,7 @@ import { getDb } from "@/db";
 import type { Db } from "@/db";
 import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getProfileByNickname } from "@/db/access/profiles";
-import type { Viewer } from "@/db/access/types";
+import type { PreviewViewer } from "@/db/access/types";
 import { getAudienceCandidates } from "@/db/access/visibility";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
 import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
@@ -31,8 +31,15 @@ import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
  * calls `getVisibleWishes`. Anyone else's `?as=` is ignored entirely.
  */
 
-/** The lens plus the viewer it replays — one value so the two can't drift. */
-type Preview = { lens: ViewAsLens; viewer: Viewer };
+/**
+ * The lens plus the identity it replays — one value so the two can't drift.
+ * The identity is a `PreviewViewer`, so `getWishesAsSeenBy` is the only read it
+ * fits and no lens can slip into a path that joins reservations.
+ */
+type Preview = { lens: ViewAsLens; viewer: PreviewViewer };
+
+/** No `?as=`, or an unusable one: the owner's own list read as a passer-by. */
+const GUEST_PREVIEW: PreviewViewer = { previewAs: { anonymous: true } };
 
 /**
  * Resolves `?as=` against what the owner may actually look through: a group
@@ -47,7 +54,7 @@ async function resolvePreview(
 ): Promise<Preview> {
   const guest: Preview = {
     lens: { kind: "guest" },
-    viewer: { anonymous: true },
+    viewer: GUEST_PREVIEW,
   };
   if (as === "guest") return guest;
 
@@ -60,7 +67,10 @@ async function resolvePreview(
     // carry whatever they are named in individually, which is not the
     // question the owner asked.
     return group
-      ? { lens: { kind: "group", name: group.name }, viewer: { groupId: id } }
+      ? {
+          lens: { kind: "group", name: group.name },
+          viewer: { previewAs: { groupId: id } },
+        }
       : guest;
   }
 
@@ -70,7 +80,10 @@ async function resolvePreview(
       (candidate) => candidate.userId === id,
     );
     return person
-      ? { lens: { kind: "person", name: person.name }, viewer: { userId: id } }
+      ? {
+          lens: { kind: "person", name: person.name },
+          viewer: { previewAs: { userId: id } },
+        }
       : guest;
   }
 
@@ -115,7 +128,7 @@ export default async function PublicListPage({
     ? await getWishesAsSeenBy(
         db,
         profile.userId,
-        preview?.viewer ?? { anonymous: true },
+        preview?.viewer ?? GUEST_PREVIEW,
       )
     : await getVisibleWishes(db, profile.userId, viewer);
 
@@ -134,9 +147,7 @@ export default async function PublicListPage({
 
   return (
     <>
-      {preview && (
-        <ViewAsBanner lens={preview.lens} nickname={profile.nickname} />
-      )}
+      {preview && <ViewAsBanner lens={preview.lens} />}
       {/* Visitors only — the owner does not need a trail back to their own list. */}
       {!isOwner && (
         <RecordListVisit nickname={profile.nickname} name={profile.nickname} />

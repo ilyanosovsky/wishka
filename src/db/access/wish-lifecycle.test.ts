@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 // `deleteWish` comes from `mutations.ts`, which reaches `lib/storage/uploadthing`
@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import type { Db } from "../index";
-import { reservations, wishes } from "../schema";
+import { groupMembers, reservations, wishes } from "../schema";
 import {
   createGroup,
   createGuest,
@@ -211,7 +211,70 @@ describe("wish lifecycle", () => {
       expect(outcome.notifyReservationId).not.toBeNull();
     });
 
-    it("stays false for an edit that leaves the audience alone", async () => {
+    /**
+     * It reports the transition, not the state. A wish the holder already
+     * cannot see loses them nothing when it is edited again — re-firing would
+     * repeat "the wish is no longer visible to you" on every later save, and
+     * (see the caller) swallow the "the wish changed" email they should get.
+     */
+    it("fires once for the edit that narrowed, not for later ones", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Narrowed once" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const narrowed = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(closedGroupId),
+      );
+      expect(narrowed.reserverLostAccess).toBe(true);
+
+      const renamed = await updateWishAsOwner(db, ownerId, wishId, {
+        title: "Narrowed once, renamed",
+      });
+      expect(renamed.reserverLostAccess).toBe(false);
+      expect(renamed.notifyReservationId).not.toBeNull();
+      if (!renamed.result.ok) throw new Error("expected the update to succeed");
+      expect(renamed.result.wish.visibility).toBe("restricted");
+    });
+
+    /**
+     * And it is about what the *owner* did. A holder who walked out of the
+     * audience themselves must not turn the owner's next unrelated edit into
+     * "the owner hid this from you".
+     */
+    it("stays false when the holder left the audience themselves", async () => {
+      const groupId = await createGroup(db, ownerId, [ownerId, friendId]);
+      const wishId = await createWish(db, { ownerId, title: "Left behind" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const narrowed = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(groupId),
+      );
+      expect(narrowed.reserverLostAccess).toBe(false);
+
+      await db
+        .delete(groupMembers)
+        .where(
+          and(
+            eq(groupMembers.groupId, groupId),
+            eq(groupMembers.userId, friendId),
+          ),
+        );
+
+      const renamed = await updateWishAsOwner(db, ownerId, wishId, {
+        title: "Left behind, renamed",
+      });
+      expect(renamed.reserverLostAccess).toBe(false);
+      expect(renamed.notifyReservationId).not.toBeNull();
+    });
+
+    it("stays false for an edit that leaves an everyone-wish alone", async () => {
       const wishId = await createWish(db, { ownerId, title: "Just renamed" });
       await reserveWish(db, wishId, { userId: friendId });
 

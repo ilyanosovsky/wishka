@@ -109,6 +109,27 @@ describe("WishForm — title requirement", () => {
     expect(screen.queryByText("currency")).toBeNull();
   });
 
+  it("recovers from a submit that throws instead of resolving", async () => {
+    const onSubmit = vi.fn(async () => {
+      throw new Error("network");
+    });
+    renderForm({ onSubmit });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    expect(
+      await screen.findByText("Не получилось сохранить — попробуй ещё раз"),
+    ).toBeInTheDocument();
+    // The button must leave the "Saving…" state, or the form is stuck for good.
+    expect(screen.queryByText("Сохраняем…")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Добавить в список" }),
+    ).toBeEnabled();
+  });
+
   it("maps a server 'url' error onto the link field's helper", async () => {
     const onSubmit = vi.fn(async () => ({ ok: false as const, error: "url" }));
     renderForm({ onSubmit });
@@ -483,6 +504,86 @@ describe("WishForm — «Кому видно»", () => {
       groupIds: [],
       userIds: [],
     });
+  });
+
+  it("keeps a restored draft's audience to the subjects still on offer", async () => {
+    window.localStorage.setItem(
+      "wishka-wish-draft:user-1",
+      JSON.stringify({
+        ...DRAFT_FIXTURE,
+        audience: {
+          mode: "restricted",
+          groupIds: ["g-1", "g-gone"],
+          userIds: ["u-gone"],
+        },
+      }),
+    );
+    const onSubmit = vi.fn(async (values: WishFormValues) => {
+      void values;
+      return { ok: true as const };
+    });
+    renderForm({
+      enableDraft: true,
+      draftScope: "user-1",
+      candidates: CANDIDATES,
+      onSubmit,
+    });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Продолжить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].audience).toEqual({
+      mode: "restricted",
+      groupIds: ["g-1"],
+      userIds: [],
+    });
+  });
+
+  it("points an 'empty_audience' rejection at the visibility control", async () => {
+    const onSubmit = vi.fn(async () => ({
+      ok: false as const,
+      error: "empty_audience",
+    }));
+    renderForm({ candidates: CANDIDATES, onSubmit });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    expect(
+      await screen.findByText(
+        "Выбери хотя бы одного — иначе желание увидишь только ты",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Не получилось сохранить — попробуй ещё раз"),
+    ).toBeNull();
+  });
+
+  it("reports an 'invalid_subject' rejection next to the audience, and clears it once it is re-picked", async () => {
+    const onSubmit = vi.fn(async () => ({
+      ok: false as const,
+      error: "invalid_subject",
+    }));
+    renderForm({ candidates: CANDIDATES, onSubmit });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    expect(
+      await screen.findByText("Не получилось — попробуй ещё раз"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Кому видно/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "Группам" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Семья/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+    expect(screen.queryByText("Не получилось — попробуй ещё раз")).toBeNull();
   });
 
   it("falls back to 'everyone' for a draft saved before audiences existed", async () => {
