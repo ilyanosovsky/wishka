@@ -4,6 +4,8 @@ import { MyList } from "@/components/wishes/my-list";
 import { getDb } from "@/db";
 import { getOwnerWishes } from "@/db/access/owner";
 import { getProfile } from "@/db/access/profiles";
+import { isAiAvailable } from "@/lib/ai/client";
+import { getAiQuotaRemaining } from "@/lib/ai/quota";
 import { getAuth } from "@/lib/auth";
 
 /**
@@ -32,7 +34,20 @@ export default async function Home() {
   // Signed in but no profile means onboarding was abandoned — finish it first.
   if (!profile) redirect("/welcome");
 
-  const wishes = await getOwnerWishes(db, session.user.id);
+  // AI availability is checked server-side, same as everything else on this
+  // page — an unavailable key never reaches the client as a boolean to
+  // branch on, only as `ai` being absent from `MyList`'s props.
+  const aiAvailable = isAiAvailable();
+  const [wishes, aiQuota] = await Promise.all([
+    getOwnerWishes(db, session.user.id),
+    aiAvailable ? getAiQuotaRemaining(db, session.user.id) : null,
+  ]);
 
-  return <MyList wishes={wishes} nickname={profile.nickname} />;
+  return (
+    <MyList
+      wishes={wishes}
+      nickname={profile.nickname}
+      ai={aiQuota ?? undefined}
+    />
+  );
 }

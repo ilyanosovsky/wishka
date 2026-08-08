@@ -6,13 +6,18 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AlertBanner } from "@/components/ui/banner";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { TextField } from "@/components/ui/field";
+import { TextareaField, TextField } from "@/components/ui/field";
 import { SkeletonWishCard } from "@/components/ui/skeleton";
 import {
   parseUrlAction,
   type ParseOutcome,
   type ParseUrlResult,
 } from "@/app/wishes/parse-actions";
+import {
+  draftWishFromTextAction,
+  type WishDraft,
+} from "@/app/wishes/ai-actions";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 
 /**
  * §6.3 steps 1–2 — the FAB's entry sheet: paste a link, watch it parse, land
@@ -20,12 +25,18 @@ import {
  * (BottomSheet's own contract) so its exit transition can play; every piece
  * of local state is reset on close (see the `wasOpen` render-time check and
  * the effect right below it), so reopening the sheet always starts clean.
+ *
+ * The "words" phase (§6.3 AI addendum) is the third entry path: free text →
+ * `draftWishFromTextAction` → a `wishka-ai-draft` sessionStorage handoff read
+ * by `/wishes/new?ai=1`, mirroring the parsed-link handoff exactly.
  */
 
 const PARSED_STORAGE_KEY = "wishka-parsed-wish";
+const AI_DRAFT_STORAGE_KEY = "wishka-ai-draft";
 const SLOW_PARSE_MS = 5000;
 
-type Phase = "idle" | "parsing" | "blocked" | "duplicate";
+type Phase = "idle" | "parsing" | "blocked" | "duplicate" | "words";
+type WordsBlockReason = "quota" | "unavailable" | "failed";
 
 type BlockedOutcome = Extract<ParseOutcome, { status: "manual" }>;
 type OkOutcome = Extract<ParseOutcome, { status: "ok" | "partial" }>;
@@ -33,13 +44,17 @@ type OkOutcome = Extract<ParseOutcome, { status: "ok" | "partial" }>;
 export type AddWishSheetProps = {
   open: boolean;
   onClose: () => void;
+  /** Server-computed AI availability + daily quota snapshot (see
+   *  `isAiAvailable`/`getAiQuotaRemaining`). Undefined hides the "Добавь
+   *  словами" entry entirely — no AI affordance is ever offered without it. */
+  ai?: AiQuotaSnapshot;
 };
 
 function manualHref(url: string): string {
   return `/wishes/new?url=${encodeURIComponent(url)}`;
 }
 
-export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
+export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
   const t = useTranslations();
   const router = useRouter();
   const urlFieldId = useId();
@@ -55,6 +70,15 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
   const [blockedOutcome, setBlockedOutcome] = useState<BlockedOutcome | null>(
     null,
   );
+
+  const [wordsText, setWordsText] = useState("");
+  const [wordsBusy, setWordsBusy] = useState(false);
+  const [wordsBlockReason, setWordsBlockReason] =
+    useState<WordsBlockReason | null>(null);
+  // The server-issued snapshot is a starting point only — every draft result
+  // carries its own `remaining`, which is what actually keeps this in sync
+  // (the UI counter is advisory, per invariant #4; the server always re-checks).
+  const [textRemaining, setTextRemaining] = useState(ai?.text ?? 0);
 
   // Guards against a parse result landing after the user has already bailed
   // to the manual form (via "Заполнить вручную") or the sheet has been closed
@@ -91,6 +115,9 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
       setSlow(false);
       setDuplicate(null);
       setBlockedOutcome(null);
+      setWordsText("");
+      setWordsBusy(false);
+      setWordsBlockReason(null);
     }
   }
 
@@ -116,6 +143,19 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
           url: outcome.url,
           partial: outcome.status === "partial",
         }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Same one-shot handoff contract as `writeParsedHandoff`, one key over. */
+  function writeAiDraftHandoff(draft: WishDraft): boolean {
+    try {
+      window.sessionStorage.setItem(
+        AI_DRAFT_STORAGE_KEY,
+        JSON.stringify({ draft }),
       );
       return true;
     } catch {
@@ -191,6 +231,44 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
     generationRef.current += 1; // any late result from the in-flight parse is now ignored
     clearSlowTimer();
     router.push(manualHref(url.trim()));
+  }
+
+  async function handleDraftWords() {
+    const text = wordsText.trim();
+    if (!text) return;
+
+    setWordsBlockReason(null);
+    setWordsBusy(true);
+
+    generationRef.current += 1;
+    const generation = generationRef.current;
+
+    let result: Awaited<ReturnType<typeof draftWishFromTextAction>>;
+    try {
+      result = await draftWishFromTextAction(text);
+    } catch {
+      if (generationRef.current !== generation) return;
+      setWordsBusy(false);
+      setWordsBlockReason("failed");
+      return;
+    }
+
+    if (generationRef.current !== generation) return; // sheet closed/reopened meanwhile
+    setWordsBusy(false);
+
+    if (typeof result.remaining === "number")
+      setTextRemaining(result.remaining);
+
+    if (result.ok) {
+      // Same fallback as the parsed-link handoff: if storage can't be
+      // written, land on the blank manual form rather than a dead spinner.
+      router.push(
+        writeAiDraftHandoff(result.value) ? "/wishes/new?ai=1" : "/wishes/new",
+      );
+      return;
+    }
+
+    setWordsBlockReason(result.reason === "error" ? "failed" : result.reason);
   }
 
   async function handlePasteClipboard() {
@@ -272,7 +350,82 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
             >
               {t("parse.manualCta")}
             </Button>
+
+            {ai !== undefined && (
+              <>
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={() => setPhase("words")}
+                >
+                  {t("ai.entryCta")}
+                </Button>
+                <p className="text-center text-[11px] text-mute-2">
+                  {t("ai.entryHint")}
+                </p>
+              </>
+            )}
           </>
+        )}
+
+        {phase === "words" && (
+          <div className="flex flex-col gap-4">
+            <TextareaField
+              label={t("ai.textLabel")}
+              placeholder={t("ai.textPlaceholder")}
+              value={wordsText}
+              onChange={(event) => {
+                setWordsText(event.target.value);
+                setWordsBlockReason(null);
+              }}
+              rows={4}
+            />
+
+            {wordsBlockReason && (
+              <AlertBanner tone="warning">
+                {wordsBlockReason === "quota"
+                  ? t("ai.textQuotaExhausted")
+                  : wordsBlockReason === "unavailable"
+                    ? t("ai.unavailable")
+                    : t("ai.draftFailed")}
+              </AlertBanner>
+            )}
+
+            <Button
+              type="button"
+              variant="primary"
+              className="w-full"
+              loading={wordsBusy}
+              disabled={wordsBusy || !wordsText.trim()}
+              onClick={() => void handleDraftWords()}
+            >
+              {wordsBusy ? t("ai.drafting") : t("ai.draftCta")}
+            </Button>
+
+            <p className="text-center text-[11px] text-mute-2">
+              {t("ai.textQuotaLeft", { count: textRemaining })}
+            </p>
+
+            <div className="flex gap-2">
+              {wordsBlockReason === "failed" && (
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={() => void handleDraftWords()}
+                >
+                  {t("ai.tryAgain")}
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => router.push("/wishes/new")}
+              >
+                {t("parse.manualCta")}
+              </Button>
+            </div>
+          </div>
         )}
 
         {phase === "parsing" && (

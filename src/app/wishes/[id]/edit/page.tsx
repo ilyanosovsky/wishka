@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { getOwnerWish } from "@/db/access/owner";
 import { getAudienceCandidates, getWishAudience } from "@/db/access/visibility";
+import { isAiAvailable } from "@/lib/ai/client";
+import { getAiQuotaRemaining } from "@/lib/ai/quota";
 import { getAuth } from "@/lib/auth";
 import { EditWishForm } from "./edit-wish-form";
 
@@ -28,10 +30,14 @@ export default async function EditWishPage({
   }
 
   // Both reads are owner-scoped and server-side — the form receives the
-  // audience it may edit, never a query path into it.
-  const [audience, candidates] = await Promise.all([
+  // audience it may edit, never a query path into it. AI availability is
+  // checked the same way: an unavailable key never reaches the client as a
+  // boolean to branch on, only as `ai` being absent.
+  const aiAvailable = isAiAvailable();
+  const [audience, candidates, aiQuota] = await Promise.all([
     getWishAudience(getDb(), session.user.id, id),
     getAudienceCandidates(getDb(), session.user.id),
+    aiAvailable ? getAiQuotaRemaining(getDb(), session.user.id) : null,
   ]);
 
   return (
@@ -40,6 +46,7 @@ export default async function EditWishPage({
         wish={wish}
         audience={audience ?? undefined}
         candidates={candidates}
+        ai={aiQuota ?? undefined}
       />
     </main>
   );

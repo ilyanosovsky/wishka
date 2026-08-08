@@ -22,6 +22,12 @@ import {
   markGiftedAsOwner,
   updateWishAsOwner,
 } from "@/db/access/wish-lifecycle";
+import { createOpenAiImageClient } from "@/lib/ai/client";
+import {
+  armImageGeneration,
+  runImageGenerationJob,
+  type ScheduledImageJob,
+} from "@/lib/ai/image-job";
 import { getAuth } from "@/lib/auth";
 import type { ReservationChangedField } from "@/lib/email/copy";
 import {
@@ -30,6 +36,7 @@ import {
   sendReservedWishDeleted,
   sendReservedWishHidden,
 } from "@/lib/email/reservation-emails";
+import { storage } from "@/lib/storage";
 
 async function requireUserId(): Promise<string> {
   const session = await getAuth().api.getSession({ headers: await headers() });
@@ -74,9 +81,68 @@ export type WishActionResult =
 
 const EVERYONE: WishAudience = { mode: "everyone", groupIds: [], userIds: [] };
 
+/** What a save can ask for beyond the wish itself. */
+export type WishActionOptions = {
+  /** The form armed "нарисовать картинку": start the job after saving. */
+  generateImage?: boolean;
+};
+
+/**
+ * Hands the job to Vercel's `after()`. This is the repo's first post-response
+ * task that writes to the database, so it opens a FRESH handle — the request's
+ * is done by then — and lets nothing escape: an unhandled rejection in
+ * `after()` takes down the whole post-response phase.
+ *
+ * Deliberately not exported and deliberately duplicated in `ai-actions.ts`: a
+ * `"use server"` module may only export async functions, so a shared scheduler
+ * would have to become a server action of its own.
+ */
+function scheduleImageJob(job: ScheduledImageJob): void {
+  after(async () => {
+    try {
+      await runImageGenerationJob({ ...job, db: getDb() });
+    } catch {
+      // `runImageGenerationJob` already swallows everything; belt and braces.
+    }
+  });
+}
+
+/**
+ * Arms the AI picture job for a wish that has *already* been saved.
+ *
+ * INVARIANT #3 — nothing in here can fail the save. No API key, an exhausted
+ * daily budget, a row that vanished under us, a model client that throws while
+ * being built: all of them are a silent skip, and the wish simply keeps the
+ * image it has. The advisory counter in the form is the only warning the user
+ * gets, and it is allowed to be stale.
+ *
+ * Returns whether the wish is now in `generating`, so the caller can hand the
+ * form back a DTO that matches the row instead of one claiming "no picture".
+ */
+async function armSavedWish(userId: string, wish: OwnerWish): Promise<boolean> {
+  try {
+    const imageClient = createOpenAiImageClient();
+    if (!imageClient) return false;
+
+    const armed = await armImageGeneration({
+      db: getDb(),
+      userId,
+      wish,
+      imageClient,
+      storagePut: (data, name, contentType) =>
+        storage.putBuffer(data, name, contentType),
+      schedule: scheduleImageJob,
+    });
+    return armed === "armed";
+  } catch {
+    return false;
+  }
+}
+
 export async function createWishAction(
   input: WishInput,
   audience?: WishAudience,
+  opts?: WishActionOptions,
 ): Promise<WishActionResult> {
   const userId = await requireUserId();
   const result = await createWishWithAudience(
@@ -85,8 +151,14 @@ export async function createWishAction(
     input,
     audience ?? EVERYONE,
   );
-  if (result.ok) revalidatePath("/");
-  return result;
+  if (!result.ok) return result;
+
+  const generating =
+    opts?.generateImage === true && (await armSavedWish(userId, result.wish));
+  revalidatePath("/");
+  return generating
+    ? { ok: true, wish: { ...result.wish, imageStatus: "generating" } }
+    : result;
 }
 
 /** `audience` omitted means "leave the wish's audience alone" — an edit that
@@ -95,6 +167,7 @@ export async function updateWishAction(
   wishId: string,
   input: Partial<WishInput>,
   audience?: WishAudience,
+  opts?: WishActionOptions,
 ): Promise<WishActionResult> {
   const userId = await requireUserId();
   const { result, before, notifyReservationId, reserverLostAccess } =
@@ -129,9 +202,14 @@ export async function updateWishAction(
         }
       });
     }
+    const generating =
+      opts?.generateImage === true && (await armSavedWish(userId, result.wish));
     revalidatePath("/");
     revalidatePath("/archive");
     revalidatePath(`/wishes/${wishId}`);
+    if (generating) {
+      return { ok: true, wish: { ...result.wish, imageStatus: "generating" } };
+    }
   }
   return result;
 }
