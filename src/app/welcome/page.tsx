@@ -4,15 +4,24 @@ import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
 import { getAuth } from "@/lib/auth";
+import { sanitizeNextPath } from "@/lib/next-param";
 import { sanitizeNickname } from "@/lib/nickname";
 import { OnboardingForm } from "./onboarding-form";
 
-export default async function WelcomePage() {
+export default async function WelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  // Every sign-in lands here first; `next` carries where the user was headed
+  // (an expired session's page, a shared list) through the onboarding stop.
+  const next = sanitizeNextPath((await searchParams).next);
+
   const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
   const profile = await getProfile(getDb(), session.user.id);
-  if (profile) redirect("/");
+  if (profile) redirect(next);
 
   const t = await getTranslations("auth.onboarding");
 
@@ -33,6 +42,7 @@ export default async function WelcomePage() {
         defaultNickname={sanitizeNickname(
           session.user.email ?? session.user.name ?? "",
         )}
+        next={next}
       />
     </main>
   );

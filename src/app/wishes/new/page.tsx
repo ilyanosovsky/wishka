@@ -15,10 +15,17 @@ export default async function NewWishPage({
 }: {
   searchParams: Promise<{ url?: string; parsed?: string }>;
 }) {
-  const session = await getAuth().api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-  const profile = await getProfile(getDb(), session.user.id);
   const params = await searchParams;
+  const session = await getAuth().api.getSession({ headers: await headers() });
+  if (!session) {
+    const qs = new URLSearchParams();
+    if (params.url) qs.set("url", params.url);
+    if (params.parsed) qs.set("parsed", params.parsed);
+    const query = qs.toString();
+    const own = query ? `/wishes/new?${query}` : "/wishes/new";
+    redirect(`/login?next=${encodeURIComponent(own)}`);
+  }
+  const profile = await getProfile(getDb(), session.user.id);
 
   return (
     <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10">

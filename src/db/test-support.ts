@@ -96,10 +96,29 @@ export async function createGroup(
   return group.id;
 }
 
-export async function createGuest(db: Db, token: string): Promise<string> {
+export async function createGuest(
+  db: Db,
+  token: string,
+  overrides: Partial<typeof schema.guestIdentities.$inferInsert> = {},
+): Promise<string> {
   const [guest] = await db
     .insert(schema.guestIdentities)
-    .values({ token, name: `Guest ${token}` })
+    .values({ token, name: `Guest ${token}`, ...overrides })
     .returning({ id: schema.guestIdentities.id });
   return guest.id;
+}
+
+/**
+ * A reservation written straight to the table — for states `reserveWish` cannot
+ * produce (orphaned, cancelled) and for rows whose wish is already gone.
+ */
+export async function createReservation(
+  db: Db,
+  values: typeof schema.reservations.$inferInsert,
+): Promise<string> {
+  const [row] = await db
+    .insert(schema.reservations)
+    .values(values)
+    .returning({ id: schema.reservations.id });
+  return row.id;
 }

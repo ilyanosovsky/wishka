@@ -1,13 +1,11 @@
-import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 
 import { ServiceScreen } from "@/components/service-screen";
 import { PublicList } from "@/components/wishes/public-list";
 import { getDb } from "@/db";
 import { getProfileByNickname } from "@/db/access/profiles";
-import type { Viewer } from "@/db/access/types";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
-import { getAuth } from "@/lib/auth";
+import { resolveViewer } from "@/lib/viewer";
 
 /**
  * A public list, which is also its owner's public profile (DESIGN_BRIEF §6.5).
@@ -39,12 +37,11 @@ export default async function PublicListPage({
     );
   }
 
-  const session = await getAuth().api.getSession({ headers: await headers() });
-  const isOwner = session?.user.id === profile.userId;
-
-  const viewer: Viewer = session
-    ? { userId: session.user.id }
-    : { anonymous: true };
+  // A guest cookie makes the viewer a `guestId`, so their own bookings come
+  // back as `reserved_by_you` — the same rule every reserve action resolves by.
+  const viewer = await resolveViewer(db);
+  const viewerUserId = "userId" in viewer ? viewer.userId : null;
+  const isOwner = viewerUserId === profile.userId;
 
   const wishes = isOwner
     ? await getWishesAsSeenBy(db, profile.userId, { anonymous: true })
@@ -58,7 +55,7 @@ export default async function PublicListPage({
       sizes={profile.sizes}
       tastes={profile.tastes}
       noGift={profile.noGift}
-      isGuest={!session}
+      isGuest={viewerUserId === null}
     />
   );
 }

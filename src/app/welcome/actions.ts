@@ -10,6 +10,7 @@ import {
 } from "@/db/access/profiles";
 import { getAuth } from "@/lib/auth";
 import { isCurrencyCode } from "@/lib/currencies";
+import { sanitizeNextPath } from "@/lib/next-param";
 import { NICKNAME_RE, sanitizeNickname } from "@/lib/nickname";
 
 const NAME_MAX_LENGTH = 80;
@@ -33,11 +34,14 @@ export async function checkNickname(nickname: string): Promise<NicknameCheck> {
   return available ? "free" : "taken";
 }
 
-export async function completeOnboarding(input: {
-  name: string;
-  nickname: string;
-  baseCurrency: string;
-}): Promise<{ error: "nickname" | "currency" } | never> {
+export async function completeOnboarding(
+  input: {
+    name: string;
+    nickname: string;
+    baseCurrency: string;
+  },
+  next?: string,
+): Promise<{ error: "nickname" | "currency" } | never> {
   const session = await requireSession();
 
   const nickname = input.nickname.trim().toLowerCase();
@@ -62,11 +66,12 @@ export async function completeOnboarding(input: {
     throw error;
   }
   await getAuth().api.updateUser({ body: { name }, headers: await headers() });
-  redirect("/");
+  // Client-supplied, so re-sanitized here: an open redirect hides in a prop.
+  redirect(sanitizeNextPath(next));
 }
 
 /** "Всё пропускаемо": generate a unique, non-identifying nickname and move on. */
-export async function skipOnboarding(): Promise<void> {
+export async function skipOnboarding(next?: string): Promise<void> {
   const session = await requireSession();
   const db = getDb();
 
@@ -99,7 +104,7 @@ export async function skipOnboarding(): Promise<void> {
       baseCurrency: "USD",
     });
   }
-  redirect("/");
+  redirect(sanitizeNextPath(next));
 }
 
 function randomNickname(): string {

@@ -3,11 +3,17 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { getAuth } from "@/lib/auth";
+import { sanitizeNextPath } from "@/lib/next-param";
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const session = await getAuth().api.getSession({ headers: await headers() });
-  if (session) redirect("/");
+  const next = sanitizeNextPath((await searchParams).next);
+  if (session) redirect(next);
 
   const t = await getTranslations();
 
@@ -27,7 +33,7 @@ export default async function LoginPage() {
         <p className="mt-1 text-mute">{t("app.tagline")}</p>
       </header>
 
-      <LoginForm />
+      <LoginForm next={next} />
 
       <footer className="mt-auto pt-10 text-center font-mono text-[10px] uppercase tracking-[0.08em] text-mute-2">
         WISHKA.APP · OPEN SOURCE

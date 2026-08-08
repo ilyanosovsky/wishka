@@ -15,7 +15,7 @@ import { getAuth } from "@/lib/auth";
  *  "view as others" preview arrive with Phase 8. */
 export default async function ProfilePage() {
   const session = await getAuth().api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  if (!session) redirect("/login?next=%2Fprofile");
   const profile = await getProfile(getDb(), session.user.id);
   if (!profile) redirect("/welcome");
 

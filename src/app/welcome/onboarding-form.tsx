@@ -18,9 +18,12 @@ type NicknameState = NicknameCheck | "checking" | "idle";
 export function OnboardingForm({
   defaultName,
   defaultNickname,
+  next = "/",
 }: {
   defaultName: string;
   defaultNickname: string;
+  /** Where finishing (or skipping) onboarding should land, from `/welcome?next=`. */
+  next?: string;
 }) {
   const t = useTranslations("auth.onboarding");
   const [name, setName] = useState(defaultName);
@@ -81,11 +84,14 @@ export function OnboardingForm({
       const value = nickname.trim().toLowerCase();
       // Avatar is persisted server-side by the upload route; imageUrl here
       // is only the local preview.
-      const result = await completeOnboarding({
-        name,
-        nickname: value,
-        baseCurrency: currency,
-      });
+      const result = await completeOnboarding(
+        {
+          name,
+          nickname: value,
+          baseCurrency: currency,
+        },
+        next,
+      );
       if (result?.error === "nickname") setCheck({ value, result: "taken" });
     });
   }
@@ -191,7 +197,7 @@ export function OnboardingForm({
       </button>
 
       <button
-        onClick={() => startSkip(() => skipOnboarding())}
+        onClick={() => startSkip(() => skipOnboarding(next))}
         disabled={skipping}
         className="cursor-pointer self-center text-[12px] text-mute underline-offset-2 hover:underline"
       >

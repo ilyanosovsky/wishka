@@ -19,6 +19,16 @@ const TEST_USER = {
   nickname: "dev-test",
 } as const;
 
+// Second fixed identity so the reservation/guest flows can be exercised as
+// someone other than the primary dev user, e.g. "friend reserves owner's
+// wish" — same idempotent insert pattern, no email verification flow needed.
+const TEST_FRIEND = {
+  id: "dev-test-friend",
+  email: "friend@wishka.local",
+  name: "Друг Тест",
+  nickname: "dev-friend",
+} as const;
+
 const COOKIE_NAME = "better-auth.session_token";
 const SESSION_TTL = 60 * 60 * 24 * 7;
 
@@ -30,15 +40,18 @@ export async function GET(request: Request) {
   if (!secret)
     return new NextResponse("BETTER_AUTH_SECRET not set", { status: 500 });
 
+  const asFriend = new URL(request.url).searchParams.get("as") === "friend";
+  const testUser = asFriend ? TEST_FRIEND : TEST_USER;
+
   const db = getDb();
   const now = new Date();
 
   await db
     .insert(user)
     .values({
-      id: TEST_USER.id,
-      email: TEST_USER.email,
-      name: TEST_USER.name,
+      id: testUser.id,
+      email: testUser.email,
+      name: testUser.name,
       emailVerified: true,
       createdAt: now,
       updatedAt: now,
@@ -48,8 +61,8 @@ export async function GET(request: Request) {
   await db
     .insert(profiles)
     .values({
-      userId: TEST_USER.id,
-      nickname: TEST_USER.nickname,
+      userId: testUser.id,
+      nickname: testUser.nickname,
       baseCurrency: "GEL",
       createdAt: now,
       updatedAt: now,
@@ -59,7 +72,7 @@ export async function GET(request: Request) {
   const token = randomBytes(32).toString("base64url");
   await db.insert(sessionTable).values({
     id: randomUUID(),
-    userId: TEST_USER.id,
+    userId: testUser.id,
     token,
     expiresAt: new Date(Date.now() + SESSION_TTL * 1000),
     createdAt: now,

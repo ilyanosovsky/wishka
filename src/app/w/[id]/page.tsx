@@ -1,5 +1,4 @@
 import { ExternalLink } from "lucide-react";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -8,10 +7,9 @@ import { ServiceScreen } from "@/components/service-screen";
 import { DreamStamp, NullPill, PriorityFlag } from "@/components/ui/badges";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
-import type { Viewer } from "@/db/access/types";
 import { getVisibleWish } from "@/db/access/viewer";
-import { getAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/price";
+import { resolveViewer } from "@/lib/viewer";
 
 /**
  * Single-wish share target (DESIGN_BRIEF §6.8) — a wish opened by its own link,
@@ -34,10 +32,7 @@ export default async function SharedWishPage({
   const t = await getTranslations();
 
   const db = getDb();
-  const session = await getAuth().api.getSession({ headers: await headers() });
-  const viewer: Viewer = session
-    ? { userId: session.user.id }
-    : { anonymous: true };
+  const viewer = await resolveViewer(db);
 
   const wish = await getVisibleWish(db, id, viewer);
   if (!wish) {
@@ -56,7 +51,7 @@ export default async function SharedWishPage({
 
   const price = formatPrice(wish);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
-  const isGuest = !session;
+  const isGuest = !("userId" in viewer);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pb-16">

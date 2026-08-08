@@ -13,7 +13,8 @@ export default async function EditWishPage({
 }) {
   const { id } = await params;
   const session = await getAuth().api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  if (!session)
+    redirect(`/login?next=${encodeURIComponent(`/wishes/${id}/edit`)}`);
 
   const wish = await getOwnerWish(getDb(), session.user.id, id);
   if (!wish) {
