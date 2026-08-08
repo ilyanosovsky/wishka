@@ -3,13 +3,21 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Db } from "../index";
 import { profiles } from "../schema";
-import { createTestDb, createUser, type TestDb } from "../test-support";
 import {
+  addGroupMember,
+  createGroup,
+  createTestDb,
+  createUser,
+  type TestDb,
+} from "../test-support";
+import {
+  clearPartner,
   getProfile,
   getProfileByNickname,
   isNicknameAvailable,
   isValidNickname,
   NicknameTakenError,
+  setPartner,
   upsertProfile,
 } from "./profiles";
 
@@ -147,6 +155,70 @@ describe("profiles", () => {
 
     it("returns null for a nickname no one holds", async () => {
       expect(await getProfileByNickname(db, "nobody-here")).toBeNull();
+    });
+  });
+
+  describe("setPartner / clearPartner", () => {
+    it("refuses partnering yourself", async () => {
+      expect(await setPartner(db, userId, userId)).toEqual({
+        ok: false,
+        error: "self",
+      });
+    });
+
+    it("refuses a partner who shares no group", async () => {
+      await upsertProfile(db, { userId: otherUserId, nickname: "stranger" });
+      expect(await setPartner(db, userId, otherUserId)).toEqual({
+        ok: false,
+        error: "not_shared",
+      });
+    });
+
+    it("sets a partner who is a co-member of a shared group, leaving other columns untouched", async () => {
+      const partnerId = await createUser(db);
+      await upsertProfile(db, {
+        userId,
+        nickname: "ilya",
+        baseCurrency: "EUR",
+        tastes: ["coffee"],
+      });
+      const groupId = await createGroup(db, userId, [userId]);
+      await addGroupMember(db, { groupId, userId: partnerId, role: "member" });
+
+      const result = await setPartner(db, userId, partnerId);
+      expect(result).toEqual({ ok: true });
+
+      const profile = await getProfile(db, userId);
+      expect(profile).toMatchObject({
+        partnerId,
+        baseCurrency: "EUR",
+        tastes: ["coffee"],
+      });
+    });
+
+    it("clears a partner without touching other columns", async () => {
+      const partnerId = await createUser(db);
+      const groupId = await createGroup(db, userId, [userId]);
+      await addGroupMember(db, { groupId, userId: partnerId, role: "member" });
+      await setPartner(db, userId, partnerId);
+
+      expect(await clearPartner(db, userId)).toEqual({ ok: true });
+
+      const profile = await getProfile(db, userId);
+      expect(profile?.partnerId).toBeNull();
+    });
+
+    it("reports not_found for a user with no profile row", async () => {
+      const noProfileUser = await createUser(db);
+      const groupId = await createGroup(db, noProfileUser, [noProfileUser]);
+      const partnerId = await createUser(db);
+      await addGroupMember(db, { groupId, userId: partnerId, role: "member" });
+
+      expect(await setPartner(db, noProfileUser, partnerId)).toEqual({
+        ok: false,
+        error: "not_found",
+      });
+      expect(await clearPartner(db, noProfileUser)).toEqual({ ok: false });
     });
   });
 });

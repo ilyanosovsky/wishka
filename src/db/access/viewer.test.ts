@@ -24,6 +24,9 @@ describe("viewer reads", () => {
   let namedFriendId: string;
   let guestId: string;
 
+  let sharedGroupId: string;
+  let foreignGroupId: string;
+
   let publicWishId: string;
   let groupWishId: string;
   let personWishId: string;
@@ -41,9 +44,9 @@ describe("viewer reads", () => {
     namedFriendId = await createUser(db);
     guestId = await createGuest(db, "guest-token-1");
 
-    const groupId = await createGroup(db, ownerId, [ownerId, groupMateId]);
+    sharedGroupId = await createGroup(db, ownerId, [ownerId, groupMateId]);
     // A group the owner is not part of must not unlock anything.
-    const foreignGroupId = await createGroup(db, strangerId, [
+    foreignGroupId = await createGroup(db, strangerId, [
       strangerId,
       namedFriendId,
     ]);
@@ -72,7 +75,7 @@ describe("viewer reads", () => {
     });
 
     await db.insert(wishVisibility).values([
-      { wishId: groupWishId, subjectType: "group", subjectId: groupId },
+      { wishId: groupWishId, subjectType: "group", subjectId: sharedGroupId },
       { wishId: personWishId, subjectType: "user", subjectId: namedFriendId },
       {
         wishId: foreignWishId,
@@ -210,33 +213,121 @@ describe("viewer reads", () => {
   });
 
   it("keeps the view-as preview free of reservation data", async () => {
-    for (const simulated of [
+    for (const previewAs of [
       { anonymous: true },
-      { guestId },
+      { groupId: sharedGroupId },
       { userId: groupMateId },
       { userId: strangerId },
     ] as const) {
-      const preview = await getWishesAsSeenBy(db, ownerId, simulated);
+      const preview = await getWishesAsSeenBy(db, ownerId, { previewAs });
       expect(preview.every((w) => w.reservationStatus === "free")).toBe(true);
     }
   });
 
   it("applies the same visibility rules in the preview", async () => {
     const asStranger = await getWishesAsSeenBy(db, ownerId, {
-      userId: strangerId,
+      previewAs: { userId: strangerId },
     });
     expect(asStranger.map((w) => w.title)).toEqual(["Public"]);
 
     const asGroupMate = await getWishesAsSeenBy(db, ownerId, {
-      userId: groupMateId,
+      previewAs: { userId: groupMateId },
     });
     expect(asGroupMate.map((w) => w.title).sort()).toEqual([
       "Group only",
       "Public",
     ]);
 
-    const asGuest = await getWishesAsSeenBy(db, ownerId, { guestId });
+    // The guest lens is the anonymous one — a guest cookie unlocks nothing.
+    const asGuest = await getWishesAsSeenBy(db, ownerId, {
+      previewAs: { anonymous: true },
+    });
     expect(asGuest.map((w) => w.title)).toEqual(["Public"]);
+  });
+
+  /**
+   * The view-as group lens (§6.6). It is "as any member of this group sees it",
+   * not "as one particular member sees it": the wish the owner named a single
+   * person in must stay out of it, or the preview would answer a question the
+   * owner did not ask.
+   */
+  describe("the group lens", () => {
+    it("shows exactly the public wishes plus that group's", async () => {
+      const preview = await getWishesAsSeenBy(db, ownerId, {
+        previewAs: { groupId: sharedGroupId },
+      });
+      expect(preview.map((w) => w.title).sort()).toEqual([
+        "Group only",
+        "Public",
+      ]);
+    });
+
+    it("ignores a group the owner is not in, and a malformed id", async () => {
+      for (const groupId of [foreignGroupId, "not-a-uuid"]) {
+        const preview = await getWishesAsSeenBy(db, ownerId, {
+          previewAs: { groupId },
+        });
+        expect(preview.map((w) => w.title)).toEqual(["Public"]);
+      }
+    });
+
+    it("carries no reservation data, whichever read it goes through", async () => {
+      // publicWishId is held by strangerId from the reservation test above.
+      const lens = { previewAs: { groupId: sharedGroupId } } as const;
+      for (const wishes of [
+        await getWishesAsSeenBy(db, ownerId, lens),
+        await getVisibleWishes(db, ownerId, lens),
+      ]) {
+        expect(wishes.every((w) => w.reservationStatus === "free")).toBe(true);
+      }
+      expect(
+        (await getVisibleWish(db, publicWishId, lens))?.reservationStatus,
+      ).toBe("free");
+    });
+  });
+
+  /**
+   * The person lens (§6.6) — "as this one person sees it", so unlike the group
+   * lens it *does* carry what they are named in individually.
+   *
+   * SURPRISE INVARIANT — it is still the owner looking, so it must be free of
+   * bookings on every read, including a booking the simulated person made
+   * themselves. That is why a preview is recognisable by shape (`previewAs`)
+   * rather than by carrying a bare `{ userId }`, which no guard could tell from
+   * that person really reading the list.
+   */
+  describe("the person lens", () => {
+    it("includes the wish that person is named in individually", async () => {
+      const preview = await getWishesAsSeenBy(db, ownerId, {
+        previewAs: { userId: namedFriendId },
+      });
+      expect(preview.map((w) => w.title).sort()).toEqual([
+        "Person only",
+        "Public",
+      ]);
+    });
+
+    it("reports a booked wish as free, whichever read it goes through", async () => {
+      // publicWishId is held by strangerId from the reservation test above —
+      // neither the holder's own lens nor a bystander's may see it.
+      for (const userId of [strangerId, groupMateId]) {
+        const lens = { previewAs: { userId } } as const;
+
+        expect(
+          (await getVisibleWishes(db, ownerId, lens)).find(
+            (w) => w.id === publicWishId,
+          )?.reservationStatus,
+        ).toBe("free");
+        expect(
+          (await getVisibleWish(db, publicWishId, lens))?.reservationStatus,
+        ).toBe("free");
+        expect(
+          (await getWishesAsSeenBy(db, ownerId, lens)).every(
+            (w) => w.reservationStatus === "free",
+          ),
+        ).toBe(true);
+      }
+    });
   });
 
   describe("getVisibleWish (single share target)", () => {

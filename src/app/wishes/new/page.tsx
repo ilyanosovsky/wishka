@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
+import { getAudienceCandidates } from "@/db/access/visibility";
 import { getAuth } from "@/lib/auth";
 import { NewWishForm } from "./new-wish-form";
 
@@ -25,13 +26,19 @@ export default async function NewWishPage({
     const own = query ? `/wishes/new?${query}` : "/wishes/new";
     redirect(`/login?next=${encodeURIComponent(own)}`);
   }
-  const profile = await getProfile(getDb(), session.user.id);
+  // The audience candidates are read here, server-side: the client never
+  // learns who is in the owner's groups except through this one prop.
+  const [profile, candidates] = await Promise.all([
+    getProfile(getDb(), session.user.id),
+    getAudienceCandidates(getDb(), session.user.id),
+  ]);
 
   return (
     <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10">
       <NewWishForm
         baseCurrency={profile?.baseCurrency ?? "USD"}
         userId={session.user.id}
+        candidates={candidates}
         url={params.url}
         parsed={params.parsed === "1"}
       />

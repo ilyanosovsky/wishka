@@ -65,9 +65,37 @@ export type ViewerWish = {
   reservationStatus: ReservationStatus;
 };
 
-/** Who is reading someone else's list. */
-export type Viewer =
+/** Someone actually reading a list: a signed-in user, a device-cookie guest,
+ *  or a passer-by. Only these can hold a booking. */
+export type RealViewer =
   { userId: string } | { guestId: string } | { anonymous: true };
+
+/**
+ * The identity a view-as preview replays (§6.6). The guest lens is
+ * `{ anonymous: true }` — a guest cookie unlocks nothing a passer-by cannot see.
+ *
+ * `{ groupId }` is "as any member of this group sees it" and carries no
+ * identity on purpose: simulating one arbitrary real member would also pick up
+ * wishes that member is named in individually, which is not what the owner
+ * asked to see.
+ */
+export type PreviewIdentity =
+  { userId: string } | { groupId: string } | { anonymous: true };
+
+/**
+ * The owner replaying somebody else's sight of their own list.
+ *
+ * The simulated identity is WRAPPED rather than passed bare so that all three
+ * lenses — guest, group, person — are recognisable by shape alone: a bare
+ * `{ userId }` person lens is indistinguishable from that person really reading
+ * the list, and the reservation-free guards in `viewer.ts` would let it through.
+ * Wrapped, a preview also cannot satisfy `Reserver`, so it can never hold or be
+ * matched against a booking.
+ */
+export type PreviewViewer = { previewAs: PreviewIdentity };
+
+/** Who is reading someone else's list. */
+export type Viewer = RealViewer | PreviewViewer;
 
 /** Who is holding, or wants to hold, a reservation. */
 export type Reserver = { userId: string } | { guestId: string };

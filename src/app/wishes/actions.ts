@@ -6,12 +6,16 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { getDb } from "@/db";
 import {
-  createWish,
   restoreWish,
   type WishInput,
   type WishValidationError,
 } from "@/db/access/mutations";
 import type { OwnerWish } from "@/db/access/types";
+import {
+  createWishWithAudience,
+  type AudienceError,
+  type WishAudience,
+} from "@/db/access/visibility";
 import {
   deleteWishAsOwner,
   getReservationNotificationTargetById,
@@ -24,6 +28,7 @@ import {
   sendGiftGiven,
   sendReservedWishChanged,
   sendReservedWishDeleted,
+  sendReservedWishHidden,
 } from "@/lib/email/reservation-emails";
 
 async function requireUserId(): Promise<string> {
@@ -65,44 +70,62 @@ function materialChanges(
 
 export type WishActionResult =
   | { ok: true; wish: OwnerWish }
-  | { ok: false; error: WishValidationError | "not_found" };
+  | { ok: false; error: WishValidationError | AudienceError | "not_found" };
+
+const EVERYONE: WishAudience = { mode: "everyone", groupIds: [], userIds: [] };
 
 export async function createWishAction(
   input: WishInput,
+  audience?: WishAudience,
 ): Promise<WishActionResult> {
   const userId = await requireUserId();
-  const result = await createWish(getDb(), userId, input);
+  const result = await createWishWithAudience(
+    getDb(),
+    userId,
+    input,
+    audience ?? EVERYONE,
+  );
   if (result.ok) revalidatePath("/");
   return result;
 }
 
+/** `audience` omitted means "leave the wish's audience alone" — an edit that
+ *  only touches the card must not rewrite `wish_visibility`. */
 export async function updateWishAction(
   wishId: string,
   input: Partial<WishInput>,
+  audience?: WishAudience,
 ): Promise<WishActionResult> {
   const userId = await requireUserId();
-  const { result, before, notifyReservationId } = await updateWishAsOwner(
-    getDb(),
-    userId,
-    wishId,
-    input,
-  );
+  const { result, before, notifyReservationId, reserverLostAccess } =
+    await updateWishAsOwner(getDb(), userId, wishId, input, audience);
   if (result.ok) {
     const changed = before ? materialChanges(before, result.wish) : [];
-    if (changed.length > 0 && notifyReservationId) {
+    // Losing access supersedes "the wish changed": one email, and it is the
+    // one that explains why the wish disappeared. Both branches live inside
+    // `after()`, so nothing here is observable to the owner.
+    if (notifyReservationId && (reserverLostAccess || changed.length > 0)) {
       after(async () => {
         const target = await getReservationNotificationTargetById(
           getDb(),
           notifyReservationId,
         );
         if (target?.email) {
-          await sendReservedWishChanged({
-            to: target.email,
-            locale: target.locale,
-            wishTitle: target.wishTitle,
-            changedFields: changed,
-            wishAppUrl: wishAppUrl(wishId),
-          });
+          if (reserverLostAccess) {
+            await sendReservedWishHidden({
+              to: target.email,
+              locale: target.locale,
+              wishTitle: target.wishTitle,
+            });
+          } else {
+            await sendReservedWishChanged({
+              to: target.email,
+              locale: target.locale,
+              wishTitle: target.wishTitle,
+              changedFields: changed,
+              wishAppUrl: wishAppUrl(wishId),
+            });
+          }
         }
       });
     }

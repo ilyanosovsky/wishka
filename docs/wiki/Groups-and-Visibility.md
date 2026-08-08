@@ -1,6 +1,6 @@
 # Groups and Visibility
 
-> Phase 8a. The group model, invite links, and how group membership feeds into who can see a restricted wish. The live "Кому видно" sheet, partner, view-as, and delete-account arrive in Phase 8b (see the note at the bottom).
+> Phase 8a: the group model and invite links. Phase 8b: the live "Кому видно" sheet, partner, view-as, and delete-account — see "Who can see a wish" and the sections below it.
 
 ## The group model
 
@@ -98,12 +98,88 @@ A `restricted` wish naming a group is visible to a viewer exactly when the viewe
 
 `getGroupDetail`'s `hasVisibleWishes` per member reuses this exact function (`visibleTo({ userId: viewerId })` against that member's wishes) rather than re-implementing any part of the rule — the member grid can never advertise a "Открыть список" link the viewer would then be refused by `/u/<nickname>`.
 
-## What 8b will add
+## Who can see a wish
 
-Phase 8a builds the audience groups can address — 8b makes that audience selectable and adds the remaining §6 surfaces that depend on it:
+Every wish has a `wishes.visibility` column — `everyone` or `restricted` — and, when restricted, zero or more `wish_visibility` rows naming who it's addressed to. §6.3 defines exactly **three** visibility modes, no more:
 
-- The live "Кому видно" sheet on a wish (everyone / selected groups / selected people, partner pinned) — the UI that actually *writes* `wish_visibility` rows for groups and individual people; 8a's groups exist and can be reasoned about, but nothing outside tests writes a group-restriction row yet.
-- Partner: assigning/removing a partner from a group's members, surfaced in `/profile`.
-- "Посмотреть, как видят другие" — view-as a guest, a specific group, or a specific person, with a preview banner. Reservations must never appear in this preview (the same rule `getWishesAsSeenBy` already enforces for the plain owner-preview case).
-- The narrowing-after-reservation rule: if an owner narrows a wish's visibility after someone has reserved it, the reservation itself survives but the reserver loses the ability to see the wish again — with an email explaining why.
-- Delete-account.
+1. **Всем** (`everyone`) — the default. Public, subject to no `wish_visibility` rows at all.
+2. **Группам** (`restricted` + `subject_type = 'group'` rows) — visible to any current member of any named group.
+3. **Отдельным людям** (`restricted` + `subject_type = 'user'` rows) — visible to the named people directly, regardless of group.
+
+There is deliberately **no fourth "partner-only" mode**, even though §6.6 mentions "только партнёру" in passing. §6.3 — the actual visibility spec — enumerates three, and the partner is simply *pinned first* inside the people picker (mode 3): selecting the partner is selecting a person, not choosing a different mode. `setWishAudience` (below) treats the partner exactly like any other addressable person.
+
+### Writing an audience — `src/db/access/visibility.ts`
+
+This module is the **only** place `wish_visibility` rows are written; `viewer.ts`'s `visibleTo()` remains the only place the rule is *read*. No component decides who sees what — invariant #2.
+
+- **`getAudienceCandidates(db, ownerId)`** — everyone the owner may address a wish to: every member of every group they belong to (deduped across groups), plus their partner (`profiles.partnerId`) even if they share no group with them, since being the partner *is* the relationship being addressed. The partner sorts first, then alphabetically — the whole of §6.3's "pinned".
+- **`getWishAudience(db, ownerId, wishId)`** — the current audience of one of the owner's own wishes, for the edit form. A wish that isn't theirs comes back `null`, indistinguishable from a missing one — an id is never an existence oracle.
+- **`setWishAudience(tx, ownerId, wishId, audience)`** — replaces a wish's audience wholesale, inside a caller-supplied transaction (so a wish write and its audience land or fail together). Validation is **server-side and total** — the picker's candidate list is a suggestion, not a guarantee, since a hand-crafted payload must never be able to address a wish to a group the owner isn't in or a person they have no relationship with:
+  - every `groupId` must be a group the owner is currently a member of;
+  - every `userId` must currently share a group with the owner **or be their partner**;
+  - a `restricted` audience with **zero** subjects is refused as `empty_audience` rather than silently hiding the wish from everybody — never what picking «отдельным людям» and forgetting to tick a name meant;
+  - anything else (malformed ids, a non-uuid group, the owner naming themselves) is `invalid_subject`.
+  - Selecting `everyone` clears every `wish_visibility` row for the wish.
+- **`createWishWithAudience(db, ownerId, input, audience)`** — creates the wish and applies its audience in one transaction; a refused audience unwinds the whole write rather than leaving a wish visible to everyone that the owner meant to restrict.
+- **`isWishVisibleTo(db, wishId, viewer)`** — replays `visibleTo()` for one wish and one viewer. SERVER-SIDE ONLY and only ever asked about somebody *else* — see the narrowing rule below, the one caller that needs it.
+
+### The `{ groupId }` viewer — "as any member of this group sees it"
+
+`Viewer` (`src/db/access/types.ts`) gained a fourth shape: `{ groupId: string }`. `visibleTo()` treats it as seeing `everyone` wishes plus every wish restricted to that group — the honest lens for "how does this group see my list", distinct from simulating one arbitrary real member (who would also pick up whatever they're named in *individually*, which isn't the question view-as is answering). It is deliberately **not** part of the `Reserver` union, so no reservation path can ever receive one — a `{ groupId }` viewer can look, never book.
+
+### The «Кому видно» sheet — `src/components/wishes/visibility-sheet.tsx`
+
+Wired into `wish-form.tsx`, replacing the Phase 7a stub row. Three modes as a radio-style list (`visibility.everyone` / `.groups` / `.people`); the groups mode is **not offered at all** when the owner is in zero groups (`visibility.noGroups` + a link to create one), and the people mode shows `visibility.noPeople` when there are no candidates. `visibility.emptyAudience` blocks confirming a restricted audience with nothing selected — the client-side twin of `setWishAudience`'s `empty_audience`.
+
+A static footnote, `visibility.narrowNote`, is shown **unconditionally** — never only when a booking exists. A note that appeared conditionally would itself be an oracle telling the owner a wish is reserved, which is exactly what invariant #1 forbids.
+
+## Narrowing after a reservation
+
+If an owner narrows a wish's visibility (or switches it to a `restricted` audience) after someone has reserved it, the booking is not touched — reservations are never affected by a visibility change — but the reserver may lose the ability to *see* the wish. This is the trickiest corner of invariant #1: the mutation has to learn something about a specific person's sight of the wish, without ever letting that fact reach the owner.
+
+`updateWishAsOwner` (`src/db/access/wish-lifecycle.ts`) gained an optional `audience` parameter and, in the same transaction, an unconditional extra step. It captures the active reservation's holder — a `{ userId }` or `{ guestId }` viewer built from the reservation row, never anything the owner supplied — and **replays `isWishVisibleTo` for that holder twice: once before the write, once after**. The flag is the difference:
+
+```text
+reserverLostAccess = holder !== null && visibleBefore && !visibleAfter
+```
+
+It is deliberately a **transition, not a state**. "The holder cannot see this wish" is true forever once a booked wish is restricted, so a post-only check would re-send the email on every later save — a typo fix in the notes would mail them again — and, worse, it would fire when the holder left the audience *on their own* (leaving the group), telling them the owner did something the owner never did, and suppressing the legitimate "the owner changed this wish" mail in the process. A guest holder makes the state version permanent, since a guest can never see any `restricted` wish.
+
+Both probes run on **every** successful save — audience or no audience, booking or no booking — and only the *answer* differs. The owner-visible `result` is built solely from the wish write and the audience outcome, so it is byte-identical whether or not a reservation exists or was affected. `reserverLostAccess` is `after()`-only, exactly like `notifyReservationId`.
+
+`src/app/wishes/actions.ts`'s `updateWishAction` reads both flags inside `after()`:
+
+- if `reserverLostAccess` is true → `sendReservedWishHidden` (a new sender in `reservation-emails.ts` + `copy.ts`): "the owner changed who can see this, you can't see it anymore — **your booking is still yours**, it's still in «Мои брони»";
+- else, if the wish's material fields changed → the existing `sendReservedWishChanged`;
+- **never both** — losing access supersedes "the wish changed" because it's the email that actually explains what happened.
+
+The email is params-only (recipient, locale, title — no DB access, no owner identity), swallow-and-log on failure, rendered through `renderLedgerEmail`, following the Phase 7b senders exactly.
+
+## Partner — `src/db/access/profiles.ts`
+
+`setPartner(db, userId, partnerId)` / `clearPartner(db, userId)` touch only the `partnerId` column — every other profile field (nickname, sizes, tastes, base currency…) passes through untouched. `setPartner` refuses two things outright: partnering yourself, and a `partnerId` that shares **no group** with the caller — group co-membership is the only relationship Wishka can vouch for, so it's the only proof accepted. The picker's candidate list already excludes both cases, but the write path holds the line regardless of what the UI sends.
+
+`PartnerBlock` (`src/components/profile/partner-block.tsx`) sits on `/profile` between the public-parameters editor and settings. Picking a candidate *is* the action — there's no separate save step — confirmed with an `InfoToast` (`partner.saved`). With zero candidates it shows `partner.empty` + a link to `/people` to create a group first.
+
+## View-as — `src/components/profile/view-as-sheet.tsx`
+
+"Посмотреть, как видят другие" (§6.6): three lenses — guest, a specific group, or a specific person — over the same candidate list `getAudienceCandidates` returns. Picking a lens navigates to `/u/<own nickname>?as=guest` / `?as=group:<id>` / `?as=user:<id>`.
+
+`/u/[nickname]/page.tsx` only reads `?as=` on the branch where **the viewer is the page's own owner** — a non-owner's `?as=` is ignored entirely, not merely unauthorized-and-logged. The value is validated against what that owner may actually preview through: a `group:<id>` must name a group they belong to, a `user:<id>` must be a real candidate from `getAudienceCandidates`; anything else (a stale id, a hand-typed one, junk) falls back to the plain guest lens rather than erroring, since a preview has nothing sensitive to protect but itself. The resolved viewer — `{ anonymous: true }`, `{ groupId }`, or `{ userId }` — is rendered through **`getWishesAsSeenBy`, never `getVisibleWishes`**, exactly like the plain owner-preview case from Phase 7a: every wish comes back `free`, because that function has no access to the reservations table at all. A `viewAs.banner*` strip names the active lens and links back with `viewAs.exit`.
+
+## Delete account — `src/db/access/account.ts`
+
+Account deletion is a **bespoke server action**, not Better Auth's `deleteUser` (unused in `src/lib/auth.ts`, and it would only remove session/account/user rows — none of the group succession this needs).
+
+The hazard: `groups.created_by` cascades on user delete. Deleting the `user` row outright would take down every group this account created — including the memberships of everyone still in them — the moment that account is gone, which is exactly what the confirmation copy (`account.deleteBody`) promises will *not* happen.
+
+`deleteAccount(db, userId)` runs as one transaction:
+
+1. For every group the account belongs to, it calls **`leaveGroup`** — the same succession rule "leave a group" already uses, never re-implemented: the group is deleted outright if this was its only member (its `wish_visibility` rows go with it), otherwise the membership is dropped, the longest-tenured remaining member is promoted to admin if none is left, and `groups.created_by` is handed to them if it named the departing account.
+2. Only once every membership is settled does it delete the `user` row itself. Everything else follows the ordinary cascades: profile, wishes (and the wishes' own bookings, since `reservations.list_owner_id` cascades even though `reservations.wish_id` merely nulls), bookings the account held elsewhere, sessions.
+
+`DeleteAccount` (`src/components/profile/delete-account.tsx`) sits in the settings section below sign-out, behind a destructive `Dialog` (`account.deleteTitle` / `.deleteBody` / `.deleteConfirm`). On success, `deleteAccountAction` redirects to `/` — the session row is cascaded away with the user, so the stale cookie resolves to "no session" on the very next request without an explicit sign-out call.
+
+## `/access-denied` — deliberately unwired
+
+There is **no leak-free trigger** for a "no access" screen. A signed-in non-member opening a restricted `/w/<id>` has to get the exact same invalid-link screen a bad id gets — if it read any differently ("this wish exists but you can't see it" vs. "this link is wrong"), the screen itself would confirm the wish exists to someone it's hidden from, which is a leak on its own. `ServiceScreen`'s existing invalid-link branch already covers this case correctly by not distinguishing it. Revisit only if a genuinely leak-free signal for "you specifically lost access" turns up — none does today.

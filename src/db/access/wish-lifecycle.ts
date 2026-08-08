@@ -5,10 +5,16 @@ import type { Db } from "../index";
 import { guestIdentities, reservations, user, wishes } from "../schema";
 import { isUuid } from "./ids";
 import { deleteWish, markGifted, updateWish } from "./mutations";
-import type { WishInput, WishMutationResult } from "./mutations";
+import type { WishInput } from "./mutations";
 import { getOwnerWish } from "./owner";
 import { orphanActiveReservations } from "./reservations";
-import type { OwnerWish } from "./types";
+import type { OwnerWish, RealViewer } from "./types";
+import {
+  AudienceRejected,
+  isWishVisibleTo,
+  setWishAudience,
+} from "./visibility";
+import type { WishAudience, WishWithAudienceResult } from "./visibility";
 
 /**
  * Owner-triggered maintenance that has to touch reservation rows.
@@ -32,6 +38,10 @@ import type { OwnerWish } from "./types";
  *  - `getReservationNotificationTargetById` resolves that id to a recipient. It
  *    is SERVER-SIDE ONLY: its result carries a reserver's identity and must die
  *    inside the `after()` that reads it — never returned, logged, or rendered.
+ *  - `reserverLostAccess` is the same kind of value one step further: it says
+ *    something about a *specific* person's sight of the wish, before and after
+ *    the write. It is computed on every successful edit, not only when a
+ *    booking exists, and is `after()`-only for the same reason the id is.
  *
  * A holder who cancels their booking in the sliver between the mutation
  * committing and `after()` sending still receives the email: they held the wish
@@ -66,16 +76,27 @@ async function lockWishRow(
     .limit(1);
 }
 
+/** The holder of a booking, as an id plus whichever identity made it. */
+type ActiveReservation = {
+  id: string;
+  reserverUserId: string | null;
+  guestId: string | null;
+};
+
 /** The active booking on a wish (scoped by the snapshot owner so it can never
  *  match another list's row), captured inside the caller's transaction. */
-async function activeReservationId(
+async function activeReservation(
   tx: Db,
   wishId: string,
   ownerId: string,
-): Promise<string | null> {
+): Promise<ActiveReservation | null> {
   if (!isUuid(wishId)) return null;
   const [row] = await tx
-    .select({ id: reservations.id })
+    .select({
+      id: reservations.id,
+      reserverUserId: reservations.reserverUserId,
+      guestId: reservations.guestId,
+    })
     .from(reservations)
     .where(
       and(
@@ -85,7 +106,27 @@ async function activeReservationId(
       ),
     )
     .limit(1);
-  return row?.id ?? null;
+  return row ?? null;
+}
+
+async function activeReservationId(
+  tx: Db,
+  wishId: string,
+  ownerId: string,
+): Promise<string | null> {
+  return (await activeReservation(tx, wishId, ownerId))?.id ?? null;
+}
+
+/**
+ * The lens the holder of a booking reads the list through. With no booking
+ * there is nobody to ask about, so the probe still runs — as an anonymous
+ * visitor, whose answer is then discarded. A query that ran only when a booking
+ * existed would be an oracle on its own.
+ */
+function holderViewer(holder: ActiveReservation | null): RealViewer {
+  if (holder?.reserverUserId != null) return { userId: holder.reserverUserId };
+  if (holder?.guestId != null) return { guestId: holder.guestId };
+  return { anonymous: true };
 }
 
 export type OwnerMutationOutcome<T> = {
@@ -129,28 +170,104 @@ export async function deleteWishAsOwner(
   }
 }
 
+export type UpdateWishOutcome = OwnerMutationOutcome<WishWithAudienceResult> & {
+  before: OwnerWish | null;
+  /**
+   * THIS edit took the wish out of its holder's sight — it was visible to them
+   * before the write and is not after. A transition, not a state: an already
+   * restricted wish saved again does not re-fire it, and a holder who walked
+   * out of the audience themselves is not blamed on the owner's next unrelated
+   * edit (which would also suppress the "the wish changed" email they should
+   * get). `after()`-only, exactly like `notifyReservationId`: it is a fact
+   * about a reserver, so it must never reach the owner.
+   */
+  reserverLostAccess: boolean;
+};
+
 /**
- * Updates a wish and captures, in the same transaction, the booking that held
- * it at that instant. `before` is the pre-update snapshot the caller diffs to
- * decide whether the change is worth emailing about.
+ * Updates a wish, applies the audience it was saved with, and captures — in
+ * the same transaction — the booking that held it at that instant and whether
+ * that holder can still see it.
+ *
+ * `before` is the pre-update snapshot the caller diffs to decide whether the
+ * change is worth emailing about.
+ *
+ * The lost-access probes are unconditional: the holder's sight of the wish is
+ * asked for before and after the write, on every save, booking or no booking,
+ * audience or no audience. With no booking the questions are asked about an
+ * anonymous visitor and the answers thrown away — a probe that ran only when a
+ * booking existed would be an oracle by its timing alone. Only the *answer* is
+ * conditional, and it never leaves `after()`. The owner-visible `result` is
+ * built from the wish write and the audience alone, so it is identical whether
+ * or not anyone has reserved the wish.
+ *
+ * A refused audience unwinds the whole transaction — the alternative is an edit
+ * saved under the audience the owner was trying to replace.
  */
 export async function updateWishAsOwner(
   db: Db,
   ownerId: string,
   wishId: string,
   input: Partial<WishInput>,
-): Promise<
-  OwnerMutationOutcome<WishMutationResult> & { before: OwnerWish | null }
-> {
-  return db.transaction(async (tx) => {
-    await lockWishRow(tx, ownerId, wishId);
-    const before = await getOwnerWish(tx, ownerId, wishId);
-    const result = await updateWish(tx, ownerId, wishId, input);
-    const notifyReservationId = result.ok
-      ? await activeReservationId(tx, wishId, ownerId)
-      : null;
-    return { result, before, notifyReservationId };
-  });
+  audience?: WishAudience,
+): Promise<UpdateWishOutcome> {
+  let before: OwnerWish | null = null;
+  try {
+    return await db.transaction(async (tx) => {
+      await lockWishRow(tx, ownerId, wishId);
+      before = await getOwnerWish(tx, ownerId, wishId);
+
+      // The holder is pinned before the write, so both sight probes ask about
+      // the same person and the "before" answer is the one this edit changed.
+      // The wish row is locked, so no booking can appear or move in between.
+      const holder = await activeReservation(tx, wishId, ownerId);
+      const holderLens = holderViewer(holder);
+      const wasVisible = await isWishVisibleTo(tx, wishId, holderLens);
+
+      const result = await updateWish(tx, ownerId, wishId, input);
+      if (!result.ok) {
+        // Nothing was written, so there is nothing to unwind and nobody to ask
+        // about — the owner gets the same refusal as before Phase 8b.
+        return {
+          result,
+          before,
+          notifyReservationId: null,
+          reserverLostAccess: false,
+        };
+      }
+
+      if (audience !== undefined) {
+        const applied = await setWishAudience(tx, ownerId, wishId, audience);
+        if (!applied.ok) throw new AudienceRejected(applied.error);
+      }
+      const saved: WishWithAudienceResult =
+        audience === undefined
+          ? result
+          : { ok: true, wish: { ...result.wish, visibility: audience.mode } };
+
+      const stillVisible = await isWishVisibleTo(tx, wishId, holderLens);
+
+      return {
+        result: saved,
+        before,
+        notifyReservationId: holder?.id ?? null,
+        // With no holder the two answers describe an anonymous visitor, which
+        // is nobody's loss — the `holder` test discards them rather than
+        // reporting a lost access that has no one to lose it.
+        reserverLostAccess: holder !== null && wasVisible && !stillVisible,
+      };
+    });
+  } catch (error) {
+    if (error instanceof AudienceRejected) {
+      return {
+        result: { ok: false, error: error.error },
+        before,
+        notifyReservationId: null,
+        reserverLostAccess: false,
+      };
+    }
+    throw error;
+  }
 }
 
 /** Marks a wish gifted, capturing the booking active at that moment in the same

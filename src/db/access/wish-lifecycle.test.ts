@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 // `deleteWish` comes from `mutations.ts`, which reaches `lib/storage/uploadthing`
@@ -7,8 +7,9 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import type { Db } from "../index";
-import { reservations, wishes } from "../schema";
+import { groupMembers, reservations, wishes } from "../schema";
 import {
+  createGroup,
   createGuest,
   createReservation,
   createTestDb,
@@ -16,11 +17,13 @@ import {
   createWish,
   type TestDb,
 } from "../test-support";
-import { getOwnerWishes } from "./owner";
+import { getOwnerWish, getOwnerWishes } from "./owner";
 import { reserveWish } from "./reservations";
+import type { WishAudience } from "./visibility";
 import {
   deleteWishAsOwner,
   getReservationNotificationTarget,
+  updateWishAsOwner,
 } from "./wish-lifecycle";
 
 describe("wish lifecycle", () => {
@@ -133,6 +136,237 @@ describe("wish lifecycle", () => {
         .from(wishes)
         .where(eq(wishes.id, wishId));
       expect(wish.title).toBe("Not yours");
+    });
+  });
+
+  /**
+   * The audience is the one edit that can take a booked wish away from the
+   * person holding it. `reserverLostAccess` is how the caller learns to send
+   * the "no longer visible" email instead of the "changed" one — and, like
+   * `notifyReservationId`, it is for `after()` and nothing else.
+   */
+  describe("updateWishAsOwner and the audience", () => {
+    /** A group the owner shares with nobody who books anything here. */
+    let closedGroupId: string;
+    /** A group the owner shares with the reserving friend. */
+    let friendGroupId: string;
+
+    const narrowTo = (groupId: string): WishAudience => ({
+      mode: "restricted",
+      groupIds: [groupId],
+      userIds: [],
+    });
+
+    beforeAll(async () => {
+      const outsider = await createUser(db, { name: "Outsider" });
+      closedGroupId = await createGroup(db, ownerId, [ownerId, outsider]);
+      friendGroupId = await createGroup(db, ownerId, [ownerId, friendId]);
+    });
+
+    it("reports a signed-in holder losing sight of the wish", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Narrowed away" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const outcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(closedGroupId),
+      );
+      expect(outcome.reserverLostAccess).toBe(true);
+      expect(outcome.notifyReservationId).not.toBeNull();
+      if (!outcome.result.ok) throw new Error("expected the update to succeed");
+      expect(outcome.result.wish.visibility).toBe("restricted");
+    });
+
+    it("reports a guest holder losing sight of any narrowing at all", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Guest booked" });
+      await reserveWish(db, wishId, { guestId });
+
+      // A guest can only ever reach `everyone` wishes, so even an audience the
+      // guest's own would-be group is in cuts them off.
+      const outcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(friendGroupId),
+      );
+      expect(outcome.reserverLostAccess).toBe(true);
+    });
+
+    it("stays false when the holder is still in the audience", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Still visible" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const outcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        { title: "Still visible, renamed" },
+        narrowTo(friendGroupId),
+      );
+      expect(outcome.reserverLostAccess).toBe(false);
+      expect(outcome.notifyReservationId).not.toBeNull();
+    });
+
+    /**
+     * It reports the transition, not the state. A wish the holder already
+     * cannot see loses them nothing when it is edited again — re-firing would
+     * repeat "the wish is no longer visible to you" on every later save, and
+     * (see the caller) swallow the "the wish changed" email they should get.
+     */
+    it("fires once for the edit that narrowed, not for later ones", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Narrowed once" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const narrowed = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(closedGroupId),
+      );
+      expect(narrowed.reserverLostAccess).toBe(true);
+
+      const renamed = await updateWishAsOwner(db, ownerId, wishId, {
+        title: "Narrowed once, renamed",
+      });
+      expect(renamed.reserverLostAccess).toBe(false);
+      expect(renamed.notifyReservationId).not.toBeNull();
+      if (!renamed.result.ok) throw new Error("expected the update to succeed");
+      expect(renamed.result.wish.visibility).toBe("restricted");
+    });
+
+    /**
+     * And it is about what the *owner* did. A holder who walked out of the
+     * audience themselves must not turn the owner's next unrelated edit into
+     * "the owner hid this from you".
+     */
+    it("stays false when the holder left the audience themselves", async () => {
+      const groupId = await createGroup(db, ownerId, [ownerId, friendId]);
+      const wishId = await createWish(db, { ownerId, title: "Left behind" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const narrowed = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        {},
+        narrowTo(groupId),
+      );
+      expect(narrowed.reserverLostAccess).toBe(false);
+
+      await db
+        .delete(groupMembers)
+        .where(
+          and(
+            eq(groupMembers.groupId, groupId),
+            eq(groupMembers.userId, friendId),
+          ),
+        );
+
+      const renamed = await updateWishAsOwner(db, ownerId, wishId, {
+        title: "Left behind, renamed",
+      });
+      expect(renamed.reserverLostAccess).toBe(false);
+      expect(renamed.notifyReservationId).not.toBeNull();
+    });
+
+    it("stays false for an edit that leaves an everyone-wish alone", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Just renamed" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const outcome = await updateWishAsOwner(db, ownerId, wishId, {
+        title: "Renamed only",
+      });
+      expect(outcome.reserverLostAccess).toBe(false);
+      if (!outcome.result.ok) throw new Error("expected the update to succeed");
+      expect(outcome.result.wish.visibility).toBe("everyone");
+    });
+
+    /**
+     * SURPRISE INVARIANT — same test as the delete one above, for the edit that
+     * *can* differ: narrowing a wish somebody booked. `reserverLostAccess` and
+     * `notifyReservationId` are `after()`-only and may differ; `result`, the
+     * only thing the owner sees, must be identical field for field.
+     */
+    it("returns the same owner-visible result with and without a booking", async () => {
+      const free = await createWish(db, { ownerId, title: "Twin" });
+      const booked = await createWish(db, { ownerId, title: "Twin" });
+      await reserveWish(db, booked, { userId: friendId });
+
+      const patch = { title: "Twin, narrowed" };
+      const freeOutcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        free,
+        patch,
+        narrowTo(closedGroupId),
+      );
+      const bookedOutcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        booked,
+        patch,
+        narrowTo(closedGroupId),
+      );
+
+      // Everything but the identity of the row and its timestamps, which are
+      // per-row by construction and say nothing about bookings.
+      const comparable = (outcome: typeof freeOutcome) => {
+        if (!outcome.result.ok) throw new Error("expected a saved wish");
+        const wish: Record<string, unknown> = { ...outcome.result.wish };
+        for (const key of ["id", "createdAt", "updatedAt"]) delete wish[key];
+        return wish;
+      };
+      expect(Object.keys(comparable(bookedOutcome)).sort()).toEqual(
+        Object.keys(comparable(freeOutcome)).sort(),
+      );
+      expect(comparable(bookedOutcome)).toEqual(comparable(freeOutcome));
+
+      expect(freeOutcome.notifyReservationId).toBeNull();
+      expect(freeOutcome.reserverLostAccess).toBe(false);
+      expect(bookedOutcome.notifyReservationId).not.toBeNull();
+      expect(bookedOutcome.reserverLostAccess).toBe(true);
+    });
+
+    it("unwinds the edit when the audience is refused", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Kept as it was" });
+      await reserveWish(db, wishId, { userId: friendId });
+
+      const outcome = await updateWishAsOwner(
+        db,
+        ownerId,
+        wishId,
+        { title: "Should not stick" },
+        { mode: "restricted", groupIds: [], userIds: [] },
+      );
+      expect(outcome.result).toEqual({ ok: false, error: "empty_audience" });
+      expect(outcome.notifyReservationId).toBeNull();
+      expect(outcome.reserverLostAccess).toBe(false);
+      expect(outcome.before?.title).toBe("Kept as it was");
+
+      expect((await getOwnerWish(db, ownerId, wishId))?.title).toBe(
+        "Kept as it was",
+      );
+    });
+
+    it("refuses a wish the caller does not own without an audience write", async () => {
+      const wishId = await createWish(db, { ownerId, title: "Not yours" });
+      const outcome = await updateWishAsOwner(
+        db,
+        friendId,
+        wishId,
+        { title: "Hijacked" },
+        narrowTo(friendGroupId),
+      );
+      expect(outcome.result).toEqual({ ok: false, error: "not_found" });
+      expect(outcome.reserverLostAccess).toBe(false);
+      expect((await getOwnerWish(db, ownerId, wishId))?.visibility).toBe(
+        "everyone",
+      );
     });
   });
 

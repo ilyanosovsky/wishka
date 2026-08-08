@@ -1,7 +1,8 @@
 import { and, eq, ne, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import type { Db } from "../index";
-import { profiles } from "../schema";
+import { groupMembers, profiles } from "../schema";
 import { isUniqueViolation } from "./errors";
 import { NICKNAME_RE } from "@/lib/nickname";
 
@@ -130,4 +131,60 @@ export async function isNicknameAvailable(
     )
     .limit(1);
   return rows.length === 0;
+}
+
+export type SetPartnerError = "self" | "not_shared" | "not_found";
+
+/**
+ * §6.6 partner — pinned first in the who-can-see-it people picker (§6.3), never
+ * a fourth visibility mode of its own.
+ *
+ * A partner is not a free-text claim: the only relationship Wishka can vouch
+ * for is shared group membership, so `partnerId` must name someone who is
+ * *currently* a co-member of at least one of `userId`'s groups. Partnering
+ * yourself is refused outright — the picker's own candidate list should never
+ * offer it, but the write path holds the line regardless of what the UI does.
+ */
+export async function setPartner(
+  db: Db,
+  userId: string,
+  partnerId: string,
+): Promise<{ ok: true } | { ok: false; error: SetPartnerError }> {
+  if (partnerId === userId) return { ok: false, error: "self" };
+
+  const ownGroups = alias(groupMembers, "own_groups");
+  const partnerGroups = alias(groupMembers, "partner_groups");
+  const shared = await db
+    .select({ groupId: ownGroups.groupId })
+    .from(ownGroups)
+    .innerJoin(
+      partnerGroups,
+      and(
+        eq(partnerGroups.groupId, ownGroups.groupId),
+        eq(partnerGroups.userId, partnerId),
+      ),
+    )
+    .where(eq(ownGroups.userId, userId))
+    .limit(1);
+  if (shared.length === 0) return { ok: false, error: "not_shared" };
+
+  const updated = await db
+    .update(profiles)
+    .set({ partnerId, updatedAt: new Date() })
+    .where(eq(profiles.userId, userId))
+    .returning({ userId: profiles.userId });
+  return updated.length > 0 ? { ok: true } : { ok: false, error: "not_found" };
+}
+
+/** Every other profile column is untouched — a bare `partnerId` clear. */
+export async function clearPartner(
+  db: Db,
+  userId: string,
+): Promise<{ ok: boolean }> {
+  const updated = await db
+    .update(profiles)
+    .set({ partnerId: null, updatedAt: new Date() })
+    .where(eq(profiles.userId, userId))
+    .returning({ userId: profiles.userId });
+  return { ok: updated.length > 0 };
 }
