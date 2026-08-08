@@ -32,6 +32,11 @@ function renderControl() {
 
 describe("DeleteAccount", () => {
   it("does not call the action until the destructive confirm is tapped", () => {
+    // A successful delete redirects instead of resolving, so the honest stub
+    // is a promise that never settles — the real component unmounts first.
+    // Without it the mock would resolve `undefined`, the component would read
+    // `.ok` off nothing, and this test would quietly assert the catch branch.
+    deleteAccountActionMock.mockReturnValue(new Promise(() => {}));
     renderControl();
 
     fireEvent.click(screen.getByRole("button", { name: "Удалить аккаунт" }));
@@ -69,7 +74,7 @@ describe("DeleteAccount", () => {
   });
 
   it("stays open and disables cancel while the request is in flight", async () => {
-    let resolveAction: (value: { ok: boolean }) => void = () => {};
+    let resolveAction: (value: { ok: false }) => void = () => {};
     deleteAccountActionMock.mockReturnValue(
       new Promise((resolve) => {
         resolveAction = resolve;
@@ -89,7 +94,8 @@ describe("DeleteAccount", () => {
     fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
     expect(screen.getByText("Удалить аккаунт?")).toBeInTheDocument();
 
-    resolveAction({ ok: true });
+    // The action only ever resolves on failure; success redirects instead.
+    resolveAction({ ok: false });
     await waitFor(() =>
       expect(deleteAccountActionMock).toHaveBeenCalledTimes(1),
     );

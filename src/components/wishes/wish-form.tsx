@@ -233,7 +233,7 @@ export function WishForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   // The audience is a whole sheet away from the submit button, so a rejected
-  // audience gets its own line next to the «Кому видно» row instead of the
+  // audience gets its own line next to the who-can-see-it row instead of the
   // generic banner — otherwise nothing points at the control to fix.
   const [audienceError, setAudienceError] = useState<
     "empty" | "invalid" | null

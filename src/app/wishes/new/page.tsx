@@ -26,7 +26,7 @@ export default async function NewWishPage({
     const own = query ? `/wishes/new?${query}` : "/wishes/new";
     redirect(`/login?next=${encodeURIComponent(own)}`);
   }
-  // The «Кому видно» candidates are read here, server-side: the client never
+  // The audience candidates are read here, server-side: the client never
   // learns who is in the owner's groups except through this one prop.
   const [profile, candidates] = await Promise.all([
     getProfile(getDb(), session.user.id),

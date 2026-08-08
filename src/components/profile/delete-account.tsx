@@ -30,14 +30,16 @@ export function DeleteAccount() {
     if (deleting) return;
     setDeleting(true);
     try {
+      // Only an explicit failure result means failure. On success the action
+      // redirects instead of returning, so there is nothing to read here —
+      // treating a missing value as an error would flash "couldn't delete"
+      // over a deletion that worked.
       const result = await deleteAccountAction();
-      if (!result.ok) {
+      if (result?.ok === false) {
         setDeleting(false);
         setConfirmOpen(false);
         setFailed(true);
       }
-      // On success the action redirects — this component unmounts before a
-      // resolved value would ever come back.
     } catch {
       setDeleting(false);
       setConfirmOpen(false);

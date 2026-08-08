@@ -411,7 +411,7 @@
     "emptyAudience": "Pick at least one — otherwise only you will see this wish",
     "summaryEveryone": "Everyone",
     "summaryRestricted": "{count, plural, one {# recipient} other {# recipients}}",
-    "narrowNote": "Narrowing this after someone reserved the wish keeps their booking, but they lose access and get an email.",
+    "narrowNote": "If narrowing this takes the wish away from someone who reserved it, their booking stays theirs and we email them.",
     "done": "Done"
   },
   "partner": {

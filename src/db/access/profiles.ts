@@ -136,7 +136,7 @@ export async function isNicknameAvailable(
 export type SetPartnerError = "self" | "not_shared" | "not_found";
 
 /**
- * §6.6 partner — pinned first in the "Кому видно" people picker (§6.3), never
+ * §6.6 partner — pinned first in the who-can-see-it people picker (§6.3), never
  * a fourth visibility mode of its own.
  *
  * A partner is not a free-text claim: the only relationship Wishka can vouch

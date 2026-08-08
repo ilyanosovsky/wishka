@@ -40,7 +40,10 @@ export function ViewAsBanner({ lens }: ViewAsBannerProps) {
       <div className="mx-auto flex max-w-105 flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-[12px] font-medium">{label}</p>
-          <p className="truncate text-[11px] text-mute">{t("note")}</p>
+          {/* Wraps rather than truncates: this is the line promising that
+              bookings never show in a preview, and a clipped reassurance is
+              worse than none. The RU copy is the longer one, so it clips first. */}
+          <p className="text-[11px] text-mute">{t("note")}</p>
         </div>
         <Link
           href="/profile"

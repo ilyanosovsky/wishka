@@ -30,7 +30,7 @@ function cx(...parts: (string | false | undefined)[]): string {
 export type ViewAsSheetProps = {
   /** The owner's own nickname — the preview target, `/u/<nickname>?as=…`. */
   nickname: string;
-  /** The same candidate list the «Кому видно» sheet picks from. */
+  /** The same candidate list the who-can-see-it sheet picks from. */
   candidates: AudienceOptions;
 };
 

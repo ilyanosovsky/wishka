@@ -82,8 +82,11 @@ export async function clearPartnerAction(): Promise<{ ok: boolean }> {
  * render for as soon as this resolves, and the stale session cookie already
  * points at a user row that is gone, so `getSession` on the next request
  * resolves to "no session" on its own — no explicit sign-out call needed.
+ *
+ * Hence the narrowed return type: this resolves *only* on failure, and saying
+ * so keeps a caller from reading `.ok` off a value that never arrives.
  */
-export async function deleteAccountAction(): Promise<{ ok: boolean }> {
+export async function deleteAccountAction(): Promise<{ ok: false } | never> {
   const userId = await requireUserId();
   const result = await deleteAccount(getDb(), userId);
   if (!result.ok) return { ok: false };

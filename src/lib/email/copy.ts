@@ -108,7 +108,7 @@ export const reservedWishDeleted = {
 };
 
 /**
- * The owner narrowed «кому видно» past the person holding the booking. The
+ * The owner narrowed the audience past the person holding the booking. The
  * message must not read as a cancellation: the booking survives the wish
  * disappearing from the list, exactly as it survives a delete, and «Мои брони»
  * is where it stays. No CTA — there is no longer a wish page to send them to.

@@ -21,7 +21,8 @@ import type { OwnerWish, Viewer, WishVisibility } from "./types";
 import { visibleTo } from "./viewer";
 
 /**
- * «Кому видно» — the write side of item-level visibility (invariant #2).
+ * The write side of item-level visibility (invariant #2) — the audience a
+ * wish is addressed to.
  *
  * `visibleTo` in `viewer.ts` is the read side and the only place the rule is
  * evaluated; this module is the only place it is *set*. No component decides

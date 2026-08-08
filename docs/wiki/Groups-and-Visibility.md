@@ -137,9 +137,15 @@ A static footnote, `visibility.narrowNote`, is shown **unconditionally** — nev
 
 If an owner narrows a wish's visibility (or switches it to a `restricted` audience) after someone has reserved it, the booking is not touched — reservations are never affected by a visibility change — but the reserver may lose the ability to *see* the wish. This is the trickiest corner of invariant #1: the mutation has to learn something about a specific person's sight of the wish, without ever letting that fact reach the owner.
 
-`updateWishAsOwner` (`src/db/access/wish-lifecycle.ts`) gained an optional `audience` parameter and, in the same transaction, an unconditional extra step: after applying the write (and the audience, if one was passed), it captures the active reservation's id exactly as before, then **replays `isWishVisibleTo` for that reservation's holder** — a `{ userId }` or `{ guestId }` viewer built from the reservation row, never anything the owner supplied. A guest viewer can only ever see `everyone` wishes, so any narrowing at all cuts a guest holder off. The result is `reserverLostAccess: boolean`, returned alongside `result` and `notifyReservationId`.
+`updateWishAsOwner` (`src/db/access/wish-lifecycle.ts`) gained an optional `audience` parameter and, in the same transaction, an unconditional extra step. It captures the active reservation's holder — a `{ userId }` or `{ guestId }` viewer built from the reservation row, never anything the owner supplied — and **replays `isWishVisibleTo` for that holder twice: once before the write, once after**. The flag is the difference:
 
-The probe runs on **every** successful save — audience or no audience, booking or no booking — and only the *answer* is conditional. The owner-visible `result` is built solely from the wish write and the audience outcome, so it is byte-identical whether or not a reservation exists or was affected. `reserverLostAccess` is `after()`-only, exactly like `notifyReservationId`.
+```
+reserverLostAccess = holder !== null && visibleBefore && !visibleAfter
+```
+
+It is deliberately a **transition, not a state**. "The holder cannot see this wish" is true forever once a booked wish is restricted, so a post-only check would re-send the email on every later save — a typo fix in the notes would mail them again — and, worse, it would fire when the holder left the audience *on their own* (leaving the group), telling them the owner did something the owner never did, and suppressing the legitimate "the owner changed this wish" mail in the process. A guest holder makes the state version permanent, since a guest can never see any `restricted` wish.
+
+Both probes run on **every** successful save — audience or no audience, booking or no booking — and only the *answer* differs. The owner-visible `result` is built solely from the wish write and the audience outcome, so it is byte-identical whether or not a reservation exists or was affected. `reserverLostAccess` is `after()`-only, exactly like `notifyReservationId`.
 
 `src/app/wishes/actions.ts`'s `updateWishAction` reads both flags inside `after()`:
 

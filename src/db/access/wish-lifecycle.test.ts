@@ -140,7 +140,7 @@ describe("wish lifecycle", () => {
   });
 
   /**
-   * «Кому видно» is the one edit that can take a booked wish away from the
+   * The audience is the one edit that can take a booked wish away from the
    * person holding it. `reserverLostAccess` is how the caller learns to send
    * the "no longer visible" email instead of the "changed" one — and, like
    * `notifyReservationId`, it is for `after()` and nothing else.

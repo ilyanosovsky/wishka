@@ -95,8 +95,12 @@ describe("PartnerBlock", () => {
     expect(screen.getByText("Аня")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Убрать" }));
 
-    await waitFor(() => expect(clearPartnerActionMock).toHaveBeenCalled());
-    expect(refresh).toHaveBeenCalled();
+    // Both inside waitFor: the action mock records synchronously, so asserting
+    // the refresh afterwards could run before the awaited continuation.
+    await waitFor(() => {
+      expect(clearPartnerActionMock).toHaveBeenCalled();
+      expect(refresh).toHaveBeenCalled();
+    });
   });
 
   it("surfaces a failure toast when setting a partner fails", async () => {

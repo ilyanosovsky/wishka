@@ -11,7 +11,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Field } from "@/components/ui/field";
 
 /**
- * §6.3 «Кому видно» — the only writer of a wish's audience.
+ * The "who can see it" sheet (§6.3) — the only writer of a wish's audience.
  *
  * The types below mirror `WishAudience` / `AudienceCandidates` from
  * `src/db/access/visibility.ts` in shape only, the same way `WishFormValues`

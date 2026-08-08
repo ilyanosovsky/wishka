@@ -25,7 +25,7 @@ export default async function ProfilePage() {
   if (!profile) redirect("/welcome");
 
   const t = await getTranslations();
-  // Same candidate list the "Кому видно" people picker draws from (§6.3) —
+  // Same candidate list the who-can-see-it people picker draws from (§6.3) —
   // the partner block reuses it rather than running its own group query.
   const candidates = await getAudienceCandidates(db, session.user.id);
   const partner = profile.partnerId

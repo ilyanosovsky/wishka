@@ -114,7 +114,7 @@ export async function sendReservedWishDeleted(params: {
 }
 
 /**
- * Sent when the owner narrowed «кому видно» past the holder of a booking. Like
+ * Sent when the owner narrowed a wish's audience past the holder of a booking. Like
  * every sender here it takes plain params: it must not be able to look a
  * reserver up, only to be handed one inside `after()`.
  */
