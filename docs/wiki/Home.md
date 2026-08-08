@@ -8,7 +8,7 @@
 - [Local Setup](Local-Setup) — clone, run, quality gate
 - [Architecture](Architecture) — layout, key decisions, diagram
 - [Data Model](Data-Model) — schema, surprise invariant, visibility rules
-- _Parsing pipeline_ — coming with the parsing PR
+- [Parsing Pipeline](Parsing-Pipeline) — layered URL parsing, cache, image re-hosting
 
 ## How this wiki works
 

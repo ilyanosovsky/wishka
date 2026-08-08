@@ -59,6 +59,14 @@ export interface WishFormProps {
   /** Where the top-left back control (and the draft dialog's actions) send
    *  the user. Defaults to the list; the edit form points back at the wish. */
   backHref?: string;
+  /** True when the Link field's initial value came from the URL parser
+   *  (§6.3 step 3, "спарсено") — renders it as a read-only parsed-link row
+   *  with a small edit affordance instead of the usual editable input. */
+  parsedUrl?: boolean;
+  /** True when the parser only partially filled the card (§6.3 step 2,
+   *  "Частично") — shows a partial-notice banner and highlights an empty
+   *  title immediately, without waiting for a blocked submit attempt. */
+  parsedPartial?: boolean;
 }
 
 const DEFAULT_VALUES: WishFormValues = {
@@ -155,6 +163,8 @@ export function WishForm({
   enableDraft = false,
   draftScope,
   backHref = "/",
+  parsedUrl = false,
+  parsedPartial = false,
 }: WishFormProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -167,6 +177,9 @@ export function WishForm({
   }));
   const [blockedAttempt, setBlockedAttempt] = useState(false);
   const [urlError, setUrlError] = useState(false);
+  // Starts editable whenever the link isn't parsed — the parsed-link display
+  // row only exists to be swapped out for the plain input on request.
+  const [linkEditing, setLinkEditing] = useState(!parsedUrl);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [serverPriceError, setServerPriceError] = useState(false);
@@ -308,7 +321,10 @@ export function WishForm({
   // or by the server), so it alone is the signal — not re-gated on the
   // *current* title text, which would hide a server-side "title" error
   // (e.g. over the length limit) as soon as the field held any text at all.
-  const showTitleError = blockedAttempt;
+  // A partial parse adds a second, independent trigger: an empty title is
+  // highlighted right away, before any submit attempt, since it's exactly
+  // the field the parser most often leaves blank.
+  const showTitleError = blockedAttempt || (parsedPartial && titleEmpty);
 
   async function handleSubmit() {
     if (titleEmpty) {
@@ -363,6 +379,10 @@ export function WishForm({
         </button>
       </div>
 
+      {parsedPartial && (
+        <AlertBanner tone="warning">{t("parse.partialNotice")}</AlertBanner>
+      )}
+
       {draftBannerOpen && (
         <AlertBanner
           tone="success"
@@ -396,16 +416,47 @@ export function WishForm({
         helperText={t("form.nameRequired")}
       />
 
-      <TextField
-        label={t("form.linkLabel")}
-        value={values.url ?? ""}
-        onChange={(event) => {
-          updateValue({ url: event.target.value || null });
-          setUrlError(false);
-        }}
-        placeholder="https://…"
-        error={urlError}
-        helperText={t("form.linkInvalid")}
+      {parsedUrl && !linkEditing ? (
+        <div className="flex flex-col gap-1.5">
+          <span className={LABEL_CLASS}>{t("form.linkLabel")}</span>
+          <div className="flex items-center gap-2">
+            <Field
+              variant="parsed-link"
+              value={values.url ?? ""}
+              meta={t("parse.fromParser")}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex-none px-2"
+              onClick={() => setLinkEditing(true)}
+            >
+              {t("form.editTitle")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <TextField
+          label={t("form.linkLabel")}
+          value={values.url ?? ""}
+          onChange={(event) => {
+            updateValue({ url: event.target.value || null });
+            setUrlError(false);
+          }}
+          placeholder="https://…"
+          error={urlError}
+          helperText={t("form.linkInvalid")}
+        />
+      )}
+
+      <TextareaField
+        label={t("form.descriptionLabel")}
+        value={values.description ?? ""}
+        onChange={(event) =>
+          updateValue({ description: event.target.value || null })
+        }
+        rows={3}
       />
 
       <div className="flex flex-col gap-1.5">

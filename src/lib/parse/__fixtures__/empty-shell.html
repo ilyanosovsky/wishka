@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Store</title>
+    <link rel="preconnect" href="https://static.example" />
+    <link rel="stylesheet" href="/assets/app.9f2a41c8.css" />
+    <script defer src="/assets/app.9f2a41c8.js"></script>
+    <script defer src="/assets/vendor.71b0e4f0.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.__PRELOADED_STATE__ = {
+        locale: "en",
+        currency: "USD",
+        features: {
+          reviews: true,
+          wishlist: true,
+          recommendations: true,
+          quickView: false,
+          storePickup: true,
+        },
+        routes: [
+          "/",
+          "/collections",
+          "/collections/new",
+          "/collections/sale",
+          "/products",
+          "/cart",
+          "/account",
+          "/account/orders",
+          "/account/addresses",
+          "/pages/shipping",
+          "/pages/returns",
+          "/pages/contact",
+        ],
+        experiments: {
+          checkoutV2: "control",
+          searchRanking: "variant-b",
+          pdpGallery: "variant-a",
+          bundleUpsell: "control",
+          stickyAddToCart: "variant-a",
+        },
+        navigation: [
+          { label: "New in", href: "/collections/new" },
+          { label: "Tableware", href: "/collections/tableware" },
+          { label: "Vases", href: "/collections/vases" },
+          { label: "Lighting", href: "/collections/lighting" },
+          { label: "Textiles", href: "/collections/textiles" },
+          { label: "Sale", href: "/collections/sale" },
+        ],
+        currencies: ["USD", "EUR", "GBP", "GEL"],
+        shippingZones: [
+          { code: "dom", label: "Domestic", days: "2-4" },
+          { code: "eu", label: "European Union", days: "5-9" },
+          { code: "row", label: "Rest of world", days: "9-21" },
+        ],
+        cdn: "https://static.example/assets",
+        buildId: "9f2a41c877b04f0e9e0f2f5a1c9a83bd",
+        apiBase: "/api/storefront/v3",
+        cartToken: null,
+        customer: null,
+      };
+    </script>
+    <noscript>
+      This store needs JavaScript enabled to work. Please turn it on in your
+      browser settings and reload the page.
+    </noscript>
+  </body>
+</html>

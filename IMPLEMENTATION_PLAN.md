@@ -12,8 +12,8 @@
 | 1 | Scaffold: Next.js, tokens, themes, i18n, CI | PR #2 | ✅ done |
 | 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | ✅ done |
 | 3 | Design system: components + wish card matrix | PR #4 | ✅ done |
-| 4 | My list: CRUD, filters, detail, archive | PR #5 | 🔵 in review |
-| 5 | Add by URL: parsing pipeline + image re-hosting | — | ⬜ |
+| 4 | My list: CRUD, filters, detail, archive | PR #5 | ✅ done |
+| 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | 🔵 in review |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | — (7a/7b) | ⬜ |
 | 8 | Groups, partner, visibility, view-as | — | ⬜ |
@@ -81,10 +81,10 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 
 **Goal:** paste a link → card assembles; failure is a calm, first-class path.
 
-- ⬜ `/api/parse`: **L0** fetch + open-graph-scraper (OG+JSON-LD, real UA, 8s timeout, challenge-page detection) → **L1** LLM extraction over cleaned HTML (`OPENAI_MODEL_TEXT`, structured outputs) → **L2** Jina Reader (`r.jina.ai`) → **L3** Firecrawl (free 1000/mo) → give up gracefully. Stop-list (Amazon-class) → manual immediately. Cache results in `parsed_url_cache` (one parse per URL globally).
-- ⬜ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); `next/image` remotePatterns = our storage host only.
-- ⬜ Add-by-URL UI: clipboard suggestion, parsing states (fast <3s / slow >5s with escape hatch / partial with highlights / failed calm / stop-list / duplicate detection).
-- ⬜ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
+- ✅ Parsing pipeline (`src/lib/parse/`, via `parseUrlAction`): **L0** fetch + open-graph-scraper (OG+JSON-LD, real UA, 8s timeout, challenge-page detection) → **L1** LLM extraction over cleaned HTML (`OPENAI_MODEL_TEXT`, structured outputs) → **L2** Jina Reader (`r.jina.ai`) → **L3** Firecrawl (free 1000/mo) → give up gracefully. Stop-list (Amazon-class) → manual immediately. Cache results in `parsed_url_cache` (one parse per URL globally).
+- ✅ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); `next/image` remotePatterns = our storage host only.
+- ✅ Add-by-URL UI: clipboard suggestion, parsing states (fast <3s / slow >5s with escape hatch / partial with highlights / failed calm / stop-list / duplicate detection).
+- ✅ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
 
 ## Phase 6 — AI assists & quotas (next PR)

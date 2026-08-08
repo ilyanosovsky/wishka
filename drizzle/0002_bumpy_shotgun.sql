@@ -1,0 +1,2 @@
+ALTER TABLE "ai_usage" DROP CONSTRAINT "ai_usage_kind_check";--> statement-breakpoint
+ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_kind_check" CHECK ("ai_usage"."kind" in ('image', 'text', 'upload', 'parse'));
