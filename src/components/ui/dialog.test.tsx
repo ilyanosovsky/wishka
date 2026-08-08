@@ -12,7 +12,7 @@ describe("Dialog", () => {
       <Dialog
         open
         title="Delete this wish?"
-        description="«Керамическая ваза» исчезнет из списка."
+        description='"Ceramic vase" will disappear from the list.'
         onClose={onCancel}
         actions={[
           { label: "Cancel", onClick: onCancel, tone: "neutral" },
