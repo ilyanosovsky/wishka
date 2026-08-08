@@ -270,10 +270,11 @@ export function WishCard(props: WishCardProps) {
             <div className="font-mono text-[9px] text-mute-2">{giftedMeta}</div>
           )
         ) : (
-          // flex-wrap: a long price range next to a long priority label (see
-          // wish.priority.nice) exceeds the card at narrow grid widths — the
-          // flag drops to its own line instead of bleeding past the border.
-          <div className="flex flex-wrap items-center justify-between gap-x-[5px] gap-y-1">
+          // Price and priority are ALWAYS stacked on their own lines: a
+          // side-by-side row overflows the card once both labels are long,
+          // and wrapping only the tight cards makes neighbours in the same
+          // grid row visibly inconsistent. One structure for every card.
+          <div className="flex flex-col items-start gap-1">
             {price ? (
               <span
                 className={cx(
