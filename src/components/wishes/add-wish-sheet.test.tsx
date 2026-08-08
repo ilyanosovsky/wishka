@@ -207,7 +207,7 @@ describe("AddWishSheet — quota", () => {
 
     expect(
       await screen.findByText(
-        "Лимит парсинга на сегодня исчерпан — заполни руками",
+        "Лимит парсинга на сегодня исчерпан — заполни вручную",
       ),
     ).toBeInTheDocument();
 
@@ -258,7 +258,7 @@ describe("AddWishSheet — slow parsing", () => {
 
       expect(screen.getByText("Смотрим, что там…")).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: "Заполнить руками" }),
+        screen.queryByRole("button", { name: "Заполнить вручную" }),
       ).toBeNull();
 
       await act(async () => {
@@ -269,7 +269,7 @@ describe("AddWishSheet — slow parsing", () => {
         screen.getByText("Магазин отвечает медленно, продолжаем…"),
       ).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole("button", { name: "Заполнить руками" }));
+      fireEvent.click(screen.getByRole("button", { name: "Заполнить вручную" }));
       expect(push).toHaveBeenCalledWith(
         `/wishes/new?url=${encodeURIComponent("https://slow.example.com/item")}`,
       );

@@ -57,7 +57,7 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
   );
 
   // Guards against a parse result landing after the user has already bailed
-  // to the manual form (via "Заполнить руками") or the sheet has been closed
+  // to the manual form (via "Заполнить вручную") or the sheet has been closed
   // and reopened — bumped on either event, checked when the promise resolves.
   const generationRef = useRef(0);
   const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -221,13 +221,13 @@
     "manualCta": "Fill in manually",
     "parsing": "Looking at it…",
     "parsingSlow": "The store is slow — still working…",
-    "fillManually": "Fill in by hand",
+    "fillManually": "Fill in manually",
     "failedTitle": "This store doesn't share data — let's fill it in together",
     "duplicateTitle": "This is already on your list",
     "duplicateOpen": "Open it",
     "duplicateAnyway": "Add anyway",
     "partialNotice": "We got some of it — fill in what's missing",
-    "quotaExceeded": "Parsing limit reached for today — fill in by hand",
+    "quotaExceeded": "Parsing limit reached for today — fill in manually",
     "urlInvalid": "The link must start with http(s)://",
     "fromParser": "from the parser"
   }
