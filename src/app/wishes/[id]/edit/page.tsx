@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { getOwnerWish } from "@/db/access/owner";
+import { getAudienceCandidates, getWishAudience } from "@/db/access/visibility";
 import { getAuth } from "@/lib/auth";
 import { EditWishForm } from "./edit-wish-form";
 
@@ -26,9 +27,20 @@ export default async function EditWishPage({
     );
   }
 
+  // Both reads are owner-scoped and server-side — the form receives the
+  // audience it may edit, never a query path into it.
+  const [audience, candidates] = await Promise.all([
+    getWishAudience(getDb(), session.user.id, id),
+    getAudienceCandidates(getDb(), session.user.id),
+  ]);
+
   return (
     <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10">
-      <EditWishForm wish={wish} />
+      <EditWishForm
+        wish={wish}
+        audience={audience ?? undefined}
+        candidates={candidates}
+      />
     </main>
   );
 }

@@ -42,6 +42,18 @@ function viewerGuestId(viewer: Viewer): string | null {
   return "guestId" in viewer && isUuid(viewer.guestId) ? viewer.guestId : null;
 }
 
+function viewerGroupId(viewer: Viewer): string | null {
+  return "groupId" in viewer && isUuid(viewer.groupId) ? viewer.groupId : null;
+}
+
+/**
+ * A viewer with no identity to match a booking against. It is a preview lens,
+ * so every path that would otherwise join reservations collapses to `free`.
+ */
+function isPreviewLens(viewer: Viewer): boolean {
+  return "groupId" in viewer;
+}
+
 /**
  * `everyone` wishes are public. `restricted` wishes require a signed-in viewer
  * named directly in wish_visibility, or sharing a group with the owner — guests
@@ -51,6 +63,28 @@ function viewerGuestId(viewer: Viewer): string | null {
  */
 export function visibleTo(viewer: Viewer): SQL {
   const isPublic = eq(wishes.visibility, "everyone");
+
+  // The group lens unlocks exactly what the group unlocks and nothing else —
+  // never a wish someone was named in individually. The owner-membership test
+  // mirrors the signed-in branch below, so a group the owner has since left
+  // stays as shut in the preview as it is in reality.
+  const groupId = viewerGroupId(viewer);
+  if (groupId !== null) {
+    const restrictedToGroup = sql`exists (
+      select 1 from "wish_visibility" wv
+      where wv."wish_id" = ${wishes.id}
+        and wv."subject_type" = 'group'
+        and wv."subject_id" = ${groupId}
+        and exists (
+          select 1 from "group_members" gm_owner
+          where gm_owner."group_id"::text = wv."subject_id"
+            and gm_owner."user_id" = ${wishes.ownerId}
+        )
+    )`;
+    // `or` of defined conditions is always defined.
+    return or(isPublic, restrictedToGroup) as SQL;
+  }
+
   const userId = viewerUserId(viewer);
   if (!userId) return isPublic;
 
@@ -156,8 +190,9 @@ export async function getVisibleWish(
 
   const userId = viewerUserId(viewer);
   // The owner learns nothing about bookings on their own wish — collapse to
-  // `free` before ever reading a reservation row.
-  if (userId !== null && wish.ownerId === userId) {
+  // `free` before ever reading a reservation row. A preview lens is the owner
+  // looking too, so it takes the same exit.
+  if (isPreviewLens(viewer) || (userId !== null && wish.ownerId === userId)) {
     return { ...wish, reservationStatus: "free" };
   }
 
@@ -189,8 +224,10 @@ export async function getVisibleWishes(
   viewer: Viewer,
 ): Promise<ViewerWish[]> {
   // The owner reading their own list gets the reservation-free query, not a
-  // filtered result — nothing to leak if the join never happens.
-  if (isListOwner(listOwnerId, viewer)) {
+  // filtered result — nothing to leak if the join never happens. A preview lens
+  // is routed the same way here as well, so a caller that reaches for the wrong
+  // function still cannot turn view-as into a booking oracle.
+  if (isListOwner(listOwnerId, viewer) || isPreviewLens(viewer)) {
     return getWishesAsSeenBy(db, listOwnerId, viewer);
   }
 

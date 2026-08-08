@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { updateWishAction } from "@/app/wishes/actions";
 import {
+  EVERYONE_AUDIENCE,
+  type AudienceOptions,
+  type WishAudienceValue,
+} from "@/components/wishes/visibility-sheet";
+import {
   WishForm,
   type WishFormResult,
   type WishFormValues,
@@ -13,7 +18,10 @@ import type { WishInput } from "@/db/access/mutations";
 
 /** `imageKey` stores our CDN URL (not a bare storage key — see
  *  `db/access/mutations.ts`), so it maps straight onto the form's `imageUrl`. */
-function toFormValues(wish: OwnerWish): WishFormValues {
+function toFormValues(
+  wish: OwnerWish,
+  audience: WishAudienceValue,
+): WishFormValues {
   return {
     type: wish.type,
     title: wish.title,
@@ -28,7 +36,20 @@ function toFormValues(wish: OwnerWish): WishFormValues {
     isDream: wish.isDream,
     category: wish.category,
     notes: wish.notes,
+    audience,
   };
+}
+
+function sameIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
+}
+
+function sameAudience(a: WishAudienceValue, b: WishAudienceValue): boolean {
+  return (
+    a.mode === b.mode &&
+    sameIds(a.groupIds, b.groupIds) &&
+    sameIds(a.userIds, b.userIds)
+  );
 }
 
 function toWishInput(values: WishFormValues): WishInput {
@@ -49,12 +70,31 @@ function toWishInput(values: WishFormValues): WishInput {
   };
 }
 
-export function EditWishForm({ wish }: { wish: OwnerWish }) {
+export function EditWishForm({
+  wish,
+  audience = EVERYONE_AUDIENCE,
+  candidates,
+}: {
+  wish: OwnerWish;
+  /** The wish's stored audience, read server-side by the page. */
+  audience?: WishAudienceValue;
+  candidates: AudienceOptions;
+}) {
   const router = useRouter();
   const t = useTranslations("form");
 
   async function handleSubmit(values: WishFormValues): Promise<WishFormResult> {
-    const result = await updateWishAction(wish.id, toWishInput(values));
+    // An untouched audience is left out entirely, so saving a title never
+    // re-validates subjects the owner may no longer be allowed to name (a
+    // group they have since left, say) and never rewrites the rows.
+    const changed = sameAudience(values.audience, audience)
+      ? undefined
+      : values.audience;
+    const result = await updateWishAction(
+      wish.id,
+      toWishInput(values),
+      changed,
+    );
     if (result.ok) {
       router.push(`/wishes/${wish.id}`);
       return { ok: true };
@@ -64,7 +104,8 @@ export function EditWishForm({ wish }: { wish: OwnerWish }) {
 
   return (
     <WishForm
-      initial={toFormValues(wish)}
+      initial={toFormValues(wish, audience)}
+      candidates={candidates}
       submitLabel={t("save")}
       onSubmit={handleSubmit}
       backHref={`/wishes/${wish.id}`}

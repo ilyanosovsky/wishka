@@ -16,6 +16,14 @@ import { CURRENCIES, type CurrencyCode } from "@/lib/currencies";
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { downscaleForWish } from "@/lib/wish-image";
 import { CurrencySheet } from "./currency-sheet";
+import {
+  audienceSubjectCount,
+  EMPTY_AUDIENCE_OPTIONS,
+  EVERYONE_AUDIENCE,
+  VisibilitySheet,
+  type AudienceOptions,
+  type WishAudienceValue,
+} from "./visibility-sheet";
 
 /**
  * §6.3 step-3 form — the one card form used by both "new" and "edit". No
@@ -42,6 +50,8 @@ export type WishFormValues = {
   isDream: boolean;
   category: string | null;
   notes: string | null;
+  /** Who the wish is for (§6.3). Proposed here, validated server-side. */
+  audience: WishAudienceValue;
 };
 
 export type WishFormResult = { ok: true } | { ok: false; error: string };
@@ -67,6 +77,9 @@ export interface WishFormProps {
    *  "Частично") — shows a partial-notice banner and highlights an empty
    *  title immediately, without waiting for a blocked submit attempt. */
   parsedPartial?: boolean;
+  /** Who the owner may address a restricted wish to — the owner's groups and
+   *  their members, fetched by the page (server-side), never by the client. */
+  candidates?: AudienceOptions;
 }
 
 const DEFAULT_VALUES: WishFormValues = {
@@ -83,6 +96,7 @@ const DEFAULT_VALUES: WishFormValues = {
   isDream: false,
   category: null,
   notes: null,
+  audience: EVERYONE_AUDIENCE,
 };
 
 /**
@@ -134,10 +148,32 @@ function readDraft(key: string): WishFormValues | null {
       typeof parsed.title !== "string"
     )
       return null;
-    return { ...DEFAULT_VALUES, ...parsed };
+    return {
+      ...DEFAULT_VALUES,
+      ...parsed,
+      audience: normalizeAudience(parsed.audience),
+    };
   } catch {
     return null;
   }
+}
+
+/** A draft is whatever localStorage happened to hold — a wish saved before
+ *  audiences existed, or a half-written key. Anything unrecognizable falls
+ *  back to "everyone" rather than proposing subjects the server would reject. */
+function normalizeAudience(value: unknown): WishAudienceValue {
+  if (!value || typeof value !== "object") return EVERYONE_AUDIENCE;
+  const draft = value as Partial<WishAudienceValue>;
+  if (draft.mode !== "restricted") return EVERYONE_AUDIENCE;
+  const ids = (list: unknown): string[] =>
+    Array.isArray(list)
+      ? list.filter((id): id is string => typeof id === "string")
+      : [];
+  return {
+    mode: "restricted",
+    groupIds: ids(draft.groupIds),
+    userIds: ids(draft.userIds),
+  };
 }
 
 function writeDraft(key: string, values: WishFormValues) {
@@ -165,6 +201,7 @@ export function WishForm({
   backHref = "/",
   parsedUrl = false,
   parsedPartial = false,
+  candidates = EMPTY_AUDIENCE_OPTIONS,
 }: WishFormProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -190,6 +227,7 @@ export function WishForm({
   const { startUpload } = useUploadThing("wishImage");
 
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+  const [visibilitySheetOpen, setVisibilitySheetOpen] = useState(false);
 
   const [pendingDraft, setPendingDraft] = useState<WishFormValues | null>(null);
   const [draftBannerOpen, setDraftBannerOpen] = useState(false);
@@ -664,11 +702,23 @@ export function WishForm({
         rows={3}
       />
 
-      {/* Visibility — stub until Phase 8 (RLS-backed "Кому видно" sheet). */}
-      <div className="flex min-h-11 flex-col gap-0.5 border border-rule-2 bg-paper px-3 py-2.5 text-mute">
-        <span className={LABEL_CLASS}>{t("form.visibilityLabel")}</span>
-        <span className="text-[13px]">{t("form.visibilityEveryone")}</span>
-      </div>
+      <button
+        type="button"
+        onClick={() => setVisibilitySheetOpen(true)}
+        className="flex min-h-11 cursor-pointer items-center gap-2 border border-rule-2 bg-paper px-3 py-2.5 text-left"
+      >
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className={LABEL_CLASS}>{t("form.visibilityLabel")}</span>
+          <span className="text-[13px]">
+            {values.audience.mode === "everyone"
+              ? t("visibility.summaryEveryone")
+              : t("visibility.summaryRestricted", {
+                  count: audienceSubjectCount(values.audience),
+                })}
+          </span>
+        </span>
+        <ChevronDown aria-hidden size={12} strokeWidth={2.2} />
+      </button>
 
       {submitError && (
         <AlertBanner tone="error">{t("form.errorGeneric")}</AlertBanner>
@@ -695,6 +745,14 @@ export function WishForm({
         value={values.currency}
         baseCurrency={FALLBACK_BASE_CURRENCY}
         onSelect={(code) => updateValue({ currency: code })}
+      />
+
+      <VisibilitySheet
+        open={visibilitySheetOpen}
+        onClose={() => setVisibilitySheetOpen(false)}
+        value={values.audience}
+        candidates={candidates}
+        onConfirm={(audience) => updateValue({ audience })}
       />
 
       <Dialog

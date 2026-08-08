@@ -65,9 +65,20 @@ export type ViewerWish = {
   reservationStatus: ReservationStatus;
 };
 
-/** Who is reading someone else's list. */
+/**
+ * Who is reading someone else's list.
+ *
+ * `{ groupId }` is the view-as lens — "as any member of this group sees it".
+ * It carries no identity on purpose: simulating one arbitrary real member would
+ * also pick up wishes that member is named in individually, which is not what
+ * the owner asked to see. Being identity-less, it can never hold a booking,
+ * which is why `Reserver` stays a separate union.
+ */
 export type Viewer =
-  { userId: string } | { guestId: string } | { anonymous: true };
+  | { userId: string }
+  | { guestId: string }
+  | { groupId: string }
+  | { anonymous: true };
 
 /** Who is holding, or wants to hold, a reservation. */
 export type Reserver = { userId: string } | { guestId: string };

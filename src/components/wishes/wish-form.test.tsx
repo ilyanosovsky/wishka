@@ -412,3 +412,98 @@ describe("WishForm — parsedUrl", () => {
     expect(screen.getByLabelText("Ссылка")).toBeInTheDocument();
   });
 });
+
+const CANDIDATES = {
+  groups: [{ id: "g-1", name: "Семья", emoji: "🎁", color: null }],
+  people: [{ userId: "u-2", name: "Борис", image: null, isPartner: false }],
+};
+
+describe("WishForm — «Кому видно»", () => {
+  it("summarises 'everyone' by default", () => {
+    renderForm({ candidates: CANDIDATES });
+
+    expect(
+      screen.getByRole("button", { name: /Кому видно/ }),
+    ).toHaveTextContent("Всем");
+  });
+
+  it("summarises the subject count once the audience is narrowed", () => {
+    renderForm({
+      candidates: CANDIDATES,
+      initial: {
+        audience: { mode: "restricted", groupIds: ["g-1"], userIds: ["u-2"] },
+      },
+    });
+
+    expect(
+      screen.getByRole("button", { name: /Кому видно/ }),
+    ).toHaveTextContent("2 получателям");
+  });
+
+  it("submits the audience picked in the sheet", async () => {
+    const onSubmit = vi.fn(async (values: WishFormValues) => {
+      void values;
+      return { ok: true as const };
+    });
+    renderForm({ candidates: CANDIDATES, onSubmit });
+
+    fireEvent.click(screen.getByRole("button", { name: /Кому видно/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "Группам" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Семья/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].audience).toEqual({
+      mode: "restricted",
+      groupIds: ["g-1"],
+      userIds: [],
+    });
+  });
+
+  it("submits 'everyone' when the sheet is never opened", async () => {
+    const onSubmit = vi.fn(async (values: WishFormValues) => {
+      void values;
+      return { ok: true as const };
+    });
+    renderForm({ candidates: CANDIDATES, onSubmit });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].audience).toEqual({
+      mode: "everyone",
+      groupIds: [],
+      userIds: [],
+    });
+  });
+
+  it("falls back to 'everyone' for a draft saved before audiences existed", async () => {
+    window.localStorage.setItem(
+      "wishka-wish-draft:user-1",
+      JSON.stringify(DRAFT_FIXTURE),
+    );
+    const onSubmit = vi.fn(async (values: WishFormValues) => {
+      void values;
+      return { ok: true as const };
+    });
+    renderForm({ enableDraft: true, draftScope: "user-1", onSubmit });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Продолжить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].audience).toEqual({
+      mode: "everyone",
+      groupIds: [],
+      userIds: [],
+    });
+  });
+});

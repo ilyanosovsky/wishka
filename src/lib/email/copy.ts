@@ -107,6 +107,33 @@ export const reservedWishDeleted = {
         ],
 };
 
+/**
+ * The owner narrowed «кому видно» past the person holding the booking. The
+ * message must not read as a cancellation: the booking survives the wish
+ * disappearing from the list, exactly as it survives a delete, and «Мои брони»
+ * is where it stays. No CTA — there is no longer a wish page to send them to.
+ */
+export const reservedWishHidden = {
+  subject: {
+    ru: "Желание больше не видно",
+    en: "A wish you reserved is no longer visible",
+  },
+  heading: {
+    ru: "Желание больше не видно",
+    en: "The wish is no longer visible to you",
+  },
+  body: (wishTitle: string, locale: Locale): string[] =>
+    locale === "ru"
+      ? [
+          `Владелец изменил, кому видно желание «${wishTitle}», — теперь оно не показывается вам в списке.`,
+          "Бронь остаётся за вами: она никуда не делась и по-прежнему доступна в разделе «Мои брони».",
+        ]
+      : [
+          `The owner changed who can see the wish "${wishTitle}", so it no longer shows up for you in their list.`,
+          'Your booking is still yours — it has not been cancelled and stays in "My bookings".',
+        ],
+};
+
 export const giftGiven = {
   subject: {
     ru: "Подарок вручён 🎉",

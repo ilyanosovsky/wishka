@@ -15,6 +15,7 @@ const {
   sendGuestBookingConfirmation,
   sendReservedWishChanged,
   sendReservedWishDeleted,
+  sendReservedWishHidden,
   sendGiftGiven,
 } = await import("./reservation-emails");
 
@@ -83,6 +84,34 @@ describe("reservation email senders", () => {
     const call = sendMock.mock.calls[0][0];
     expect(call.subject).toBe("The wish was deleted");
     expect(call.html).toContain("Mug");
+  });
+
+  it("sendReservedWishHidden — RU says the booking survives, and escapes the title", async () => {
+    sendMock.mockResolvedValueOnce({ data: { id: "x" }, error: null });
+    await sendReservedWishHidden({
+      to: "guest@example.com",
+      locale: "ru",
+      wishTitle: `<b>Кружка</b>`,
+    });
+    const call = sendMock.mock.calls[0][0];
+    expect(call.subject).toBe("Желание больше не видно");
+    expect(call.html).toContain("Бронь остаётся за вами");
+    expect(call.html).toContain("Мои брони");
+    expect(call.html).not.toContain("<b>Кружка</b>");
+    expect(call.html).toContain("&lt;b&gt;Кружка&lt;/b&gt;");
+  });
+
+  it("sendReservedWishHidden — EN, and no CTA to a wish that is gone", async () => {
+    sendMock.mockResolvedValueOnce({ data: { id: "x" }, error: null });
+    await sendReservedWishHidden({
+      to: "guest@example.com",
+      locale: "en",
+      wishTitle: "Mug",
+    });
+    const call = sendMock.mock.calls[0][0];
+    expect(call.subject).toBe("A wish you reserved is no longer visible");
+    expect(call.html).toContain("My bookings");
+    expect(call.html).not.toContain('href="https://');
   });
 
   it("sendGiftGiven — RU includes the exact confirmation phrase", async () => {

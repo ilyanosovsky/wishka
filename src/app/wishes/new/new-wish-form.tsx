@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { createWishAction } from "@/app/wishes/actions";
 import type { ParseFields } from "@/app/wishes/parse-actions";
+import type { AudienceOptions } from "@/components/wishes/visibility-sheet";
 import {
   WishForm,
   type WishFormPriceType,
@@ -112,6 +113,7 @@ function toWishInput(values: WishFormValues): WishInput {
 export function NewWishForm({
   baseCurrency,
   userId,
+  candidates,
   url,
   parsed,
 }: {
@@ -119,6 +121,9 @@ export function NewWishForm({
   /** Scopes the draft's localStorage key so two accounts on one device/
    *  browser never share a single "wishka-wish-draft" slot. */
   userId: string;
+  /** Groups and people this owner may address a restricted wish to, fetched
+   *  server-side by the page. */
+  candidates: AudienceOptions;
   /** Plain "?url=" handoff — the manual form after a failed/stoplist/quota
    *  parse, with the typed link preserved. */
   url?: string;
@@ -171,7 +176,7 @@ export function NewWishForm({
   }, [parsed, url, baseCurrency, userId]);
 
   async function handleSubmit(values: WishFormValues): Promise<WishFormResult> {
-    const result = await createWishAction(toWishInput(values));
+    const result = await createWishAction(toWishInput(values), values.audience);
     if (result.ok) {
       router.push("/");
       return { ok: true };
@@ -190,6 +195,7 @@ export function NewWishForm({
     <WishForm
       enableDraft
       draftScope={userId}
+      candidates={candidates}
       initial={resolved.initial}
       parsedUrl={resolved.parsedUrl}
       parsedPartial={resolved.parsedPartial}

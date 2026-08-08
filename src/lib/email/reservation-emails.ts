@@ -8,12 +8,13 @@ import {
   guestBookingConfirmation,
   reservedWishChanged,
   reservedWishDeleted,
+  reservedWishHidden,
   type Locale,
   type ReservationChangedField,
 } from "./copy";
 
 /**
- * All four senders take ready-built params (URLs included — callers own
+ * All five senders take ready-built params (URLs included — callers own
  * NEXT_PUBLIC_APP_URL) and never touch the DB. They run inside next/server
  * `after()`, post-response: a failed send must never surface as a request
  * error, so every sender catches and console.error's instead of throwing.
@@ -109,6 +110,29 @@ export async function sendReservedWishDeleted(params: {
     await send({ to: params.to, subject: subject!, html, text });
   } catch (err) {
     console.error("sendReservedWishDeleted failed:", err);
+  }
+}
+
+/**
+ * Sent when the owner narrowed «кому видно» past the holder of a booking. Like
+ * every sender here it takes plain params: it must not be able to look a
+ * reserver up, only to be handed one inside `after()`.
+ */
+export async function sendReservedWishHidden(params: {
+  to: string;
+  locale: Locale;
+  wishTitle: string;
+}): Promise<void> {
+  try {
+    const { subject, html, text } = renderLedgerEmail({
+      locale: params.locale,
+      subject: reservedWishHidden.subject[params.locale],
+      heading: reservedWishHidden.heading[params.locale],
+      bodyLines: reservedWishHidden.body(params.wishTitle, params.locale),
+    });
+    await send({ to: params.to, subject: subject!, html, text });
+  } catch (err) {
+    console.error("sendReservedWishHidden failed:", err);
   }
 }
 

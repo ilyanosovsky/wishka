@@ -397,6 +397,57 @@
     "mergeLater": "Not now",
     "mergedToast": "Bookings moved to your account"
   },
+  "visibility": {
+    "title": "Who can see it",
+    "everyone": "Everyone",
+    "groups": "Groups",
+    "people": "Specific people",
+    "searchPeople": "Search members",
+    "partnerLabel": "Partner",
+    "noGroups": "No groups yet",
+    "noGroupsHint": "Create a group and you can open a wish to everyone in it at once.",
+    "createGroup": "Create a group",
+    "noPeople": "Nobody to pick yet — invite people to a group first",
+    "emptyAudience": "Pick at least one — otherwise only you will see this wish",
+    "summaryEveryone": "Everyone",
+    "summaryRestricted": "{count, plural, one {# person} other {# people}}",
+    "narrowNote": "Narrowing this after someone reserved the wish keeps their booking, but they lose access and get an email.",
+    "done": "Done"
+  },
+  "partner": {
+    "title": "Partner",
+    "hint": "Your partner always comes first in \"Who can see it\"",
+    "add": "Add a partner",
+    "remove": "Remove",
+    "pickTitle": "Who is your partner?",
+    "empty": "A partner is picked from the members of your groups",
+    "emptyCta": "Create a group",
+    "saved": "Saved"
+  },
+  "viewAs": {
+    "cta": "See how others see it",
+    "title": "How others see it",
+    "guest": "A guest",
+    "groupLens": "A group member",
+    "personLens": "A specific person",
+    "pickGroup": "Pick a group",
+    "pickPerson": "Pick a person",
+    "banner": "Preview",
+    "bannerGuest": "Preview: as a guest sees it",
+    "bannerGroup": "Preview: a member of \"{name}\"",
+    "bannerPerson": "Preview: {name}",
+    "note": "Reservations are never shown in a preview",
+    "exit": "Exit",
+    "open": "Open the preview"
+  },
+  "account": {
+    "delete": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "Your list, archive and profile will be deleted. Groups you administer pass to their other members — and disappear with you if you're the only one left. Bookings you made on other people's lists are released. This cannot be undone.",
+    "deleteConfirm": "Delete forever",
+    "deleting": "Deleting…",
+    "deleteFailed": "Couldn't delete — please try again"
+  },
   "service": {
     "invalidLinkTitle": "This link is invalid or the list was deleted",
     "invalidLinkCta": "Create your own list",
