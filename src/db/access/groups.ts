@@ -9,6 +9,7 @@ import {
   wishVisibility,
 } from "../schema";
 import { revokeLiveInvites } from "./group-invites";
+import { isGroupColor } from "@/lib/group-colors";
 import { isUuid } from "./ids";
 import { visibleTo } from "./viewer";
 
@@ -60,7 +61,7 @@ export type GroupMember = {
   nickname: string | null;
   role: GroupRole;
   joinedAt: Date;
-  /** Wishes of this member visible to the *viewer* — drives "Список пока пуст". */
+  /** Wishes of this member visible to the *viewer* — drives the empty-list state. */
   hasVisibleWishes: boolean;
 };
 
@@ -90,17 +91,12 @@ export type GroupMutationResult =
  * Opaque swatch keys, not CSS. Each one names a Paper Ledger token the UI maps
  * to a swatch; storing the key (never a hex value) is what lets the palette be
  * restyled — and re-themed for dark mode — without touching stored rows.
+ *
+ * They live in `@/lib/group-colors` so the picker can read them without
+ * importing this module, which reaches the Drizzle schema and the `server-only`
+ * database handle. Re-exported here because validation belongs to this layer.
  */
-export const GROUP_COLORS = [
-  "ink",
-  "accent",
-  "null",
-  "zebra",
-  "rule",
-  "mute",
-] as const;
-
-export type GroupColor = (typeof GROUP_COLORS)[number];
+export { GROUP_COLORS, type GroupColor } from "@/lib/group-colors";
 
 const MAX_NAME_LENGTH = 60;
 /** Counted in code points: a family emoji is one glyph but many UTF-16 units. */
@@ -123,10 +119,6 @@ function normalizeEmoji(
   if (emoji.length === 0) return { ok: true, value: null };
   if ([...emoji].length > MAX_EMOJI_LENGTH) return { ok: false };
   return { ok: true, value: emoji };
-}
-
-function isGroupColor(value: string): value is GroupColor {
-  return (GROUP_COLORS as readonly string[]).includes(value);
 }
 
 function normalizeColor(

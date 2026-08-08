@@ -74,7 +74,7 @@ describe("AcceptInvitePanel", () => {
 
     expect(
       await screen.findByText(
-        "Не получилось присоединиться — попробуй ещё раз",
+        "Не получилось присоединиться — попробуйте ещё раз",
       ),
     ).toBeInTheDocument();
     const button = screen.getByRole("button", { name: "Присоединиться" });

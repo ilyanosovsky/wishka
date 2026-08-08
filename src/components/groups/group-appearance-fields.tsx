@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { GROUP_COLORS } from "@/db/access/groups";
+import { GROUP_COLORS } from "@/lib/group-colors";
 import { groupSwatchClass } from "./group-mark";
 
 /**

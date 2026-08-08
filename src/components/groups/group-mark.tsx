@@ -25,9 +25,11 @@ export function groupSwatchClass(color: string | null | undefined): string {
   return (color && SWATCH_CLASS[color]) || NEUTRAL_CLASS;
 }
 
+/** By code point, not code unit: a name starting with an astral character
+ *  (an emoji, say) would otherwise render half a surrogate pair. */
 function initialOf(name: string): string {
-  const trimmed = name.trim();
-  return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
+  const [first] = [...name.trim()];
+  return first ? first.toUpperCase() : "?";
 }
 
 export type GroupMarkSize = "md" | "lg";
