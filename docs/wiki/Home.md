@@ -10,6 +10,8 @@
 - [Data Model](Data-Model) — schema, surprise invariant, visibility rules
 - [Parsing Pipeline](Parsing-Pipeline) — layered URL parsing, cache, image re-hosting
 - [Sharing & Public Lists](Sharing-and-Public-Lists) — public routes, viewer roles, share sheet
+- [Reservations and Surprise Mode](Reservations-and-Surprise-Mode) — reservation lifecycle, the surprise invariant, the email matrix
+- [Guest Access](Guest-Access) — guest identity, booking without an account, guest→account merge
 
 ## How this wiki works
 

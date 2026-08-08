@@ -1,8 +1,12 @@
 // @vitest-environment node
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { reservations, wishes } from "./schema";
 import {
   createTestDb,
+  createUser,
+  createWish,
   readMigrationStatements,
   type TestDb,
 } from "./test-support";
@@ -88,7 +92,45 @@ describe("migrations", () => {
       "select pg_get_constraintdef(oid) as definition from pg_constraint where conname = 'reservations_state_check'",
     );
     expect(stateCheck.rows[0]?.definition).toContain("'fulfilled'");
-    expect(stateCheck.rows[0]?.definition).not.toContain("orphaned");
+    // Re-added in 0003: a reservation survives the deletion of its wish.
+    expect(stateCheck.rows[0]?.definition).toContain("'orphaned'");
+  });
+
+  it("keep a reservation when its wish is deleted", async () => {
+    const userId = await createUser(ctx.db);
+    const reserverId = await createUser(ctx.db);
+    const wishId = await createWish(ctx.db, {
+      ownerId: userId,
+      title: "Doomed",
+    });
+    await ctx.db.insert(reservations).values({
+      wishId,
+      listOwnerId: userId,
+      wishTitle: "Doomed",
+      reserverUserId: reserverId,
+    });
+
+    await ctx.db.delete(wishes).where(eq(wishes.id, wishId));
+
+    const [row] = await ctx.db
+      .select()
+      .from(reservations)
+      .where(eq(reservations.reserverUserId, reserverId));
+    expect(row.wishId).toBeNull();
+    expect(row.wishTitle).toBe("Doomed");
+    expect(row.locale).toBe("ru");
+  });
+
+  // Raw SQL: the column's TypeScript type already rules 'fr' out, and the point
+  // of the test is that the database rules it out too.
+  it("reject a locale the emails cannot render", async () => {
+    const userId = await createUser(ctx.db);
+    await expect(
+      ctx.client.exec(
+        `insert into "reservations" ("list_owner_id", "wish_title", "reserver_user_id", "locale")
+         values ('${userId}', 'Bad locale', '${userId}', 'fr')`,
+      ),
+    ).rejects.toThrow();
   });
 
   it("keep wishes free of any reservation column", async () => {

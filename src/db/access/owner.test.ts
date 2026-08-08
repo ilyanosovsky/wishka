@@ -75,6 +75,8 @@ describe("owner reads", () => {
 
     await db.insert(reservations).values({
       wishId,
+      listOwnerId: ownerId,
+      wishTitle: "Reserved snapshot",
       reserverUserId: friendId,
       state: "active",
     });

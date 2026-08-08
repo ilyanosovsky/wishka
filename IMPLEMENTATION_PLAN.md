@@ -15,7 +15,7 @@
 | 4 | My list: CRUD, filters, detail, archive | PR #5 | ✅ done |
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
-| 7 | Sharing & reservations: public lists, guests, surprise mode | 7a ✅ PR #7 · 7b next | 🔵 |
+| 7 | Sharing & reservations: public lists, guests, surprise mode | 7a ✅ PR #7 · 7b this branch | 🔵 |
 | 8 | Groups, partner, visibility, view-as | — | ⬜ |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |
 
@@ -107,11 +107,11 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ✅ Profile screen (§6.6): public-status line, sizes/tastes/no-gift editor (server-sanitized), settings (language, theme, currency, logout). Partner + view-as + delete-account deferred to Phase 8/later.
 
 **7b:**
-- ⬜ Reservation lifecycle: reserve (auth or guest), conflict handling (race → "уже забронировали"), unreserve with confirmation+undo; owner-side: zero traces (data-access layer from Phase 2 + e2e-style tests).
-- ⬜ Guest identity: device token + optional email; success screen, other-device state, "manage booking" email link (Resend); guest→account merge on signup.
-- ⬜ "Мои брони" tab: list with owner avatars, changed/deleted-by-owner states, recently-viewed lists, empty state. Emails: booking confirmation, owner-changed/deleted booked wish, gift-marked-given.
-- ⬜ Service screens (§6.10): invalid link, no access, expired invite, expired session.
-- **Wiki:** `Reservations-and-Surprise-Mode.md`, `Guest-Access.md`. **Model:** Opus (both halves — this is the crown jewel), Sonnet (emails, service screens).
+- ✅ Reservation lifecycle: `reserveWish`/`cancelReservation`/`dismissReservation`/`orphanActiveReservations` (`src/db/access/reservations.ts`), race conflict via the partial unique index (`already_reserved`), owner-reserve refused as `not_found`, `dismissReservation` releases orphaned rows by reservation id. `deleteWishAsOwner` (`src/db/access/wish-lifecycle.ts`) orphans + deletes in one transaction, byte-identical result whether or not a booking exists. Reserve/cancel/dismiss server actions in `src/app/reserve/actions.ts`. UI on `/w/[id]`: `ReservePanel` + status badge (`src/components/reserve/`) — confirm dialog («Никому не скажем 😉»), unreserve with undo toast, conflict sheet («Увы, это уже забронировали»), gone dialog («Владелец удалил это желание»), owner sees neither badge nor panel.
+- ✅ Guest identity: device cookie `wishka-guest` (`src/lib/guest.ts`) + `guest_identities` (name + optional email, bearer token, `src/db/access/guest-identities.ts`); `resolveViewer`/`resolveReserver` (`src/lib/viewer.ts`) unify session vs. guest cookie precedence; manage-booking link `/g/[token]` (`src/app/g/[token]/route.ts`); guest→account merge (`mergeGuestIntoUser`, cancels own-list bookings instead of transferring, idempotent) wired to `mergeGuestReservationsAction`. UI: guest bottom sheet («Как вас записать?») with success screen + "leave an email" prompt (`src/components/reserve/guest-form-sheet.tsx`), other-device hint, merge-prompt banner on `/u/[nickname]` and `/people` (`src/components/reservations/merge-banner.tsx`).
+- ✅ "Мои брони": `getMyReservations` (`src/db/access/my-reservations.ts`) derives active/changed(+fields)/deleted/given from the reservation snapshot vs. the live wish, no visibility re-check (by design — see wiki). `/people` is now Групп/Мои брони tabs (`src/components/reservations/`): reservation cards with owner avatar, state chips, unreserve/dismiss actions, recently-viewed lists (localStorage, `src/lib/recent-lists.ts`), empty state. Emails wired into owner actions (`src/app/wishes/actions.ts`) via `after()`: `sendGuestBookingConfirmation`, `sendReservedWishChanged`, `sendReservedWishDeleted`, `sendGiftGiven` (`src/lib/email/reservation-emails.ts` + `copy.ts` + Paper Ledger `template.ts`).
+- ✅ Service screens (§6.10) delivered so far: `/session-expired`, `/login?next=<path>` return-path support (`sanitizeNextPath`, incl. onboarding pass-through), invalid-link screen (`ServiceScreen` on `/w/[id]`, `/u/[nickname]`). ⬜ "No access" and "expired invite" deferred to Phase 8 — both need groups (invites / group-restricted lists).
+- **Wiki:** ✅ `Reservations-and-Surprise-Mode.md`, `Guest-Access.md`. **Model:** Opus (both halves — this is the crown jewel), Sonnet (emails, service screens).
 
 ## Phase 8 — Groups, partner, visibility (next PR)
 

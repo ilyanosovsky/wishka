@@ -17,6 +17,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type { Locale } from "@/i18n/config";
 import type {
   WishImageStatus,
   WishPriceType,
@@ -318,42 +319,75 @@ export const guestIdentities = pgTable("guest_identities", {
   createdAt,
 });
 
+/**
+ * A reservation outlives the wish it was made on. Deleting a wish nulls
+ * `wish_id` instead of removing the row, so "My bookings" can still tell its
+ * holder what disappeared — hence the `wish_*` snapshot columns, written once
+ * at reserve time and never updated: they are the reserver's record of what
+ * they agreed to buy, and comparing them to the live wish is what surfaces
+ * "владелец изменил желание".
+ *
+ * `list_owner_id` is likewise a snapshot, and the only way to attribute an
+ * orphaned reservation to a list. It never travels back to that owner.
+ */
 export const reservations = pgTable(
   "reservations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    wishId: uuid("wish_id")
+    // Nullable + ON DELETE SET NULL: the wish can go, the booking record stays.
+    wishId: uuid("wish_id").references(() => wishes.id, {
+      onDelete: "set null",
+    }),
+    listOwnerId: text("list_owner_id")
       .notNull()
-      .references(() => wishes.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
+    wishTitle: text("wish_title").notNull(),
+    wishUrl: text("wish_url"),
+    wishPriceType: text("wish_price_type")
+      .$type<WishPriceType>()
+      .notNull()
+      .default("none"),
+    wishPriceMin: numeric("wish_price_min", { precision: 12, scale: 2 }),
+    wishPriceMax: numeric("wish_price_max", { precision: 12, scale: 2 }),
+    wishCurrency: char("wish_currency", { length: 3 }),
     reserverUserId: text("reserver_user_id").references(() => user.id, {
       onDelete: "cascade",
     }),
     guestId: uuid("guest_id").references(() => guestIdentities.id, {
       onDelete: "cascade",
     }),
+    /** The reserver's UI language at reserve time — notification emails use it. */
+    locale: text("locale").$type<Locale>().notNull().default("ru"),
     state: text("state")
-      .$type<"active" | "cancelled" | "fulfilled">()
+      .$type<"active" | "cancelled" | "fulfilled" | "orphaned">()
       .notNull()
       .default("active"),
     createdAt,
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    orphanedAt: timestamp("orphaned_at", { withTimezone: true }),
   },
   (t) => [
     check(
       "reservations_state_check",
-      sql`${t.state} in ('active', 'cancelled', 'fulfilled')`,
+      sql`${t.state} in ('active', 'cancelled', 'fulfilled', 'orphaned')`,
     ),
+    check("reservations_locale_check", sql`${t.locale} in ('ru', 'en')`),
     // Exactly one reserver identity: a signed-in user or a guest, never both.
     check(
       "reservations_reserver_check",
       sql`(${t.reserverUserId} is not null)::int + (${t.guestId} is not null)::int = 1`,
     ),
     // At most one *active* reservation per wish — the race guard behind
-    // `reserveWish`'s "already_reserved" result.
+    // `reserveWish`'s "already_reserved" result. Orphaned rows carry a NULL
+    // `wish_id`, and NULLs are distinct in a unique index, so they never
+    // collide with each other or block a re-reservation.
     uniqueIndex("reservations_one_active_per_wish")
       .on(t.wishId)
       .where(sql`state = 'active'`),
     index("reservations_wish_id_idx").on(t.wishId),
+    // "My bookings" looks rows up by holder, whichever identity that is.
+    index("reservations_reserver_user_id_idx").on(t.reserverUserId),
+    index("reservations_guest_id_idx").on(t.guestId),
   ],
 );
 

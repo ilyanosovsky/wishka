@@ -13,9 +13,15 @@ type CodeError = "wrong" | "expired" | "tooMany" | null;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_SECONDS = 60;
 
-export function LoginForm() {
+export function LoginForm({ next = "/" }: { next?: string }) {
   const t = useTranslations("auth");
   const router = useRouter();
+
+  // Both sign-in flows land on /welcome first (new users still need
+  // onboarding); it forwards `next` on to the final destination once a
+  // profile exists.
+  const welcomeTarget =
+    next === "/" ? "/welcome" : `/welcome?next=${encodeURIComponent(next)}`;
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -69,7 +75,7 @@ export function LoginForm() {
     });
     setVerifying(false);
     if (!error) {
-      router.push("/welcome");
+      router.push(welcomeTarget);
       return;
     }
     const codeName = error.code ?? "";
@@ -93,7 +99,7 @@ export function LoginForm() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/welcome",
+        callbackURL: welcomeTarget,
       });
       if (error) setEmailError("oauthFailed");
     } catch {

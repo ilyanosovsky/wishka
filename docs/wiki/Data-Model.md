@@ -37,7 +37,7 @@ The list owner must never see reservations of their own wishes. Enforced in laye
 
 ## Reservations
 
-`reserveWish` returns `{ok:false, reason:'already_reserved'}` on the partial-unique-index conflict — race-safe at the DB level. `cancelReservation` only cancels the caller's own active reservation. Cancelled reservations free the slot.
+`reserveWish` returns `{ok:false, reason:'already_reserved'}` on the partial-unique-index conflict — race-safe at the DB level. `cancelReservation` only cancels the caller's own active reservation. Cancelled reservations free the slot. `reservations` also snapshots the wish (`wish_title`, `wish_url`, `wish_price_*`, `wish_currency`) and the reserver's `locale` at reserve time, and carries `list_owner_id` (denormalized from `wishes.owner_id`) so a booking survives the wish being edited or deleted. Full lifecycle, states, and the email matrix: [Reservations and Surprise Mode](Reservations-and-Surprise-Mode). Guest identity and the manage-booking link: [Guest Access](Guest-Access).
 
 ## Conventions
 

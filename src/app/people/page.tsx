@@ -1,13 +1,35 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { AppTabBar } from "@/components/app-tab-bar";
-import { getAuth } from "@/lib/auth";
 
-/** Placeholder until Phase 8 (groups) — keeps the tab bar honest. */
+import { AppTabBar } from "@/components/app-tab-bar";
+import { PeopleTabs } from "@/components/reservations/people-tabs";
+import { getDb } from "@/db";
+import { countActiveGuestReservations } from "@/db/access/guest-identities";
+import { getMyReservations } from "@/db/access/my-reservations";
+import { getAuth } from "@/lib/auth";
+import { loginHrefWithNext } from "@/lib/next-param";
+import { resolveGuestIdentity } from "@/lib/viewer";
+
+/**
+ * People (§6.7): groups (placeholder until Phase 8) and "My bookings".
+ *
+ * Bookings are read as the *session user* here — never as the guest cookie,
+ * even when both are present. That pairing is what the merge prompt is for:
+ * until it's accepted, the guest's bookings stay the guest's.
+ */
 export default async function PeoplePage() {
   const session = await getAuth().api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  if (!session) redirect(loginHrefWithNext("/people"));
+
+  const db = getDb();
+  const reservations = await getMyReservations(db, { userId: session.user.id });
+  // Own-list guest bookings are excluded from the count — see `/u/[nickname]`.
+  const guest = await resolveGuestIdentity(db);
+  const mergeCount = guest
+    ? await countActiveGuestReservations(db, guest.id, session.user.id)
+    : 0;
+
   const t = await getTranslations("people");
 
   return (
@@ -17,12 +39,9 @@ export default async function PeoplePage() {
           {t("title")}
         </h1>
       </header>
-      <section className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-        <p className="font-serif text-[17px] font-semibold">
-          {t("emptyTitle")}
-        </p>
-        <p className="max-w-72 text-mute">{t("emptyBody")}</p>
-      </section>
+
+      <PeopleTabs reservations={reservations} mergeCount={mergeCount} />
+
       <AppTabBar />
     </main>
   );
