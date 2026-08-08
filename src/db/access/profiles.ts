@@ -51,6 +51,24 @@ export async function getProfile(
   return rows[0] ?? null;
 }
 
+/**
+ * Resolves a public list URL (`/u/<nickname>`) back to its owner. The match is
+ * case-insensitive, backed by the `lower(nickname)` unique index — the same
+ * rule `isNicknameAvailable` enforces — so `/u/Ilya` and `/u/ilya` land on the
+ * same profile.
+ */
+export async function getProfileByNickname(
+  db: Db,
+  nickname: string,
+): Promise<Profile | null> {
+  const rows = await db
+    .select()
+    .from(profiles)
+    .where(sql`lower(${profiles.nickname}) = lower(${nickname})`)
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function upsertProfile(
   db: Db,
   input: ProfileInput,

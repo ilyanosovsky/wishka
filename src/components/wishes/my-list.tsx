@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, List, Search, User, Users } from "lucide-react";
+import { Archive, List, Search, Share2, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -24,6 +24,7 @@ import type { OwnerWish, WishPriority } from "@/db/access/types";
 import { CATEGORY_KEYS } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
 import { AddWishSheet } from "./add-wish-sheet";
+import { ShareSheet } from "./share-sheet";
 import { toBaseWish } from "./wish-card-props";
 
 /**
@@ -57,6 +58,8 @@ const PRIORITY_RANK: Record<WishPriority, number> = {
 const PLACEHOLDER_STRIPES =
   "repeating-linear-gradient(45deg, var(--zebra) 0 6px, color-mix(in srgb, var(--rule) 40%, var(--zebra)) 6px 12px)";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
+
 function priceValue(wish: OwnerWish): number | null {
   if (wish.priceType === "none" || wish.priceMin === null) return null;
   const value = Number(wish.priceMin);
@@ -81,6 +84,7 @@ export function MyList({ wishes, nickname }: MyListProps) {
   const [query, setQuery] = useState("");
   const [offline, setOffline] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Read after mount only: `navigator.onLine` is not knowable while rendering
   // on the server, and guessing it would mismatch hydration.
@@ -171,8 +175,14 @@ export function MyList({ wishes, nickname }: MyListProps) {
           >
             <Archive aria-hidden size={16} strokeWidth={2.4} />
           </Link>
-          {/* Phase 7: the share button (copies /u/<nickname>) lands together
-              with public lists — until then the link it would copy is a 404. */}
+          <button
+            type="button"
+            aria-label={t("list.share")}
+            onClick={() => setShareOpen(true)}
+            className="flex h-11 w-11 items-center justify-center border border-rule-2 bg-paper text-mute"
+          >
+            <Share2 aria-hidden size={16} strokeWidth={2.4} />
+          </button>
         </div>
       </header>
 
@@ -293,6 +303,13 @@ export function MyList({ wishes, nickname }: MyListProps) {
       <AddWishSheet
         open={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
+      />
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        url={`${APP_URL}/u/${nickname}`}
+        kind="list"
       />
 
       <TabBar

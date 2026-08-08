@@ -1,18 +1,18 @@
 import { headers } from "next/headers";
-import { List, User, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { AppTabBar } from "@/components/app-tab-bar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ParamsEditor } from "@/components/profile/params-editor";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar } from "@/components/ui/avatar";
-import { TabBar } from "@/components/ui/tab-bar";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
 import { getAuth } from "@/lib/auth";
 
-/** Minimal profile: identity + settings. Public parameters, partner and
- *  view-as arrive with Phases 7–8. */
+/** Identity + public parameters (§6.6) + settings. Partner block and
+ *  "view as others" preview arrive with Phase 8. */
 export default async function ProfilePage() {
   const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
@@ -39,6 +39,16 @@ export default async function ProfilePage() {
         </div>
       </header>
 
+      <p className="text-[12px] text-mute">{t("params.publicNote")}</p>
+
+      <ParamsEditor
+        initial={{
+          sizes: profile.sizes,
+          tastes: profile.tastes,
+          noGift: profile.noGift,
+        }}
+      />
+
       <section className="flex flex-col gap-4 border border-rule-2 bg-paper p-4 shadow-[var(--shadow-line)]">
         <h2 className="font-mono text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
           {t("profile.settings")}
@@ -58,23 +68,7 @@ export default async function ProfilePage() {
         <SignOutButton />
       </section>
 
-      <TabBar
-        items={[
-          { key: "list", label: t("tabs.list"), icon: List, href: "/" },
-          {
-            key: "people",
-            label: t("tabs.people"),
-            icon: Users,
-            href: "/people",
-          },
-          {
-            key: "profile",
-            label: t("tabs.profile"),
-            icon: User,
-            href: "/profile",
-          },
-        ]}
-      />
+      <AppTabBar />
     </main>
   );
 }

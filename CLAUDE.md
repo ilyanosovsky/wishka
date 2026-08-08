@@ -31,6 +31,8 @@ Key documents (read before non-trivial work):
   3. **Update `docs/wiki/`** when it changes user-facing behavior, architecture, data model, or setup. The wiki auto-syncs to GitHub Wiki on merge to `main` (`.github/workflows/wiki-sync.yml`).
   4. Contain no secrets. Env values live in `.env.local` (gitignored) and Vercel project settings; `.env.example` documents the keys.
 
+- **CodeRabbit reviews every PR — the turn is not done until it is fully resolved.** After opening (or pushing to) a PR, wait for CodeRabbit's review to complete, then work through **every** comment: fix the real correctness/robustness/security items in code; for anything deliberately declined (pure style nitpicks), resolve the thread with a one-line reason. `main` requires conversation resolution, so **zero unresolved threads** is a hard gate. Before pausing, confirm the PR is actually mergeable (`gh pr view <n> --json mergeable,mergeStateStatus` → `MERGEABLE` / `CLEAN`) and only then hand back to Ilya to merge. Never stop with open CodeRabbit threads.
+
 ## Testing & quality
 
 - **Vitest** + @testing-library/react. Tests colocated: `*.test.ts(x)`.

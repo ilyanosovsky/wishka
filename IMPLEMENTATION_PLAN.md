@@ -13,9 +13,9 @@
 | 2 | Database (Railway PG + Drizzle), Better Auth, onboarding | PR #3 | ✅ done |
 | 3 | Design system: components + wish card matrix | PR #4 | ✅ done |
 | 4 | My list: CRUD, filters, detail, archive | PR #5 | ✅ done |
-| 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | 🔵 in review |
+| 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
-| 7 | Sharing & reservations: public lists, guests, surprise mode | — (7a/7b) | ⬜ |
+| 7 | Sharing & reservations: public lists, guests, surprise mode | 7a ✅ PR #7 · 7b next | 🔵 |
 | 8 | Groups, partner, visibility, view-as | — | ⬜ |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |
 
@@ -103,8 +103,8 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 **Goal:** the reason Wishka exists — sharing + surprise-safe reservations.
 
 **7a:**
-- ⬜ Public profile+list `/u/[nickname]` (one screen: profile header, "Что важно знать", grid with badges, "Только свободные" filter, empty states); guest banner (RU/EN switch, "Создать свой"); single-wish share page; share sheet (copy link, native share fallback, QR optional, restricted-visibility warning); no tab bar/FAB for guests.
-- ⬜ Profile screen (§6.6): public-status line, sizes/tastes/no-gift sheets, settings (language, theme, currency, logout, delete account).
+- ✅ Public profile+list `/u/[nickname]` (header, "Что важно знать", grid with badges, "Только свободные" filter, empty states); guest banner (RU/EN switch, "Создать свой"); single-wish share `/w/[id]`; share sheet (copy link, native share fallback, restricted-visibility warning); no tab bar/FAB for guests. Fixed a Phase-4 RSC bug (icons across the server/client boundary) via AppTabBar.
+- ✅ Profile screen (§6.6): public-status line, sizes/tastes/no-gift editor (server-sanitized), settings (language, theme, currency, logout). Partner + view-as + delete-account deferred to Phase 8/later.
 
 **7b:**
 - ⬜ Reservation lifecycle: reserve (auth or guest), conflict handling (race → "уже забронировали"), unreserve with confirmation+undo; owner-side: zero traces (data-access layer from Phase 2 + e2e-style tests).
