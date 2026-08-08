@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
+import { setPendingGroupToast } from "@/components/groups/pending-toast";
 import { AlertBanner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { acceptInviteAction } from "./actions";
@@ -28,33 +29,50 @@ export function AcceptInvitePanel({
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  /**
+   * The spinner is only stopped on the paths that stay on this screen; the
+   * ones that navigate keep it up until the route changes, and their guard is
+   * `pending` staying true. A thrown action — a dropped connection, or the
+   * foreign-key violation from a group deleted between render and tap — is the
+   * one case the button would otherwise spin on forever.
+   */
+  function fail() {
+    setFailed(true);
+    setPending(false);
+  }
+
   async function accept() {
     if (pending) return;
     setFailed(false);
     setPending(true);
-    const result = await acceptInviteAction(token);
-    if (result.ok) {
-      router.push(`/groups/${result.groupId}`);
-      return;
+    try {
+      const result = await acceptInviteAction(token);
+      if (result.ok) {
+        // The confirmation belongs on the group screen that replaces this one.
+        setPendingGroupToast({ kind: "joined", groupId: result.groupId });
+        router.push(`/groups/${result.groupId}`);
+        return;
+      }
+      // `expired`/`revoked`/`not_found` here means the invite died between page
+      // load and the tap (a double-tap race, or an admin revoking meanwhile) —
+      // there's no group to land on, so send them to the same dead end the
+      // page itself would have shown for that state.
+      if (result.state === "unauthenticated") {
+        router.push(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
+        return;
+      }
+      if (
+        result.state === "not_found" ||
+        result.state === "expired" ||
+        result.state === "revoked"
+      ) {
+        router.push("/");
+        return;
+      }
+      fail();
+    } catch {
+      fail();
     }
-    // `expired`/`revoked`/`not_found` here means the invite died between page
-    // load and the tap (a double-tap race, or an admin revoking meanwhile) —
-    // there's no group to land on, so send them to the same dead end the
-    // page itself would have shown for that state.
-    if (result.state === "unauthenticated") {
-      router.push(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
-      return;
-    }
-    if (
-      result.state === "not_found" ||
-      result.state === "expired" ||
-      result.state === "revoked"
-    ) {
-      router.push("/");
-      return;
-    }
-    setFailed(true);
-    setPending(false);
   }
 
   return (

@@ -8,13 +8,14 @@ import {
   user,
   wishVisibility,
 } from "../schema";
+import { revokeLiveInvites } from "./group-invites";
 import { isUuid } from "./ids";
 import { visibleTo } from "./viewer";
 
 /**
  * Groups — the audience a restricted wish can be addressed to.
  *
- * Two rules this module lives by.
+ * Three rules this module lives by.
  *
  * A NON-MEMBER CAN NEVER DISTINGUISH "the group does not exist" from "you are
  * not in it". Every read and every mutation collapses both cases into the same
@@ -25,9 +26,20 @@ import { visibleTo } from "./viewer";
  * being removed from it, or having it deleted silently revokes access to every
  * wish restricted to that group. Nothing here warns anybody after the fact —
  * that is why the confirmation dialogs quote the consequence beforehand.
+ *
+ * REVOKING ACCESS MUST OUTLIVE THE ROW. A removed member still holds whatever
+ * invite link they were shown while inside, and one tap on it would hand the
+ * whole group back. Removal therefore kills the group's live links as well —
+ * see `removeMember`.
  */
 
 export type GroupRole = "admin" | "member";
+
+/** Just enough of a member to draw them on a group card. */
+export type GroupMemberAvatar = {
+  name: string;
+  image: string | null;
+};
 
 export type GroupSummary = {
   id: string;
@@ -36,6 +48,8 @@ export type GroupSummary = {
   color: string | null;
   role: GroupRole;
   memberCount: number;
+  /** At most `MAX_CARD_AVATARS`, admins first — `memberCount` stays the total. */
+  memberAvatars: GroupMemberAvatar[];
   createdAt: Date;
 };
 
@@ -91,6 +105,8 @@ export type GroupColor = (typeof GROUP_COLORS)[number];
 const MAX_NAME_LENGTH = 60;
 /** Counted in code points: a family emoji is one glyph but many UTF-16 units. */
 const MAX_EMOJI_LENGTH = 8;
+/** How many faces a group card shows before it falls back to the count (§6.7). */
+const MAX_CARD_AVATARS = 3;
 
 type Normalized<T> = { ok: true; value: T } | { ok: false };
 
@@ -124,20 +140,33 @@ function normalizeColor(
  * The summary rows for one user's groups. `groupId` narrows it to a single
  * group, which is how the mutations echo their result back without a second
  * shape to keep in sync.
+ *
+ * Count and faces come from one grouped pass over the membership: a card per
+ * group times a query per card would be the same list read N times over.
  */
 async function selectSummaries(
   db: Db,
   userId: string,
   groupId?: string,
 ): Promise<GroupSummary[]> {
-  const memberCounts = db
+  const memberDigest = db
     .select({
       groupId: groupMembers.groupId,
       memberCount: count().as("member_count"),
+      // Sliced in SQL, not in JS, so a large group ships three names, not all
+      // of them. Same order as the member grid: admins first, then tenure.
+      avatars: sql<GroupMemberAvatar[]>`to_jsonb((array_agg(
+        jsonb_build_object('name', ${user.name}, 'image', ${user.image})
+        order by
+          case when ${groupMembers.role} = 'admin' then 0 else 1 end,
+          ${groupMembers.joinedAt},
+          ${groupMembers.userId}
+      ))[1:${sql.raw(String(MAX_CARD_AVATARS))}])`.as("member_avatars"),
     })
     .from(groupMembers)
+    .innerJoin(user, eq(user.id, groupMembers.userId))
     .groupBy(groupMembers.groupId)
-    .as("member_counts");
+    .as("member_digest");
 
   return db
     .select({
@@ -146,12 +175,13 @@ async function selectSummaries(
       emoji: groups.emoji,
       color: groups.color,
       role: groupMembers.role,
-      memberCount: memberCounts.memberCount,
+      memberCount: memberDigest.memberCount,
+      memberAvatars: memberDigest.avatars,
       createdAt: groups.createdAt,
     })
     .from(groupMembers)
     .innerJoin(groups, eq(groups.id, groupMembers.groupId))
-    .innerJoin(memberCounts, eq(memberCounts.groupId, groups.id))
+    .innerJoin(memberDigest, eq(memberDigest.groupId, groups.id))
     .where(
       groupId === undefined
         ? eq(groupMembers.userId, userId)
@@ -173,6 +203,88 @@ async function selectRole(
     )
     .limit(1);
   return rows[0]?.role ?? null;
+}
+
+/**
+ * Locks the group row for the rest of the transaction and hands back the one
+ * column its membership mutations have to keep honest.
+ *
+ * Every transaction that adds or drops a member takes this lock FIRST — one
+ * consistent lock order, the same discipline `wish-lifecycle.ts` applies to
+ * wishes. Without it two members leaving at once each read the other as
+ * remaining, both skip the last-member cleanup, and the group survives with
+ * zero members and permanently dangling `wish_visibility` rows. PGlite
+ * serialises transactions, so the race cannot be reproduced in tests; the lock
+ * is structural, not a fix for anything the suite can show.
+ */
+export async function lockGroupRow(
+  tx: Db,
+  groupId: string,
+): Promise<{ createdBy: string } | null> {
+  const [row] = await tx
+    .select({ createdBy: groups.createdBy })
+    .from(groups)
+    .where(eq(groups.id, groupId))
+    .for("update")
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Hands over everything a departing member was holding, for both ways out
+ * (walking and being removed).
+ *
+ * The group must keep an admin, and `groups.created_by` must stop naming a
+ * non-member: that column cascades on user delete, so a stale `created_by`
+ * would let a long-gone member's account deletion take the whole group — and
+ * the wishes restricted to it — down with them.
+ *
+ * `remaining` is every other member, ordered by tenure and non-empty.
+ */
+async function handOver(
+  tx: Db,
+  groupId: string,
+  departingId: string,
+  createdBy: string,
+  remaining: { userId: string; role: GroupRole }[],
+): Promise<void> {
+  const heir =
+    remaining.find((member) => member.role === "admin") ?? remaining[0];
+  if (heir.role !== "admin") {
+    await tx
+      .update(groupMembers)
+      .set({ role: "admin" })
+      .where(
+        and(
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.userId, heir.userId),
+        ),
+      );
+  }
+  if (createdBy === departingId) {
+    await tx
+      .update(groups)
+      .set({ createdBy: heir.userId })
+      .where(eq(groups.id, groupId));
+  }
+}
+
+/** Every other member of a group, longest-tenured first. */
+async function selectRemaining(
+  tx: Db,
+  groupId: string,
+  departingId: string,
+): Promise<{ userId: string; role: GroupRole }[]> {
+  return tx
+    .select({ userId: groupMembers.userId, role: groupMembers.role })
+    .from(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, groupId),
+        ne(groupMembers.userId, departingId),
+      ),
+    )
+    .orderBy(asc(groupMembers.joinedAt), asc(groupMembers.userId));
 }
 
 /** The creator is the first admin — a group is never left without one. */
@@ -203,6 +315,12 @@ export async function createGroup(
       .insert(groupMembers)
       .values({ groupId: group.id, userId, role: "admin" });
 
+    const [creator] = await tx
+      .select({ name: user.name, image: user.image })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
     return {
       ok: true,
       group: {
@@ -212,6 +330,7 @@ export async function createGroup(
         color: color.value,
         role: "admin",
         memberCount: 1,
+        memberAvatars: creator ? [creator] : [],
         createdAt: group.createdAt,
       },
     };
@@ -337,14 +456,7 @@ export async function updateGroup(
   return group ? { ok: true, group } : { ok: false, error: "not_found" };
 }
 
-/**
- * Leaving is also the last member's way of deleting the group.
- *
- * The tricky case is the last *admin* leaving: the group must keep an admin,
- * and `groups.created_by` must stop pointing at the leaver — that column
- * cascades on user delete, so a stale `created_by` would take the whole group
- * down with the leaver's account long after they walked away.
- */
+/** Leaving is also the last member's way of deleting the group. */
 export async function leaveGroup(
   db: Db,
   groupId: string,
@@ -355,17 +467,13 @@ export async function leaveGroup(
   if (!isUuid(groupId)) return { ok: false, reason: "not_found" };
 
   return db.transaction(async (tx) => {
+    const group = await lockGroupRow(tx, groupId);
+    if (group === null) return { ok: false, reason: "not_found" };
+
     const role = await selectRole(tx, groupId, userId);
     if (role === null) return { ok: false, reason: "not_found" };
 
-    const remaining = await tx
-      .select({ userId: groupMembers.userId, role: groupMembers.role })
-      .from(groupMembers)
-      .where(
-        and(eq(groupMembers.groupId, groupId), ne(groupMembers.userId, userId)),
-      )
-      .orderBy(asc(groupMembers.joinedAt), asc(groupMembers.userId));
-
+    const remaining = await selectRemaining(tx, groupId, userId);
     if (remaining.length === 0) {
       await deleteGroupRows(tx, groupId);
       return { ok: true, groupDeleted: true };
@@ -376,20 +484,7 @@ export async function leaveGroup(
       .where(
         and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)),
       );
-
-    if (!remaining.some((member) => member.role === "admin")) {
-      const heir = remaining[0].userId;
-      await tx
-        .update(groupMembers)
-        .set({ role: "admin" })
-        .where(
-          and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, heir)),
-        );
-      await tx
-        .update(groups)
-        .set({ createdBy: heir })
-        .where(eq(groups.id, groupId));
-    }
+    await handOver(tx, groupId, userId, group.createdBy, remaining);
 
     return { ok: true, groupDeleted: false };
   });
@@ -398,6 +493,13 @@ export async function leaveGroup(
 /**
  * Admin-only, and never a way out for the admin themselves: removing yourself
  * would skip `leaveGroup`'s succession, leaving the group admin-less.
+ *
+ * Dropping the membership row is only half of it. The group has one live invite
+ * link, any member may read it from the menu, and the person being removed has
+ * had every chance to — so the row alone buys nothing: one tap on the link they
+ * kept and they are back in, holding every wish restricted to this group again.
+ * A removal is a security event, so it kills the group's live links for
+ * everybody; whoever is left mints a fresh one by sharing again.
  */
 export async function removeMember(
   db: Db,
@@ -407,18 +509,33 @@ export async function removeMember(
 ): Promise<{ ok: boolean }> {
   if (!isUuid(groupId) || adminId === memberId) return { ok: false };
 
-  if ((await selectRole(db, groupId, adminId)) !== "admin") {
-    return { ok: false };
-  }
+  return db.transaction(async (tx) => {
+    const group = await lockGroupRow(tx, groupId);
+    if (group === null) return { ok: false };
 
-  const removed = await db
-    .delete(groupMembers)
-    .where(
-      and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, memberId)),
-    )
-    .returning({ userId: groupMembers.userId });
+    if ((await selectRole(tx, groupId, adminId)) !== "admin") {
+      return { ok: false };
+    }
 
-  return { ok: removed.length > 0 };
+    const remaining = await selectRemaining(tx, groupId, memberId);
+    const removed = await tx
+      .delete(groupMembers)
+      .where(
+        and(
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.userId, memberId),
+        ),
+      )
+      .returning({ userId: groupMembers.userId });
+    if (removed.length === 0) return { ok: false };
+
+    // The remover is an admin and is never the removed member, so the group
+    // keeps an admin here; `handOver` runs for `created_by`'s sake.
+    await handOver(tx, groupId, memberId, group.createdBy, remaining);
+    await revokeLiveInvites(tx, groupId);
+
+    return { ok: true };
+  });
 }
 
 /**
@@ -448,6 +565,7 @@ export async function deleteGroup(
   if (!isUuid(groupId)) return { ok: false };
 
   return db.transaction(async (tx) => {
+    if ((await lockGroupRow(tx, groupId)) === null) return { ok: false };
     if ((await selectRole(tx, groupId, adminId)) !== "admin") {
       return { ok: false };
     }

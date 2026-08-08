@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import messages from "../../../messages/ru.json";
 import type { GroupSummary } from "@/db/access/groups";
@@ -28,6 +34,10 @@ function group(overrides: Partial<GroupSummary> = {}): GroupSummary {
     color: "accent",
     role: "admin",
     memberCount: 2,
+    memberAvatars: [
+      { name: "Илья", image: null },
+      { name: "Маша", image: null },
+    ],
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,
   };
@@ -97,8 +107,36 @@ describe("GroupsTab", () => {
     expect(screen.getByText("5 участников")).toBeInTheDocument();
   });
 
+  it("puts the members' faces on the card", () => {
+    renderTab([
+      group({
+        memberAvatars: [
+          { name: "Илья", image: null },
+          { name: "Маша", image: "https://cdn.test/masha.jpg" },
+        ],
+      }),
+    ]);
+
+    const card = screen.getByRole("link", { name: /Семья/ });
+    expect(within(card).getByRole("img", { name: "Илья" })).toBeInTheDocument();
+    expect(within(card).getByAltText("Маша")).toHaveAttribute(
+      "src",
+      "https://cdn.test/masha.jpg",
+    );
+  });
+
+  it("tells an admin so, and a plain member nothing", () => {
+    renderTab([group()]);
+    expect(screen.getByText(/Вы админ/)).toBeInTheDocument();
+
+    cleanup();
+    renderTab([group({ role: "member" })]);
+    expect(screen.queryByText(/Вы админ/)).toBeNull();
+    expect(screen.getByText("2 участника")).toBeInTheDocument();
+  });
+
   it("picks up the confirmation left behind by leaving a group", async () => {
-    setPendingGroupToast("left");
+    setPendingGroupToast({ kind: "left" });
 
     renderTab([]);
 
@@ -108,10 +146,22 @@ describe("GroupsTab", () => {
   });
 
   it("shows the delete confirmation the same way", async () => {
-    setPendingGroupToast("deleted");
+    setPendingGroupToast({ kind: "deleted" });
 
     renderTab([group()]);
 
     expect(await screen.findByText("Группа удалена")).toBeInTheDocument();
+  });
+
+  it("stays quiet about a handoff meant for a group screen", () => {
+    setPendingGroupToast({
+      kind: "created",
+      groupId: "11111111-1111-4111-8111-111111111111",
+    });
+
+    renderTab([group()]);
+
+    expect(screen.queryByText("Вы вышли из группы")).toBeNull();
+    expect(screen.queryByText("Группа удалена")).toBeNull();
   });
 });

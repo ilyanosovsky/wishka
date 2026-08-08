@@ -254,12 +254,19 @@ describe("group invites", () => {
         createdBy: adminId,
         revokedAt: earlier,
       });
+      const expired = await createGroupInvite(db, {
+        groupId: group.id,
+        createdBy: adminId,
+        expiresAt: new Date(Date.now() - DAY_MS),
+      });
       const live = await tokenFor(group.id, adminId);
 
       expect(await revokeGroupInvites(db, group.id, adminId)).toEqual({
         ok: true,
       });
       expect(await lookupInvite(db, live)).toEqual({ state: "revoked" });
+      // A link that had already run out is not retold as "withdrawn".
+      expect(await lookupInvite(db, expired)).toEqual({ state: "expired" });
 
       const [untouched] = await db
         .select({ revokedAt: groupInvites.revokedAt })

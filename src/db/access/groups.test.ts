@@ -11,7 +11,11 @@ import {
   createWish,
   type TestDb,
 } from "../test-support";
-import { acceptInvite, getOrCreateActiveInvite } from "./group-invites";
+import {
+  acceptInvite,
+  getOrCreateActiveInvite,
+  lookupInvite,
+} from "./group-invites";
 import {
   createGroup,
   deleteGroup,
@@ -60,9 +64,20 @@ describe("groups", () => {
     return row?.role ?? null;
   };
 
+  const createdByOf = async (groupId: string) => {
+    const [row] = await db
+      .select({ createdBy: groups.createdBy })
+      .from(groups)
+      .where(eq(groups.id, groupId));
+    return row?.createdBy ?? null;
+  };
+
   describe("createGroup", () => {
     it("makes the creator an admin and trims the name", async () => {
-      const userId = await createUser(db);
+      const userId = await createUser(db, {
+        name: "Ilya",
+        image: "https://cdn.test/ilya.png",
+      });
       const result = await createGroup(db, userId, {
         name: "  Семья  ",
         emoji: "🎁",
@@ -77,6 +92,7 @@ describe("groups", () => {
           color: "accent",
           role: "admin",
           memberCount: 1,
+          memberAvatars: [{ name: "Ilya", image: "https://cdn.test/ilya.png" }],
         },
       });
       if (!result.ok) return;
@@ -148,6 +164,38 @@ describe("groups", () => {
       ]);
       expect(await getMyGroups(db, await createUser(db))).toEqual([]);
       expect(older.role).toBe("admin");
+    });
+
+    it("carries at most three faces, admins first, next to the true count", async () => {
+      const adminId = await createUser(db, {
+        name: "Admin",
+        image: "https://cdn.test/admin.png",
+      });
+      const earlyId = await createUser(db, { name: "Early" });
+      const lateId = await createUser(db, { name: "Late" });
+      const latestId = await createUser(db, { name: "Latest" });
+      const group = await newGroup(adminId, "Crowded");
+      for (const [userId, joinedAt] of [
+        [lateId, "2026-03-01T00:00:00Z"],
+        [earlyId, "2026-01-01T00:00:00Z"],
+        [latestId, "2026-06-01T00:00:00Z"],
+      ] as const) {
+        await addGroupMember(db, {
+          groupId: group.id,
+          userId,
+          joinedAt: new Date(joinedAt),
+        });
+      }
+
+      const [summary] = await getMyGroups(db, adminId);
+      expect(summary.id).toBe(group.id);
+      // The count is the whole group; the faces are only what fits on the card.
+      expect(summary.memberCount).toBe(4);
+      expect(summary.memberAvatars).toEqual([
+        { name: "Admin", image: "https://cdn.test/admin.png" },
+        { name: "Early", image: null },
+        { name: "Late", image: null },
+      ]);
     });
   });
 
@@ -344,11 +392,7 @@ describe("groups", () => {
       expect(await roleOf(group.id, lateId)).toBe("member");
 
       // A stale created_by would take the group down with the leaver's account.
-      const [row] = await db
-        .select({ createdBy: groups.createdBy })
-        .from(groups)
-        .where(eq(groups.id, group.id));
-      expect(row.createdBy).toBe(earlyId);
+      expect(await createdByOf(group.id)).toBe(earlyId);
     });
 
     it("changes no roles when a plain member leaves", async () => {
@@ -365,11 +409,7 @@ describe("groups", () => {
       });
       expect(await roleOf(group.id, adminId)).toBe("admin");
       expect(await roleOf(group.id, otherId)).toBe("member");
-      const [row] = await db
-        .select({ createdBy: groups.createdBy })
-        .from(groups)
-        .where(eq(groups.id, group.id));
-      expect(row.createdBy).toBe(adminId);
+      expect(await createdByOf(group.id)).toBe(adminId);
     });
 
     it("keeps a second admin in place instead of promoting anyone", async () => {
@@ -386,6 +426,28 @@ describe("groups", () => {
 
       await leaveGroup(db, group.id, adminId);
       expect(await roleOf(group.id, coAdminId)).toBe("admin");
+      expect(await roleOf(group.id, memberId)).toBe("member");
+    });
+
+    it("hands created_by to the co-admin when the creator walks out", async () => {
+      const creatorId = await createUser(db);
+      const coAdminId = await createUser(db);
+      const memberId = await createUser(db);
+      const group = await newGroup(creatorId);
+      await addGroupMember(db, {
+        groupId: group.id,
+        userId: coAdminId,
+        role: "admin",
+      });
+      await addGroupMember(db, { groupId: group.id, userId: memberId });
+
+      expect(await leaveGroup(db, group.id, creatorId)).toEqual({
+        ok: true,
+        groupDeleted: false,
+      });
+      // Succession is not the only reason to move created_by: deleting the
+      // creator's account would cascade this group away years later.
+      expect(await createdByOf(group.id)).toBe(coAdminId);
       expect(await roleOf(group.id, memberId)).toBe("member");
     });
 
@@ -412,6 +474,26 @@ describe("groups", () => {
         ok: true,
       });
       expect(await isGroupMember(db, group.id, memberId)).toBe(false);
+      expect(await createdByOf(group.id)).toBe(adminId);
+    });
+
+    it("hands created_by over when the creator is the one removed", async () => {
+      const creatorId = await createUser(db);
+      const coAdminId = await createUser(db);
+      const memberId = await createUser(db);
+      const group = await newGroup(creatorId);
+      await addGroupMember(db, {
+        groupId: group.id,
+        userId: coAdminId,
+        role: "admin",
+      });
+      await addGroupMember(db, { groupId: group.id, userId: memberId });
+
+      expect(await removeMember(db, group.id, coAdminId, creatorId)).toEqual({
+        ok: true,
+      });
+      expect(await createdByOf(group.id)).toBe(coAdminId);
+      expect(await roleOf(group.id, memberId)).toBe("member");
     });
 
     it("refuses a plain member, self-removal and a non-member target", async () => {
@@ -422,6 +504,8 @@ describe("groups", () => {
       const group = await newGroup(adminId);
       await addGroupMember(db, { groupId: group.id, userId: memberId });
       await addGroupMember(db, { groupId: group.id, userId: otherId });
+      const invite = await getOrCreateActiveInvite(db, group.id, adminId);
+      const token = invite?.token ?? "";
 
       expect(await removeMember(db, group.id, memberId, otherId)).toEqual({
         ok: false,
@@ -437,6 +521,8 @@ describe("groups", () => {
       });
       expect(await roleOf(group.id, adminId)).toBe("admin");
       expect(await isGroupMember(db, group.id, otherId)).toBe(true);
+      // A refused removal is not a security event: the link stays live.
+      expect(await lookupInvite(db, token)).toMatchObject({ state: "valid" });
     });
   });
 
@@ -576,6 +662,56 @@ describe("groups", () => {
       expect(
         await getVisibleWishes(db, ownerId, { userId: memberId }),
       ).toHaveLength(0);
+    });
+
+    it("does not leave the removed member the link back in", async () => {
+      const ownerId = await createUser(db);
+      const memberId = await createUser(db);
+      const group = await newGroup(ownerId, "Evictions");
+
+      const invite = await getOrCreateActiveInvite(db, group.id, ownerId);
+      const token = invite?.token ?? "";
+      expect(await acceptInvite(db, token, memberId)).toMatchObject({
+        ok: true,
+        alreadyMember: false,
+      });
+
+      const wishId = await createWish(db, {
+        ownerId,
+        title: "Group only",
+        visibility: "restricted",
+      });
+      await db
+        .insert(wishVisibility)
+        .values({ wishId, subjectType: "group", subjectId: group.id });
+
+      const visibleTitles = async () =>
+        (await getVisibleWishes(db, ownerId, { userId: memberId })).map(
+          (wish) => wish.title,
+        );
+      expect(await visibleTitles()).toEqual(["Group only"]);
+
+      // Any member may read the link from the menu — assume they kept it.
+      expect(await getOrCreateActiveInvite(db, group.id, memberId)).toEqual({
+        token,
+      });
+
+      expect(await removeMember(db, group.id, ownerId, memberId)).toEqual({
+        ok: true,
+      });
+      expect(await visibleTitles()).toEqual([]);
+
+      // The link they kept is dead, so removal is not one tap from undone.
+      expect(await acceptInvite(db, token, memberId)).toEqual({
+        ok: false,
+        state: "revoked",
+      });
+      expect(await isGroupMember(db, group.id, memberId)).toBe(false);
+      expect(await visibleTitles()).toEqual([]);
+
+      // The group is not left link-less: the owner shares a fresh one.
+      const reshared = await getOrCreateActiveInvite(db, group.id, ownerId);
+      expect(reshared?.token).not.toBe(token);
     });
   });
 });

@@ -198,9 +198,7 @@
   "people": {
     "title": "People",
     "groupsTab": "Groups",
-    "reservationsTab": "My bookings",
-    "emptyTitle": "Groups — your favorite people's lists in one place",
-    "emptyBody": "Coming in one of the next versions — already in the works."
+    "reservationsTab": "My bookings"
   },
   "groups": {
     "emptyTitle": "Groups — your favorite people's lists in one place",
@@ -223,6 +221,13 @@
     "adminBadge": "Admin",
     "menuLabel": "Group menu",
     "inviteLink": "Invite link",
+    "invite": "Invite",
+    "inviteHint": "Invite the people close to you — their lists will show up here.",
+    "revokeLink": "Revoke the link",
+    "revokeTitle": "Revoke the invite link?",
+    "revokeBody": "The old link stops working. You can create a new one any time.",
+    "revokedToast": "Link revoked",
+    "youAdmin": "You're an admin",
     "rename": "Rename",
     "renameTitle": "Rename the group",
     "appearance": "Emoji and color",

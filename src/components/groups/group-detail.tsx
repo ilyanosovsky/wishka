@@ -4,13 +4,14 @@ import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   createInviteLinkAction,
   deleteGroupAction,
   leaveGroupAction,
   removeMemberAction,
+  revokeInviteLinkAction,
   updateGroupAction,
 } from "@/app/groups/actions";
 import { Avatar } from "@/components/ui/avatar";
@@ -27,7 +28,7 @@ import type {
 } from "@/db/access/groups";
 import { GroupAppearanceFields } from "./group-appearance-fields";
 import { GroupMark } from "./group-mark";
-import { setPendingGroupToast } from "./pending-toast";
+import { setPendingGroupToast, takePendingGroupToast } from "./pending-toast";
 
 /**
  * Group detail (§6.7): who is in it, how to invite, and how to get out.
@@ -45,7 +46,7 @@ export type GroupDetailProps = {
 };
 
 /** Which confirmation toast is up — only one can be, they are all transient. */
-type Notice = "saved" | "removed" | "failed";
+type Notice = "saved" | "removed" | "revoked" | "joined" | "failed";
 
 export function GroupDetail({ group, viewerId }: GroupDetailProps) {
   const t = useTranslations();
@@ -57,6 +58,7 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [revokeOpen, setRevokeOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<GroupMember | null>(null);
 
   const [name, setName] = useState(group.name);
@@ -74,21 +76,57 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
     setNotice(next);
   }
 
-  async function openInviteLink() {
+  function noticeMessage(current: Notice): string {
+    switch (current) {
+      case "saved":
+        return t("groups.saved");
+      case "removed":
+        return t("groups.removedToast");
+      case "revoked":
+        return t("groups.revokedToast");
+      case "joined":
+        return t("invite.joinedToast", { name: group.name });
+      case "failed":
+        return t("common.actionFailed");
+    }
+  }
+
+  /**
+   * Mints (or reuses) the group's live invite link and shares it. Kept stable
+   * so the arrival-from-creation effect below can call the same path the
+   * «Пригласить» button does; it therefore sets state directly instead of
+   * going through `settle`.
+   */
+  const revealInviteLink = useCallback(async () => {
     setBusy(true);
     try {
       const result = await createInviteLinkAction(group.id);
+      setBusy(false);
       if (!result.ok) {
-        settle("failed");
+        setNotice("failed");
         return;
       }
-      setBusy(false);
-      setMenuOpen(false);
       setShareUrl(result.url);
     } catch {
-      settle("failed");
+      setBusy(false);
+      setNotice("failed");
     }
-  }
+  }, [group.id]);
+
+  // Creating a group and accepting an invite both land here from a screen that
+  // has already unmounted. Creation asks for the share sheet (§6.7: «создание →
+  // ссылка-приглашение»), joining only for its confirmation; the id guard keeps
+  // a stale entry from firing on a different group.
+  useEffect(() => {
+    const claim = () => {
+      const handoff = takePendingGroupToast();
+      if (handoff === null || !("groupId" in handoff)) return;
+      if (handoff.groupId !== group.id) return;
+      if (handoff.kind === "joined") setNotice("joined");
+      else void revealInviteLink();
+    };
+    claim();
+  }, [group.id, revealInviteLink]);
 
   async function saveName() {
     const trimmed = name.trim();
@@ -129,35 +167,40 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
     }
   }
 
-  /** Leave and delete both land on /people, where the toast is picked up. */
+  /**
+   * Leave and delete both land on /people, where the toast is picked up. The
+   * dialog closes before the round trip and `busy` blocks re-entry: a second
+   * tap on a slow connection would otherwise report a failure for an action
+   * that in fact succeeded.
+   */
   async function runExit(kind: "left" | "deleted") {
+    if (busy) return;
     setBusy(true);
+    setLeaveOpen(false);
+    setDeleteOpen(false);
     try {
       const result =
         kind === "left"
           ? await leaveGroupAction(group.id)
           : await deleteGroupAction(group.id);
       if (!result.ok) {
-        setLeaveOpen(false);
-        setDeleteOpen(false);
         settle("failed");
         return;
       }
-      setPendingGroupToast(kind);
+      setPendingGroupToast({ kind });
       router.push("/people");
     } catch {
-      setLeaveOpen(false);
-      setDeleteOpen(false);
       settle("failed");
     }
   }
 
   async function confirmRemove() {
-    if (!removeTarget) return;
+    if (busy || !removeTarget) return;
+    const member = removeTarget;
     setBusy(true);
+    setRemoveTarget(null);
     try {
-      const result = await removeMemberAction(group.id, removeTarget.userId);
-      setRemoveTarget(null);
+      const result = await removeMemberAction(group.id, member.userId);
       if (result.ok) {
         settle("removed");
         router.refresh();
@@ -165,7 +208,18 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
       }
       settle("failed");
     } catch {
-      setRemoveTarget(null);
+      settle("failed");
+    }
+  }
+
+  async function confirmRevoke() {
+    if (busy) return;
+    setBusy(true);
+    setRevokeOpen(false);
+    try {
+      const result = await revokeInviteLinkAction(group.id);
+      settle(result.ok ? "revoked" : "failed");
+    } catch {
       settle("failed");
     }
   }
@@ -195,7 +249,10 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
             {group.name}
           </h1>
           <p className="mt-px font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
-            {t("groups.membersCount", { count: group.members.length })}
+            <span>
+              {t("groups.membersCount", { count: group.members.length })}
+            </span>
+            {isAdmin && <> · {t("groups.youAdmin")}</>}
           </p>
         </div>
         <button
@@ -215,10 +272,22 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
             member={member}
             isSelf={member.userId === viewerId}
             canRemove={isAdmin && member.userId !== viewerId}
+            busy={busy}
             onRemove={() => setRemoveTarget(member)}
           />
         ))}
       </ul>
+
+      {/* A group of one has nothing to show yet, so the invite is the screen's
+          only real next step — it says so instead of hiding in the menu. */}
+      <div className="flex flex-col items-start gap-1.5 pt-3">
+        <Button loading={busy} onClick={() => void revealInviteLink()}>
+          {t("groups.invite")}
+        </Button>
+        {group.members.length === 1 && (
+          <p className="text-[12.5px] text-mute-2">{t("groups.inviteHint")}</p>
+        )}
+      </div>
 
       {/* v2 slot (§6.7). Dashed and muted so it reads as "not yet", not "broken". */}
       <section className="mt-6 border border-dashed border-rule-2 bg-zebra px-3.5 py-3">
@@ -237,8 +306,23 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
           <MenuRow
             label={t("groups.inviteLink")}
             disabled={busy}
-            onClick={() => void openInviteLink()}
+            onClick={() => {
+              setMenuOpen(false);
+              void revealInviteLink();
+            }}
           />
+          {/* Only an admin may kill a leaked link — and only an admin is shown
+              that it is possible. */}
+          {isAdmin && (
+            <MenuRow
+              label={t("groups.revokeLink")}
+              disabled={busy}
+              onClick={() => {
+                setMenuOpen(false);
+                setRevokeOpen(true);
+              }}
+            />
+          )}
           <MenuRow
             label={t("groups.rename")}
             onClick={() => {
@@ -387,6 +471,25 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
       />
 
       <Dialog
+        open={revokeOpen}
+        title={t("groups.revokeTitle")}
+        description={t("groups.revokeBody")}
+        onClose={() => setRevokeOpen(false)}
+        actions={[
+          {
+            label: t("common.cancel"),
+            tone: "neutral",
+            onClick: () => setRevokeOpen(false),
+          },
+          {
+            label: t("groups.revokeLink"),
+            tone: "destructive",
+            onClick: () => void confirmRevoke(),
+          },
+        ]}
+      />
+
+      <Dialog
         open={removeTarget !== null}
         title={t("groups.removeTitle")}
         description={t("groups.removeBody")}
@@ -416,13 +519,7 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
 
       <InfoToast
         open={notice !== null}
-        message={
-          notice === "saved"
-            ? t("groups.saved")
-            : notice === "removed"
-              ? t("groups.removedToast")
-              : t("common.actionFailed")
-        }
+        message={notice === null ? "" : noticeMessage(notice)}
         onDismiss={() => setNotice(null)}
       />
     </main>
@@ -463,11 +560,14 @@ function MemberRow({
   member,
   isSelf,
   canRemove,
+  busy,
   onRemove,
 }: {
   member: GroupMember;
   isSelf: boolean;
   canRemove: boolean;
+  /** No second exclusion may be started while one is still in flight. */
+  busy: boolean;
   onRemove: () => void;
 }) {
   const t = useTranslations("groups");
@@ -517,8 +617,9 @@ function MemberRow({
       {canRemove && (
         <button
           type="button"
+          disabled={busy}
           onClick={onRemove}
-          className="min-h-11 flex-none cursor-pointer px-2 text-[12.5px] font-semibold text-neg"
+          className="min-h-11 flex-none cursor-pointer px-2 text-[12.5px] font-semibold text-neg disabled:opacity-60"
         >
           {t("removeMember")}
         </button>

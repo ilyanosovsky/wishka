@@ -10,13 +10,15 @@ import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/field";
 import { InfoToast } from "@/components/ui/toast";
 import { GroupAppearanceFields } from "./group-appearance-fields";
+import { setPendingGroupToast } from "./pending-toast";
 
 /**
  * «Новая группа» (§6.7). Only the name is required; emoji and colour are the
  * decoration that makes the group recognisable in a list.
  *
- * A created group opens immediately — its whole point is inviting someone, and
- * that link lives on the detail screen.
+ * A created group opens immediately and asks for the invite link on arrival —
+ * §6.7 ends creation in the share sheet, and the link lives on the detail
+ * screen, so the intent is handed over rather than the sheet opened here.
  */
 
 export type CreateGroupSheetProps = {
@@ -51,6 +53,7 @@ export function CreateGroupSheet({ open, onClose }: CreateGroupSheetProps) {
     try {
       const result = await createGroupAction({ name: trimmed, emoji, color });
       if (result.ok) {
+        setPendingGroupToast({ kind: "created", groupId: result.group.id });
         // The sheet stays in its "creating" state until the route changes —
         // resetting it here would flash an empty form over the old screen.
         router.push(`/groups/${result.group.id}`);

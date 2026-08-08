@@ -2,7 +2,7 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 
 import type { Db } from "../index";
 import { groupInvites, groupMembers, groups } from "../schema";
-import { isGroupMember } from "./groups";
+import { isGroupMember, lockGroupRow } from "./groups";
 import { isUuid } from "./ids";
 
 /**
@@ -131,6 +131,18 @@ export async function acceptInvite(
   if (!isUuid(token)) return { ok: false, state: "not_found" };
 
   return db.transaction(async (tx) => {
+    // The group row is locked before anything is read for a decision or
+    // written, the same order every membership mutation takes it in — the
+    // token only has to be resolved to a group id first, and that read decides
+    // nothing: `lookupInvite` re-reads the invite under the lock.
+    const [invited] = await tx
+      .select({ groupId: groupInvites.groupId })
+      .from(groupInvites)
+      .where(eq(groupInvites.id, token))
+      .limit(1);
+    if (!invited) return { ok: false, state: "not_found" };
+    await lockGroupRow(tx, invited.groupId);
+
     const invite = await lookupInvite(tx, token);
     if (invite.state !== "valid") return { ok: false, state: invite.state };
 
@@ -155,10 +167,35 @@ export async function acceptInvite(
 }
 
 /**
- * Kills every live link of a group at once — there is no per-link UI, and the
- * only reason to revoke is that a link escaped, which the group cannot know the
- * extent of. Already-revoked rows keep their original timestamp.
+ * Kills every link of a group that could still be walked in on — there is no
+ * per-link UI, and the only reason to revoke is that a link escaped, which the
+ * group cannot know the extent of.
+ *
+ * Only live rows are touched: an already-revoked one keeps its original
+ * timestamp, and an expired one stays "expired", so a holder is never told a
+ * link was withdrawn when it had simply run out.
+ *
+ * Unauthenticated on purpose — the callers each establish their own right to do
+ * it (`revokeGroupInvites` is the admin-facing one, `removeMember` revokes
+ * because it just evicted somebody who may hold the link).
  */
+export async function revokeLiveInvites(
+  db: Db,
+  groupId: string,
+): Promise<void> {
+  await db
+    .update(groupInvites)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(groupInvites.groupId, groupId),
+        isNull(groupInvites.revokedAt),
+        gt(groupInvites.expiresAt, new Date()),
+      ),
+    );
+}
+
+/** Admin-only revocation, on demand from the group menu. */
 export async function revokeGroupInvites(
   db: Db,
   groupId: string,
@@ -175,11 +212,6 @@ export async function revokeGroupInvites(
     .limit(1);
   if (membership?.role !== "admin") return { ok: false };
 
-  await db
-    .update(groupInvites)
-    .set({ revokedAt: new Date() })
-    .where(
-      and(eq(groupInvites.groupId, groupId), isNull(groupInvites.revokedAt)),
-    );
+  await revokeLiveInvites(db, groupId);
   return { ok: true };
 }

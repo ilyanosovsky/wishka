@@ -13,9 +13,11 @@ import {
   createInviteLinkAction,
   leaveGroupAction,
   removeMemberAction,
+  revokeInviteLinkAction,
 } from "@/app/groups/actions";
 import type { GroupDetail as GroupDetailData } from "@/db/access/groups";
 import { GroupDetail } from "./group-detail";
+import { setPendingGroupToast } from "./pending-toast";
 
 afterEach(() => {
   cleanup();
@@ -35,6 +37,7 @@ vi.mock("@/app/groups/actions", () => ({
   deleteGroupAction: vi.fn(),
   leaveGroupAction: vi.fn(),
   removeMemberAction: vi.fn(),
+  revokeInviteLinkAction: vi.fn(),
   updateGroupAction: vi.fn(),
 }));
 
@@ -168,7 +171,11 @@ describe("GroupDetail", () => {
       expect(leaveGroupAction).toHaveBeenCalledWith(GROUP_ID),
     );
     await waitFor(() => expect(push).toHaveBeenCalledWith("/people"));
-    expect(window.sessionStorage.getItem("wishka.groups.toast")).toBe("left");
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem("wishka.groups.toast") ?? "null",
+      ),
+    ).toEqual({ kind: "left" });
   });
 
   it("confirms an exclusion with the same warning and reports it", async () => {
@@ -209,5 +216,174 @@ describe("GroupDetail", () => {
     expect(
       await screen.findByText("https://wishka.app/invite/token-1"),
     ).toBeInTheDocument();
+  });
+
+  it("offers the invite next to the members, nudging a group of one", async () => {
+    vi.mocked(createInviteLinkAction).mockResolvedValue({
+      ok: true,
+      url: "https://wishka.app/invite/token-1",
+    });
+
+    renderDetail(detail({ members: [detail().members[0]] }));
+
+    expect(
+      screen.getByText("Позови близких — их списки появятся здесь."),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Пригласить" }));
+
+    expect(
+      await screen.findByText("https://wishka.app/invite/token-1"),
+    ).toBeInTheDocument();
+  });
+
+  it("drops the nudge once the group has company", () => {
+    renderDetail();
+
+    expect(
+      screen.getByRole("button", { name: "Пригласить" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Позови близких — их списки появятся здесь."),
+    ).toBeNull();
+  });
+
+  it("names the viewer's role in the header", () => {
+    renderDetail();
+    expect(screen.getByText(/Вы админ/)).toBeInTheDocument();
+
+    cleanup();
+    renderDetail(detail({ role: "member" }));
+    expect(screen.queryByText(/Вы админ/)).toBeNull();
+  });
+
+  it("lets an admin kill a leaked link, after saying what that costs", async () => {
+    vi.mocked(revokeInviteLinkAction).mockResolvedValue({ ok: true });
+
+    renderDetail();
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Отозвать ссылку" }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByText(
+        "Старая ссылка перестанет работать. Новую можно создать в любой момент.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Отозвать ссылку" }),
+    );
+
+    await waitFor(() =>
+      expect(revokeInviteLinkAction).toHaveBeenCalledWith(GROUP_ID),
+    );
+    expect(await screen.findByText("Ссылка отозвана")).toBeInTheDocument();
+  });
+
+  it("does not offer revocation to a plain member", () => {
+    renderDetail(detail({ role: "member" }));
+    openMenu();
+
+    expect(
+      screen.queryByRole("button", { name: "Отозвать ссылку" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Ссылка-приглашение" }),
+    ).toBeInTheDocument();
+  });
+
+  it("closes the exclusion dialog before the round trip and ignores a second tap", async () => {
+    let finish: (result: { ok: boolean }) => void = () => {};
+    vi.mocked(removeMemberAction).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+
+    renderDetail();
+    fireEvent.click(screen.getAllByRole("button", { name: "Исключить" })[0]);
+    fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Исключить",
+      }),
+    );
+
+    // Nothing to tap twice: the dialog is gone the moment the call starts, and
+    // the row that opened it is inert until the call comes back.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const row = screen.getAllByRole("button", { name: "Исключить" })[0];
+    expect(row).toBeDisabled();
+    fireEvent.click(row);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(removeMemberAction).toHaveBeenCalledTimes(1);
+
+    finish({ ok: true });
+    expect(await screen.findByText("Участник исключён")).toBeInTheDocument();
+    expect(screen.queryByText("Не получилось — попробуй ещё раз")).toBeNull();
+  });
+
+  it("ignores a second confirmation of leaving while the first is in flight", async () => {
+    let finish: (result: {
+      ok: boolean;
+      groupDeleted: boolean;
+    }) => void = () => {};
+    vi.mocked(leaveGroupAction).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+
+    renderDetail();
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Покинуть группу" }));
+    fireEvent.click(screen.getByRole("button", { name: "Покинуть" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Покинуть группу" }));
+    fireEvent.click(screen.getByRole("button", { name: "Покинуть" }));
+
+    expect(leaveGroupAction).toHaveBeenCalledTimes(1);
+
+    finish({ ok: true, groupDeleted: false });
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/people"));
+  });
+
+  it("opens the share sheet when it is reached straight from creation", async () => {
+    vi.mocked(createInviteLinkAction).mockResolvedValue({
+      ok: true,
+      url: "https://wishka.app/invite/token-1",
+    });
+    setPendingGroupToast({ kind: "created", groupId: GROUP_ID });
+
+    renderDetail();
+
+    expect(
+      await screen.findByText("https://wishka.app/invite/token-1"),
+    ).toBeInTheDocument();
+    // Claimed once: a reload of the same group must not re-open the sheet.
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("confirms a join on arrival", async () => {
+    setPendingGroupToast({ kind: "joined", groupId: GROUP_ID });
+
+    renderDetail();
+
+    expect(await screen.findByText("Вы в группе «Семья»")).toBeInTheDocument();
+    expect(createInviteLinkAction).not.toHaveBeenCalled();
+  });
+
+  it("leaves a handoff addressed to another group alone", () => {
+    setPendingGroupToast({
+      kind: "created",
+      groupId: "99999999-9999-4999-8999-999999999999",
+    });
+
+    renderDetail();
+
+    expect(createInviteLinkAction).not.toHaveBeenCalled();
   });
 });

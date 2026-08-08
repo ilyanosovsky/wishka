@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { AvatarGroup } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { InfoToast } from "@/components/ui/toast";
 import type { GroupSummary } from "@/db/access/groups";
@@ -20,7 +21,13 @@ import { takePendingGroupToast, type PendingGroupToast } from "./pending-toast";
  * are links only — so «У меня есть приглашение» explains rather than collects.
  */
 
-const TOAST_KEY: Record<PendingGroupToast, string> = {
+/** The two outcomes that end on this screen; the rest land on a group. */
+type ExitToast = Extract<
+  PendingGroupToast,
+  { kind: "left" | "deleted" }
+>["kind"];
+
+const TOAST_KEY: Record<ExitToast, string> = {
   left: "leftToast",
   deleted: "deletedToast",
 };
@@ -33,14 +40,18 @@ export function GroupsTab({ groups }: GroupsTabProps) {
   const t = useTranslations("groups");
   const [createOpen, setCreateOpen] = useState(false);
   const [inviteHintOpen, setInviteHintOpen] = useState(false);
-  const [toast, setToast] = useState<PendingGroupToast | null>(null);
+  const [toast, setToast] = useState<ExitToast | null>(null);
 
   // The leave/delete confirmation is handed over from the group screen that no
   // longer exists by the time this renders. sessionStorage is not knowable
   // while rendering on the server, so it is claimed after mount (indirection
   // keeps the setState out of the effect body, per house style).
   useEffect(() => {
-    const claim = () => setToast(takePendingGroupToast());
+    const claim = () => {
+      const handoff = takePendingGroupToast();
+      if (handoff?.kind === "left" || handoff?.kind === "deleted")
+        setToast(handoff.kind);
+    };
     claim();
   }, []);
 
@@ -91,9 +102,23 @@ export function GroupsTab({ groups }: GroupsTabProps) {
                       {group.name}
                     </span>
                     <span className="mt-px block font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
-                      {t("membersCount", { count: group.memberCount })}
+                      <span>
+                        {t("membersCount", { count: group.memberCount })}
+                      </span>
+                      {group.role === "admin" && <> · {t("youAdmin")}</>}
                     </span>
                   </span>
+                  {/* Faces before the count: «карточки с аватарками» (§6.7). */}
+                  {group.memberAvatars.length > 0 && (
+                    <AvatarGroup
+                      className="flex-none"
+                      max={3}
+                      avatars={group.memberAvatars.map((member) => ({
+                        src: member.image,
+                        name: member.name,
+                      }))}
+                    />
+                  )}
                   <ChevronRight
                     aria-hidden
                     size={16}

@@ -5,7 +5,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getDb } from "@/db";
-import { getOrCreateActiveInvite } from "@/db/access/group-invites";
+import {
+  getOrCreateActiveInvite,
+  revokeGroupInvites,
+} from "@/db/access/group-invites";
 import {
   createGroup,
   deleteGroup,
@@ -101,4 +104,16 @@ export async function createInviteLinkAction(
     ok: true,
     url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/invite/${invite.token}`,
   };
+}
+
+/**
+ * Kills every live link to the group — the only remedy once one has leaked.
+ * Admin-only, enforced in the data layer. Nothing is revalidated: no page
+ * renders an invite token, the next «Пригласить» simply mints a new one.
+ */
+export async function revokeInviteLinkAction(
+  groupId: string,
+): Promise<{ ok: boolean }> {
+  const userId = await requireUserId();
+  return revokeGroupInvites(getDb(), groupId, userId);
 }

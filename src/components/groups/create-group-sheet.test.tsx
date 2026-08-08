@@ -14,6 +14,7 @@ import { CreateGroupSheet } from "./create-group-sheet";
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  window.sessionStorage.clear();
 });
 
 const push = vi.fn();
@@ -56,6 +57,7 @@ describe("CreateGroupSheet", () => {
         color: null,
         role: "admin",
         memberCount: 1,
+        memberAvatars: [{ name: "Илья", image: null }],
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
       },
     });
@@ -80,6 +82,16 @@ describe("CreateGroupSheet", () => {
         "/groups/33333333-3333-4333-8333-333333333333",
       ),
     );
+    // §6.7: creation ends in the invite share sheet, which the group screen
+    // opens on the strength of this handoff.
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem("wishka.groups.toast") ?? "null",
+      ),
+    ).toEqual({
+      kind: "created",
+      groupId: "33333333-3333-4333-8333-333333333333",
+    });
   });
 
   it("clears a chosen emoji when it is tapped again", async () => {
