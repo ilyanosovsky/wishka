@@ -52,9 +52,9 @@ describe("Dialog", () => {
     const { rerender } = render(
       <Dialog
         open
-        title="Сохранить черновик?"
+        title="Save the draft?"
         onClose={onClose}
-        actions={[{ label: "Сохранить", onClick: vi.fn(), tone: "accent" }]}
+        actions={[{ label: "Save", onClick: vi.fn(), tone: "accent" }]}
       />,
     );
 
@@ -64,9 +64,9 @@ describe("Dialog", () => {
     rerender(
       <Dialog
         open={false}
-        title="Сохранить черновик?"
+        title="Save the draft?"
         onClose={onClose}
-        actions={[{ label: "Сохранить", onClick: vi.fn(), tone: "accent" }]}
+        actions={[{ label: "Save", onClick: vi.fn(), tone: "accent" }]}
       />,
     );
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -84,8 +84,8 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
@@ -105,14 +105,14 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={onAction}
         onDismiss={onDismiss}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Отменить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
     act(() => void vi.advanceTimersByTime(10000));
 
     expect(onAction).toHaveBeenCalledTimes(1);
@@ -125,8 +125,8 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
@@ -158,14 +158,14 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
     );
 
-    const undo = screen.getByRole("button", { name: "Отменить" });
+    const undo = screen.getByRole("button", { name: "Undo" });
     fireEvent.focusIn(undo);
     act(() => void vi.advanceTimersByTime(10000));
     expect(onDismiss).not.toHaveBeenCalled();
@@ -181,8 +181,8 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open={false}
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
@@ -190,7 +190,7 @@ describe("UndoToast", () => {
 
     act(() => void vi.advanceTimersByTime(10000));
     expect(onDismiss).not.toHaveBeenCalled();
-    expect(screen.queryByText("Бронь снята")).toBeNull();
+    expect(screen.queryByText("Reservation cancelled")).toBeNull();
   });
 });
 
@@ -206,14 +206,14 @@ describe("InfoToast", () => {
     render(
       <InfoToast
         open
-        message="Желание добавлено"
+        message="Wish added"
         actionLabel="Open dialog"
         onAction={onAction}
         onDismiss={onDismiss}
       />,
     );
 
-    expect(screen.getByText("Желание добавлено")).toBeInTheDocument();
+    expect(screen.getByText("Wish added")).toBeInTheDocument();
     act(() => void vi.advanceTimersByTime(3000));
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
