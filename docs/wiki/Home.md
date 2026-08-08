@@ -12,6 +12,7 @@
 - [Sharing & Public Lists](Sharing-and-Public-Lists) — public routes, viewer roles, share sheet
 - [Reservations and Surprise Mode](Reservations-and-Surprise-Mode) — reservation lifecycle, the surprise invariant, the email matrix
 - [Guest Access](Guest-Access) — guest identity, booking without an account, guest→account merge
+- [Groups and Visibility](Groups-and-Visibility) — group model, invite links, how membership feeds `visibleTo()`
 
 ## How this wiki works
 

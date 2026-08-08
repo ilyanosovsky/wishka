@@ -16,15 +16,18 @@ import { InfoToast } from "@/components/ui/toast";
  * expectation before the link is revealed.
  */
 
-export type ShareKind = "list" | "wish";
+export type ShareKind = "list" | "wish" | "group";
 
 export type ShareSheetProps = {
   open: boolean;
   onClose: () => void;
-  /** Absolute when `NEXT_PUBLIC_APP_URL` is set, otherwise a `/u/…` path that
-   *  `toAbsolute` completes against the current origin at click time. */
+  /** Absolute when `NEXT_PUBLIC_APP_URL` is set, otherwise a `/u/…` or
+   *  `/invite/…` path that `toAbsolute` completes against the current origin
+   *  at click time. */
   url: string;
-  /** Reserved for 7b, where a wish and a list share differently. */
+  /** Not branched on yet — a `"group"` link is never `restricted`, so it
+   *  takes the same copy-link/native-share body as an unrestricted wish or
+   *  list. Kept for callers and future kind-specific copy. */
   kind: ShareKind;
   restricted?: boolean;
 };

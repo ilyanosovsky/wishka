@@ -3,15 +3,16 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { GroupsTab } from "@/components/groups/groups-tab";
 import { Tabs } from "@/components/ui/tabs";
+import type { GroupSummary } from "@/db/access/groups";
 import type { MyReservation } from "@/db/access/my-reservations";
 import { MergeBanner } from "./merge-banner";
 import { MyReservations } from "./my-reservations";
 
 /**
- * «Люди» = two tabs (§6.7). Groups stay a placeholder until Phase 8; bookings
- * are live. Client-side switching so the (already fetched) bookings don't
- * round-trip on every tap.
+ * «Люди» = two tabs (§6.7): groups and bookings. Client-side switching so the
+ * (already fetched) data doesn't round-trip on every tap.
  *
  * The merge prompt sits above the tab strip: the bookings it would move belong
  * in this screen either way, so it should be visible whichever tab is open.
@@ -20,12 +21,17 @@ import { MyReservations } from "./my-reservations";
 type TabKey = "groups" | "reservations";
 
 export type PeopleTabsProps = {
+  groups: GroupSummary[];
   reservations: MyReservation[];
   /** Live guest bookings on this device; 0 hides the merge prompt. */
   mergeCount: number;
 };
 
-export function PeopleTabs({ reservations, mergeCount }: PeopleTabsProps) {
+export function PeopleTabs({
+  groups,
+  reservations,
+  mergeCount,
+}: PeopleTabsProps) {
   const t = useTranslations();
   const [tab, setTab] = useState<TabKey>("groups");
 
@@ -39,7 +45,11 @@ export function PeopleTabs({ reservations, mergeCount }: PeopleTabsProps) {
           onChange={(value) => setTab(value as TabKey)}
           ariaLabel={t("people.title")}
           items={[
-            { value: "groups", label: t("people.groupsTab") },
+            {
+              value: "groups",
+              label: t("people.groupsTab"),
+              count: groups.length,
+            },
             {
               value: "reservations",
               label: t("people.reservationsTab"),
@@ -51,12 +61,7 @@ export function PeopleTabs({ reservations, mergeCount }: PeopleTabsProps) {
 
       <div className="flex flex-1 flex-col pt-3.5">
         {tab === "groups" ? (
-          <section className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-            <p className="font-serif text-[17px] font-semibold">
-              {t("people.emptyTitle")}
-            </p>
-            <p className="max-w-72 text-mute">{t("people.emptyBody")}</p>
-          </section>
+          <GroupsTab groups={groups} />
         ) : (
           <MyReservations reservations={reservations} />
         )}
