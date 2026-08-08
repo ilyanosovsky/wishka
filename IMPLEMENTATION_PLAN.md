@@ -15,8 +15,8 @@
 | 4 | My list: CRUD, filters, detail, archive | PR #5 | ✅ done |
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
-| 7 | Sharing & reservations: public lists, guests, surprise mode | 7a ✅ PR #7 · 7b this branch | 🔵 |
-| 8 | Groups, partner, visibility, view-as | — | ⬜ |
+| 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
+| 8 | Groups, partner, visibility, view-as | 8a this branch · 8b next | 🔵 |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
@@ -110,18 +110,30 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ✅ Reservation lifecycle: `reserveWish`/`cancelReservation`/`dismissReservation`/`orphanActiveReservations` (`src/db/access/reservations.ts`), race conflict via the partial unique index (`already_reserved`), owner-reserve refused as `not_found`, `dismissReservation` releases orphaned rows by reservation id. `deleteWishAsOwner` (`src/db/access/wish-lifecycle.ts`) orphans + deletes in one transaction, byte-identical result whether or not a booking exists. Reserve/cancel/dismiss server actions in `src/app/reserve/actions.ts`. UI on `/w/[id]`: `ReservePanel` + status badge (`src/components/reserve/`) — confirm dialog («Никому не скажем 😉»), unreserve with undo toast, conflict sheet («Увы, это уже забронировали»), gone dialog («Владелец удалил это желание»), owner sees neither badge nor panel.
 - ✅ Guest identity: device cookie `wishka-guest` (`src/lib/guest.ts`) + `guest_identities` (name + optional email, bearer token, `src/db/access/guest-identities.ts`); `resolveViewer`/`resolveReserver` (`src/lib/viewer.ts`) unify session vs. guest cookie precedence; manage-booking link `/g/[token]` (`src/app/g/[token]/route.ts`); guest→account merge (`mergeGuestIntoUser`, cancels own-list bookings instead of transferring, idempotent) wired to `mergeGuestReservationsAction`. UI: guest bottom sheet («Как вас записать?») with success screen + "leave an email" prompt (`src/components/reserve/guest-form-sheet.tsx`), other-device hint, merge-prompt banner on `/u/[nickname]` and `/people` (`src/components/reservations/merge-banner.tsx`).
 - ✅ "Мои брони": `getMyReservations` (`src/db/access/my-reservations.ts`) derives active/changed(+fields)/deleted/given from the reservation snapshot vs. the live wish, no visibility re-check (by design — see wiki). `/people` is now Групп/Мои брони tabs (`src/components/reservations/`): reservation cards with owner avatar, state chips, unreserve/dismiss actions, recently-viewed lists (localStorage, `src/lib/recent-lists.ts`), empty state. Emails wired into owner actions (`src/app/wishes/actions.ts`) via `after()`: `sendGuestBookingConfirmation`, `sendReservedWishChanged`, `sendReservedWishDeleted`, `sendGiftGiven` (`src/lib/email/reservation-emails.ts` + `copy.ts` + Paper Ledger `template.ts`).
-- ✅ Service screens (§6.10) delivered so far: `/session-expired`, `/login?next=<path>` return-path support (`sanitizeNextPath`, incl. onboarding pass-through), invalid-link screen (`ServiceScreen` on `/w/[id]`, `/u/[nickname]`). ⬜ "No access" and "expired invite" deferred to Phase 8 — both need groups (invites / group-restricted lists).
+- ✅ Service screens (§6.10) delivered so far: `/session-expired`, `/login?next=<path>` return-path support (`sanitizeNextPath`, incl. onboarding pass-through), invalid-link screen (`ServiceScreen` on `/w/[id]`, `/u/[nickname]`). "Expired invite" delivered in Phase 8a (`/invite/[token]`). ⬜ "No access" (visibility narrowed after the fact) deferred to Phase 8b — needs the live "Кому видно" sheet.
 - **Wiki:** ✅ `Reservations-and-Surprise-Mode.md`, `Guest-Access.md`. **Model:** Opus (both halves — this is the crown jewel), Sonnet (emails, service screens).
 
-## Phase 8 — Groups, partner, visibility (next PR)
+## Phase 8 — Groups, partner, visibility (split: 8a groups + invites, 8b partner + "Кому видно" + view-as)
 
 **Goal:** the social fabric + real per-wish privacy.
 
-- ⬜ Groups: list, first-run, create sheet (emoji/color, invite link), group detail (member grid, admin meatball menu), roles (creator=admin, transfer on leave), invite acceptance (+already-member, expired), leave/remove confirmations with visibility-consequence copy, V2 placeholder block.
+**8a:**
+- ✅ Groups data access (`src/db/access/groups.ts`): `createGroup`/`getMyGroups`/`getGroupDetail`/`updateGroup`/`leaveGroup`/`removeMember`/`deleteGroup`/`isGroupMember` — non-member reads of a group collapse to the same `null` as a missing one (never a distinct "forbidden" oracle); `createdBy` is handed on whenever the creator leaves *or is removed* and the group survives, so the group can't be taken down later by that account's deletion; `leaveGroup` promotes the longest-tenured member when no admin remains. `deleteGroup` cleans up the group's `wish_visibility` rows first, since `subject_id` has no FK to cascade them. All four membership mutations serialize on `select … from groups … for update`.
+- ✅ **Removing a member revokes the group's live invite links** — otherwise eviction is undoable: the invite link is one reusable token any member can read, so the removed person could re-join in a tap and get every group-restricted wish back, making the confirmation copy false. Covered by an end-to-end regression test.
+- ✅ Invites data access (`src/db/access/group-invites.ts`): `getOrCreateActiveInvite`/`lookupInvite`/`acceptInvite`/`revokeGroupInvites` — the invite row id doubles as the token, 14-day TTL, reused while live, idempotent accept (a second accept, or a unique-violation race from a double-tap, both resolve to `alreadyMember: true` rather than an error). Revocation only touches live links, so an expired one keeps reading as `expired`.
+- ✅ `/people` Groups tab: empty state (create + "у меня есть приглашение" hint), group list, create sheet (name/emoji/color).
+- ✅ `/groups/[id]`: member grid (admin/you badges, per-member visible-wishes link gated by `visibleTo`), «Пригласить» next to the members (share sheet opens straight after creating a group), meatball menu (invite link → ShareSheet, rename/appearance, leave, admin-only delete/remove-member and «Отозвать ссылку»), v2 "Secret Santa" placeholder card.
+- ✅ `/invite/[token]` acceptance flow — all five states (`expired`/`revoked` and `not_found` as `ServiceScreen` dead ends, valid+no-session with a `loginHrefWithNext` sign-in CTA, valid+already-member as a dead end back to the group, valid+joinable as the one interactive accept step).
+- ✅ `ShareSheet` gains `kind: "group"` for the invite-link share (copy-link/native-share only — a group invite is never `restricted`).
+- ⬜ **Deferred, not a gap:** an email-invite UI. The brief's group flow is "create → copy link → share sheet" and never collects an address anywhere in it; inventing an email-collection step here would be UX not in the brief. If a future phase wants it, it needs its own design pass first.
+- **Wiki:** ✅ `Groups-and-Visibility.md`. **Model:** Opus (data-access + visibility integration), Sonnet (group CRUD UI, invite screen, docs).
+
+**8b:**
 - ⬜ Partner: assign/remove in profile (from group members).
 - ⬜ "Кому видно" sheet live: everyone / groups / persons (partner pinned); wired into the data-access visibility rules; narrowing-after-reservation rule (reservation survives, reserver loses access, email sent).
 - ⬜ "Посмотреть, как видят другие": view-as guest/group/person with preview banner; **reservations never shown in preview**.
-- **Wiki:** `Groups-and-Visibility.md`. **Model:** Opus (visibility+RLS integration), Sonnet (group CRUD UI).
+- ⬜ Delete-account flow.
+- **Wiki:** update `Groups-and-Visibility.md` with the live sheet + view-as + partner sections. **Model:** Opus (visibility+RLS integration), Sonnet (profile UI).
 
 ## Phase 9 — Polish & launch (next PR)
 

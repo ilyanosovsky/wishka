@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { AppTabBar } from "@/components/app-tab-bar";
 import { PeopleTabs } from "@/components/reservations/people-tabs";
 import { getDb } from "@/db";
+import { getMyGroups } from "@/db/access/groups";
 import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getMyReservations } from "@/db/access/my-reservations";
 import { getAuth } from "@/lib/auth";
@@ -12,7 +13,7 @@ import { loginHrefWithNext } from "@/lib/next-param";
 import { resolveGuestIdentity } from "@/lib/viewer";
 
 /**
- * People (§6.7): groups (placeholder until Phase 8) and "My bookings".
+ * People (§6.7): groups and "My bookings".
  *
  * Bookings are read as the *session user* here — never as the guest cookie,
  * even when both are present. That pairing is what the merge prompt is for:
@@ -23,6 +24,7 @@ export default async function PeoplePage() {
   if (!session) redirect(loginHrefWithNext("/people"));
 
   const db = getDb();
+  const groups = await getMyGroups(db, session.user.id);
   const reservations = await getMyReservations(db, { userId: session.user.id });
   // Own-list guest bookings are excluded from the count — see `/u/[nickname]`.
   const guest = await resolveGuestIdentity(db);
@@ -40,7 +42,11 @@ export default async function PeoplePage() {
         </h1>
       </header>
 
-      <PeopleTabs reservations={reservations} mergeCount={mergeCount} />
+      <PeopleTabs
+        groups={groups}
+        reservations={reservations}
+        mergeCount={mergeCount}
+      />
 
       <AppTabBar />
     </main>

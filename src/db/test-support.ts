@@ -96,6 +96,35 @@ export async function createGroup(
   return group.id;
 }
 
+/** A membership with an explicit role/`joinedAt` — succession order is testable. */
+export async function addGroupMember(
+  db: Db,
+  values: typeof schema.groupMembers.$inferInsert,
+): Promise<void> {
+  await db.insert(schema.groupMembers).values(values);
+}
+
+/**
+ * An invite row written straight to the table — for states
+ * `getOrCreateActiveInvite` will not produce (already expired, already revoked).
+ * Returns the id, which is the token.
+ */
+export async function createGroupInvite(
+  db: Db,
+  values: Omit<typeof schema.groupInvites.$inferInsert, "expiresAt"> & {
+    expiresAt?: Date;
+  },
+): Promise<string> {
+  const [row] = await db
+    .insert(schema.groupInvites)
+    .values({
+      expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      ...values,
+    })
+    .returning({ id: schema.groupInvites.id });
+  return row.id;
+}
+
 export async function createGuest(
   db: Db,
   token: string,
