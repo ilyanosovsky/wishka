@@ -18,6 +18,11 @@ import { getAuth } from "@/lib/auth";
  * The archive (`status: "gifted"`) is a separate screen and is deliberately
  * not counted here.
  */
+
+// The add-wish parse action (parseUrlAction) is invoked from AddWishSheet on
+// this route; give it room past the default so the pipeline's own 22s budget,
+// not the platform limit, is what bounds a slow parse.
+export const maxDuration = 60;
 export default async function Home() {
   const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) redirect("/login");

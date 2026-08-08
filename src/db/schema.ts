@@ -375,11 +375,14 @@ export const aiUsage = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     day: date("day", { mode: "string" }).notNull(),
-    kind: text("kind").$type<"image" | "text" | "upload">().notNull(),
+    kind: text("kind").$type<"image" | "text" | "upload" | "parse">().notNull(),
     count: integer("count").notNull().default(0),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.day, t.kind] }),
-    check("ai_usage_kind_check", sql`${t.kind} in ('image', 'text', 'upload')`),
+    check(
+      "ai_usage_kind_check",
+      sql`${t.kind} in ('image', 'text', 'upload', 'parse')`,
+    ),
   ],
 );

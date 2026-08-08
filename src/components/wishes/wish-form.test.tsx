@@ -308,3 +308,107 @@ describe("WishForm — draft (enableDraft)", () => {
     }
   });
 });
+
+describe("WishForm — description field", () => {
+  it("renders the description field and round-trips its value", async () => {
+    const onSubmit = vi.fn(async (values: WishFormValues) => {
+      void values;
+      return { ok: true as const };
+    });
+    renderForm({ onSubmit });
+
+    const description = screen.getByLabelText("Описание");
+    expect(description).toHaveValue("");
+
+    fireEvent.change(description, { target: { value: "Размер M, синий" } });
+    expect(description).toHaveValue("Размер M, синий");
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Свитер" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].description).toBe("Размер M, синий");
+  });
+
+  it("prefills the description from `initial` (e.g. edit form)", () => {
+    renderForm({ initial: { description: "Уже вручную заполнено" } });
+    expect(screen.getByLabelText("Описание")).toHaveValue(
+      "Уже вручную заполнено",
+    );
+  });
+});
+
+describe("WishForm — parsedPartial", () => {
+  it("shows the partial-notice banner and highlights an empty title upfront", () => {
+    renderForm({
+      parsedUrl: true,
+      parsedPartial: true,
+      initial: { url: "https://shop.example.com/x" },
+    });
+
+    expect(
+      screen.getByText("Собрали не всё — дозаполни, чего не хватает"),
+    ).toBeInTheDocument();
+    // No submit attempt has happened yet — the highlight comes from
+    // parsedPartial alone, matching §6.3 step 2 "подсвеченные пустые поля".
+    expect(screen.getByText("Без названия не сохранить")).toBeInTheDocument();
+  });
+
+  it("clears the title highlight once a title is entered", () => {
+    renderForm({ parsedUrl: true, parsedPartial: true });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Кружка" },
+    });
+
+    expect(screen.queryByText("Без названия не сохранить")).toBeNull();
+  });
+
+  it("does not show the banner or the upfront highlight without parsedPartial", () => {
+    renderForm();
+    expect(
+      screen.queryByText("Собрали не всё — дозаполни, чего не хватает"),
+    ).toBeNull();
+    expect(screen.queryByText("Без названия не сохранить")).toBeNull();
+  });
+});
+
+describe("WishForm — parsedUrl", () => {
+  it("renders the parsed-link variant with the 'from parser' meta label", () => {
+    renderForm({
+      parsedUrl: true,
+      initial: { url: "https://shop.example.com/mug" },
+    });
+
+    expect(
+      screen.getByText("https://shop.example.com/mug"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("из парсера")).toBeInTheDocument();
+    // The read-only row isn't a labelled form control.
+    expect(screen.queryByLabelText("Ссылка")).toBeNull();
+  });
+
+  it("the edit affordance restores the editable link input", () => {
+    renderForm({
+      parsedUrl: true,
+      initial: { url: "https://shop.example.com/mug" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Редактировать" }));
+
+    const input = screen.getByLabelText("Ссылка");
+    expect(input).toHaveValue("https://shop.example.com/mug");
+
+    fireEvent.change(input, {
+      target: { value: "https://shop.example.com/mug-2" },
+    });
+    expect(input).toHaveValue("https://shop.example.com/mug-2");
+  });
+
+  it("renders the ordinary editable link field when parsedUrl is not set", () => {
+    renderForm();
+    expect(screen.getByLabelText("Ссылка")).toBeInTheDocument();
+  });
+});

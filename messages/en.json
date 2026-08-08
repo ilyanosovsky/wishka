@@ -169,7 +169,8 @@
     "typeLabel": "Type",
     "errorGeneric": "Couldn't save — try again",
     "priceMissing": "Enter a price",
-    "linkInvalid": "The link must start with http(s)://"
+    "linkInvalid": "The link must start with http(s)://",
+    "descriptionLabel": "Description"
   },
   "detail": {
     "openInStore": "Open in store",
@@ -209,5 +210,25 @@
     "list": "My list",
     "people": "People",
     "profile": "Profile"
+  },
+  "parse": {
+    "sheetTitle": "New wish",
+    "urlLabel": "Product link",
+    "urlPlaceholder": "https://…",
+    "pasteClipboard": "Paste from clipboard",
+    "parseCta": "Add from link",
+    "orManual": "or",
+    "manualCta": "Fill in manually",
+    "parsing": "Looking at it…",
+    "parsingSlow": "The store is slow — still working…",
+    "fillManually": "Fill in by hand",
+    "failedTitle": "This store doesn't share data — let's fill it in together",
+    "duplicateTitle": "This is already on your list",
+    "duplicateOpen": "Open it",
+    "duplicateAnyway": "Add anyway",
+    "partialNotice": "We got some of it — fill in what's missing",
+    "quotaExceeded": "Parsing limit reached for today — fill in by hand",
+    "urlInvalid": "The link must start with http(s)://",
+    "fromParser": "from the parser"
   }
 }

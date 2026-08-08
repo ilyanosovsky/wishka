@@ -169,7 +169,8 @@
     "typeLabel": "Тип",
     "errorGeneric": "Не получилось сохранить — попробуй ещё раз",
     "priceMissing": "Укажи цену",
-    "linkInvalid": "Ссылка должна начинаться с http(s)://"
+    "linkInvalid": "Ссылка должна начинаться с http(s)://",
+    "descriptionLabel": "Описание"
   },
   "detail": {
     "openInStore": "Открыть в магазине",
@@ -209,5 +210,25 @@
     "list": "Список",
     "people": "Люди",
     "profile": "Профиль"
+  },
+  "parse": {
+    "sheetTitle": "Новое желание",
+    "urlLabel": "Ссылка на товар",
+    "urlPlaceholder": "https://…",
+    "pasteClipboard": "Вставить из буфера",
+    "parseCta": "Добавить по ссылке",
+    "orManual": "или",
+    "manualCta": "Заполнить вручную",
+    "parsing": "Смотрим, что там…",
+    "parsingSlow": "Магазин отвечает медленно, продолжаем…",
+    "fillManually": "Заполнить руками",
+    "failedTitle": "Этот магазин не делится данными — заполним вместе",
+    "duplicateTitle": "Это уже есть в твоём списке",
+    "duplicateOpen": "Открыть её",
+    "duplicateAnyway": "Всё равно добавить",
+    "partialNotice": "Собрали не всё — дозаполни, чего не хватает",
+    "quotaExceeded": "Лимит парсинга на сегодня исчерпан — заполни руками",
+    "urlInvalid": "Ссылка должна начинаться с http(s)://",
+    "fromParser": "из парсера"
   }
 }

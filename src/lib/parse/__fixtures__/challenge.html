@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pardon our interruption</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      window.bm_verify = { challenge: "bm-verify", ttl: 300 };
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Pardon our interruption</h1>
+      <p>
+        As you were browsing something about your browser made us think you were
+        a bot. There are a few reasons this might happen:
+      </p>
+      <ul>
+        <li>
+          You're a power user moving through this website with super-human
+          speed.
+        </li>
+        <li>You've disabled JavaScript in your web browser.</li>
+        <li>
+          A third-party browser plugin is preventing the page from loading.
+        </li>
+        <li>Your network connection is shared with automated traffic.</li>
+      </ul>
+      <p>
+        To regain access, please make sure that JavaScript and cookies are
+        enabled before reloading the page. If this keeps happening, our support
+        team can whitelist the address you are connecting from — include the
+        reference identifier printed at the bottom of this page so the request
+        can be traced through the edge logs.
+      </p>
+      <p>
+        This interstitial is served by the edge network in front of the store
+        and never reaches the origin servers, which is why none of the product
+        metadata, pricing information or structured data that would normally be
+        present in the document is available here. Automated clients that follow
+        the redirect will keep seeing this page until the challenge is solved in
+        a real browser session.
+      </p>
+      <p>
+        Reference ID: 9f2a41c8-77b0-4f0e-9e0f-2f5a1c9a83bd. Edge node: fra-14.
+        Policy: default-deny for datacenter address space, relaxed for verified
+        residential traffic, permanent allow for partner integrations that were
+        registered through the merchant portal and carry a signed token.
+      </p>
+      <form action="/verify" method="post">
+        <input type="hidden" name="bm-verify" value="opaque-token" />
+        <button type="submit">Reload the page</button>
+      </form>
+    </main>
+  </body>
+</html>

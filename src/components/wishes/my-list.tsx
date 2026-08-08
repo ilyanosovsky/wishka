@@ -23,6 +23,7 @@ import { WishCard } from "@/components/ui/wish-card";
 import type { OwnerWish, WishPriority } from "@/db/access/types";
 import { CATEGORY_KEYS } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
+import { AddWishSheet } from "./add-wish-sheet";
 import { toBaseWish } from "./wish-card-props";
 
 /**
@@ -79,6 +80,7 @@ export function MyList({ wishes, nickname }: MyListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [offline, setOffline] = useState(false);
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
 
   // Read after mount only: `navigator.onLine` is not knowable while rendering
   // on the server, and guessing it would mismatch hydration.
@@ -285,7 +287,12 @@ export function MyList({ wishes, nickname }: MyListProps) {
 
       <Fab
         ariaLabel={t("list.addWish")}
-        onClick={() => router.push("/wishes/new")}
+        onClick={() => setAddSheetOpen(true)}
+      />
+
+      <AddWishSheet
+        open={addSheetOpen}
+        onClose={() => setAddSheetOpen(false)}
       />
 
       <TabBar
