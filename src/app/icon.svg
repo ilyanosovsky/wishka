@@ -2,8 +2,11 @@
   <!--
     Paper Ledger mark (Phase 9 dark-contrast audit, finding #11).
     Colors inlined verbatim from src/styles/tokens.css `:root` (light theme):
-    --bg #f3f0e9, --ink #2b2820. The square carries its own paper background,
+    bg #f3f0e9, ink #2b2820. The square carries its own paper background,
     so it stays legible in both light and dark browser chrome/tab strips.
+    NB: XML forbids a double hyphen inside a comment, so the token names are
+    written without their leading `-` `-` prefix. src/app/icons.test.ts parses
+    every SVG here to keep that from regressing into a blank favicon.
   -->
   <rect x="1" y="1" width="30" height="30" fill="#f3f0e9" stroke="#2b2820" stroke-width="2"/>
   <text

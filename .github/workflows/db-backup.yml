@@ -29,17 +29,56 @@ jobs:
     runs-on: ubuntu-latest
     if: vars.BACKUP_ENABLED == 'true'
     steps:
-      - name: Install pg_dump and age
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client age
+      # `ubuntu-latest`'s stock `postgresql-client` trails the server (24.04
+      # ships 16). A client older than the server makes pg_dump abort with
+      # "server version …; pg_dump version …", so the major is pinned here
+      # against PGDG rather than left to the image. Bump `PG_MAJOR` when
+      # Railway's server major moves — a mismatch must break loudly, once,
+      # instead of quietly producing nothing every night.
+      - name: Install pg_dump (pinned) and age
+        shell: bash
+        env:
+          PG_MAJOR: "17"
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y "postgresql-client-${PG_MAJOR}" age
+          pg_dump --version
 
-      - name: Dump, compress and encrypt
+      # `shell: bash` is load-bearing, not cosmetic: the *default* shell is
+      # `bash -e {0}` — errexit WITHOUT pipefail — so a failing pg_dump would
+      # hand `age` an empty stream, `age` would encrypt it and exit 0, and the
+      # job would go green while uploading a backup of nothing. `shell: bash`
+      # gets `-eo pipefail`; the explicit `set -euo pipefail` keeps that true
+      # even if the runner's default ever changes.
+      #
+      # No `| gzip`: `--format=custom` is already zlib-compressed, and the
+      # extra stage only made the restore recipe longer (docs/wiki/Deployment.md).
+      - name: Dump and encrypt
+        shell: bash
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           AGE_PUBLIC_KEY: ${{ vars.AGE_PUBLIC_KEY }}
         run: |
+          set -euo pipefail
           pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges \
-            | gzip \
             | age -r "$AGE_PUBLIC_KEY" -o dump.age
+
+          # Belt and braces for the failure mode above: even a schema-only
+          # dump of this database is tens of kilobytes, so anything under
+          # 10 kB is an empty pipe wearing a valid age envelope. Fail here
+          # rather than retain a decoy artifact for 90 days.
+          size=$(stat -c%s dump.age 2>/dev/null || stat -f%z dump.age)
+          echo "dump.age: ${size} bytes"
+          if [ "$size" -lt 10000 ]; then
+            echo "::error::dump.age is only ${size} bytes — the dump is empty or truncated, refusing to upload" >&2
+            exit 1
+          fi
 
       - name: Upload encrypted dump
         uses: actions/upload-artifact@v4

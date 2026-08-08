@@ -24,8 +24,11 @@ function fieldStateClass(error: boolean, locked: boolean): string {
 const LABEL_CLASS =
   "text-[10.5px] font-semibold uppercase tracking-[0.1em] text-mute";
 
-/** No `outline-none`: the global `:focus-visible` ring in globals.css is the
- *  app's focus indicator, and the inset accent pair above only reinforces it. */
+/** No `outline-none` either way: the accent border + inset ring above IS this
+ *  field's focus indicator. globals.css deliberately scopes its `:focus-visible`
+ *  outline away from text entries — those match `:focus-visible` on a plain
+ *  click/tap too, so keeping both painted three concentric rings on every
+ *  tapped field. */
 const INPUT_BASE =
   "min-h-11 w-full border bg-paper px-3 font-mono text-[14px] text-ink placeholder:text-mute-2";
 

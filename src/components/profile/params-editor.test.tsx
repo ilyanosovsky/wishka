@@ -82,9 +82,24 @@ describe("ParamsEditor — tastes", () => {
     renderEditor({ sizes: {}, tastes: ["coffee"], noGift: [] });
 
     expect(screen.getByText("coffee")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Удалить"));
+    fireEvent.click(screen.getByLabelText("Удалить: coffee"));
 
     expect(screen.queryByText("coffee")).not.toBeInTheDocument();
+  });
+
+  /** Nine identically-labelled «Удалить» buttons are nine indistinguishable
+   *  announcements for a screen-reader user — each one names its own item. */
+  it("names every remove button after the item it removes", () => {
+    renderEditor({
+      sizes: { рост: "180" },
+      tastes: ["coffee", "tea"],
+      noGift: ["perfume"],
+    });
+
+    for (const name of ["coffee", "tea", "perfume", "рост"]) {
+      expect(screen.getByLabelText(`Удалить: ${name}`)).toBeInTheDocument();
+    }
+    expect(screen.queryByLabelText("Удалить")).toBeNull();
   });
 
   it("ignores an empty or duplicate taste", () => {
@@ -115,7 +130,7 @@ describe("ParamsEditor — no-gift", () => {
     renderEditor({ sizes: {}, tastes: [], noGift: ["perfume"] });
 
     expect(screen.getByText("perfume")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Удалить"));
+    fireEvent.click(screen.getByLabelText("Удалить: perfume"));
 
     expect(screen.queryByText("perfume")).not.toBeInTheDocument();
   });
@@ -180,7 +195,7 @@ describe("ParamsEditor — custom size parameters (§6.6)", () => {
 
     expect(screen.getByLabelText("рост")).toHaveValue("180");
     // The four known rows have no remove button — only the custom one does.
-    fireEvent.click(screen.getByLabelText("Удалить"));
+    fireEvent.click(screen.getByLabelText("Удалить: рост"));
     expect(screen.queryByLabelText("рост")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Одежда")).toHaveValue("M");
   });
@@ -198,5 +213,63 @@ describe("ParamsEditor — custom size parameters (§6.6)", () => {
     // No second "Одежда" row appeared, and the existing value survived.
     expect(screen.getAllByLabelText("Одежда")).toHaveLength(1);
     expect(screen.getByLabelText("Одежда")).toHaveValue("M");
+  });
+
+  /**
+   * The refusal used to clear the input first and return silently, so a
+   * rejected name looked exactly like an accepted one. The name stays put and
+   * the field is marked invalid — the only "reason" available without inventing
+   * a copy key for it.
+   */
+  it("keeps a refused name in the field and marks it invalid", () => {
+    renderEditor({ sizes: { рост: "180" }, tastes: [], noGift: [] });
+    const input = screen.getByLabelText("Свой параметр");
+
+    fireEvent.change(input, { target: { value: "Рост" } });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить параметр" }));
+
+    expect(input).toHaveValue("Рост");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getAllByLabelText("рост")).toHaveLength(1);
+
+    // Editing the name clears the refusal.
+    fireEvent.change(input, { target: { value: "Ростом" } });
+    expect(input).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("refuses a name that only matches Object.prototype, and accepts it as a row", () => {
+    renderEditor();
+    const input = screen.getByLabelText("Свой параметр");
+
+    // `"constructor" in sizes` is true — `Object.hasOwn` is what makes this
+    // perfectly ordinary parameter name work.
+    fireEvent.change(input, { target: { value: "constructor" } });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить параметр" }));
+
+    expect(screen.getByLabelText("constructor")).toBeInTheDocument();
+    expect(input).toHaveValue("");
+  });
+
+  it("drops a custom row left blank on save, so the list matches what saved", async () => {
+    renderEditor({ sizes: { рост: "180" }, tastes: [], noGift: [] });
+
+    fireEvent.change(screen.getByLabelText("Свой параметр"), {
+      target: { value: "любимый цвет" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить параметр" }));
+    expect(screen.getByLabelText("любимый цвет")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
+
+    await vi.waitFor(() => expect(updatePublicParams).toHaveBeenCalledTimes(1));
+    // The blank row is not sent…
+    expect(updatePublicParams).toHaveBeenCalledWith({
+      sizes: { рост: "180" },
+      tastes: [],
+      noGift: [],
+    });
+    // …and does not linger on screen pretending it was.
+    expect(screen.queryByLabelText("любимый цвет")).toBeNull();
+    expect(screen.getByLabelText("рост")).toHaveValue("180");
   });
 });

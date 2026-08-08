@@ -69,9 +69,15 @@ export async function updatePublicParams(
  * write paths must not diverge.
  */
 export async function updateNameAction(name: string): Promise<{ ok: boolean }> {
-  await requireUserId();
+  const userId = await requireUserId();
   const trimmed = name.trim().slice(0, NAME_MAX_LENGTH);
   if (!trimmed) return { ok: false };
+
+  // Read before the write: the name is what `/u/<nickname>` puts in its header,
+  // its banner and its share card, so that path has to be revalidated too —
+  // the nickname change already does, and the two must not diverge the moment
+  // anything makes `/u` cacheable.
+  const profile = await getProfile(getDb(), userId);
 
   try {
     await getAuth().api.updateUser({
@@ -83,6 +89,7 @@ export async function updateNameAction(name: string): Promise<{ ok: boolean }> {
   }
 
   revalidatePath("/profile");
+  if (profile) revalidatePath(`/u/${profile.nickname}`);
   return { ok: true };
 }
 
@@ -134,7 +141,12 @@ export async function updateNicknameAction(
   return { ok: true };
 }
 
-/** §6.6 base currency. Same single-column discipline as the nickname write. */
+/**
+ * §6.6 base currency. Same single-column discipline as the nickname write:
+ * `upsertProfile` builds its SET list from the keys it is given, so passing
+ * only `baseCurrency` means a concurrent rename cannot be clobbered by this
+ * action echoing a stale nickname back.
+ */
 export async function updateBaseCurrencyAction(
   code: string,
 ): Promise<{ ok: boolean }> {
@@ -145,11 +157,7 @@ export async function updateBaseCurrencyAction(
   const existing = await getProfile(db, userId);
   if (!existing) return { ok: false };
 
-  await upsertProfile(db, {
-    userId,
-    nickname: existing.nickname,
-    baseCurrency: code,
-  });
+  await upsertProfile(db, { userId, baseCurrency: code });
 
   revalidatePath("/profile");
   return { ok: true };

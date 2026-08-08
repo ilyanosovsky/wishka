@@ -92,6 +92,11 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
 
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState(false);
+  // Separate from `urlError` on purpose: «Ссылка должна начинаться с http(s)://»
+  // under an untouched, empty field reads as "I typed something wrong" when the
+  // user typed nothing at all. The clipboard has its own calm notice (§6.3),
+  // shown next to the button that caused it.
+  const [clipboardNoLink, setClipboardNoLink] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [slow, setSlow] = useState(false);
   const [duplicate, setDuplicate] = useState<{
@@ -142,6 +147,7 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
     if (!open) {
       setUrl("");
       setUrlError(false);
+      setClipboardNoLink(false);
       setPhase("idle");
       setSlow(false);
       setDuplicate(null);
@@ -303,6 +309,7 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
   }
 
   async function handlePasteClipboard() {
+    setClipboardNoLink(false);
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!text) return; // empty clipboard: nothing to say, just focus the field
@@ -310,8 +317,9 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
         setUrl(text);
         setUrlError(false);
       } else {
-        // Not a link — say so on the field rather than pasting junk into it.
-        setUrlError(true);
+        // Not a link — say so next to the clipboard button, and leave the
+        // field (and its own error state) alone: the user never typed there.
+        setClipboardNoLink(true);
       }
     } catch {
       // Clipboard permission denied or unsupported — fall through to focus.
@@ -348,19 +356,27 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
               onChange={(event) => {
                 setUrl(event.target.value);
                 setUrlError(false);
+                setClipboardNoLink(false);
               }}
               error={urlError}
               helperText={t("parse.urlInvalid")}
             />
 
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-fit px-0"
-              onClick={() => void handlePasteClipboard()}
-            >
-              {t("parse.pasteClipboard")}
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-fit px-0"
+                onClick={() => void handlePasteClipboard()}
+              >
+                {t("parse.pasteClipboard")}
+              </Button>
+              {clipboardNoLink && (
+                <p role="status" className="text-[11px] text-mute">
+                  {t("parse.clipboardNoLink")}
+                </p>
+              )}
+            </div>
 
             <Button
               type="button"

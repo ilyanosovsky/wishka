@@ -37,9 +37,6 @@ function formatAmount(raw: string, locale: Locale): string {
  *
  * `locale` decides grouping and the decimal separator: ru-RU renders 1400.5 as
  * "1 400,5", en-US as "1,400.5" (invariant #7).
- *
- * wish-card, wish-detail, my-list, reservation-card and app/w/[id] still rely
- * on the default.
  */
 export function formatPrice(input: PriceInput, locale: Locale): string | null {
   const symbol = symbolFor(input.currency);

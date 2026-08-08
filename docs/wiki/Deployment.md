@@ -60,13 +60,17 @@ Google Cloud Console → APIs & Services → Credentials → the existing OAuth 
    gh variable set AGE_PUBLIC_KEY --body "age1..."
    gh variable set BACKUP_ENABLED --body "true"
    ```
-4. The workflow now runs daily at 03:17 UTC (or on demand via `gh workflow run db-backup.yml`), dumps the database, gzips it, encrypts it with `age -r "$AGE_PUBLIC_KEY"`, and uploads the **ciphertext only** as a 90-day artifact. `DATABASE_URL` is never echoed, printed, or written to a file.
+4. The workflow now runs daily at 03:17 UTC (or on demand via `gh workflow run db-backup.yml`), dumps the database with `pg_dump --format=custom` (already zlib-compressed — there is no separate gzip stage), encrypts it with `age -r "$AGE_PUBLIC_KEY"`, and uploads the **ciphertext only** as a 90-day artifact. `DATABASE_URL` is never echoed, printed, or written to a file.
 
-**Restore:**
+**Why the job is fussy about failing:** a backup that fails silently is worse than no backup, so the dump step runs under `shell: bash` + `set -euo pipefail` (the *default* GitHub shell is `bash -e` **without** `pipefail`, which would let a failed `pg_dump` feed `age` an empty stream and still exit 0), and the step then refuses to upload a `dump.age` smaller than 10 kB.
+
+**Keep the client pinned:** the install step pulls `postgresql-client-<PG_MAJOR>` from the PGDG apt repo, because `ubuntu-latest`'s stock package trails the server and a client older than the server makes `pg_dump` abort. When Railway's Postgres major moves, bump `PG_MAJOR` in `.github/workflows/db-backup.yml`.
+
+**Restore:** (`pg_restore` reads the custom-format archive straight off the decrypted stream — no `gunzip` step)
 
 ```bash
 gh run download <run-id> -n db-backup-<run-id>   # downloads dump.age
-age -d -i wishka-backup-key.txt dump.age | gunzip | pg_restore \
+age -d -i wishka-backup-key.txt dump.age | pg_restore \
   --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-privileges
 ```
 

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -181,6 +182,53 @@ describe("ProfileIdentity — nickname sheet", () => {
     await waitFor(() =>
       expect(updateNicknameAction).toHaveBeenCalledWith("masha-2"),
     );
+  });
+
+  /**
+   * Debouncing cancels the timer, not an in-flight request: type `abc`, wait,
+   * then type `abcd`, and a slow `abc` probe can answer *after* the `abcd` one.
+   * Before the generation guard the stale answer won `setNickCheck`, and since
+   * `nickCheck.value` then never matched `nickValue` again, the sheet sat at
+   * «…» with Save disabled forever.
+   */
+  it("lets the newest probe win when an older one resolves last", async () => {
+    const pending: Array<{
+      value: string;
+      resolve: (result: string) => void;
+    }> = [];
+    checkNicknameAction.mockImplementation(
+      (value: string) =>
+        new Promise<string>((resolve) => {
+          pending.push({ value, resolve });
+        }),
+    );
+
+    renderIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /preview\.example/ }));
+
+    fireEvent.change(nicknameInput(), { target: { value: "abc" } });
+    await vi.advanceTimersByTimeAsync(500);
+    fireEvent.change(nicknameInput(), { target: { value: "abcd" } });
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(pending.map((probe) => probe.value)).toEqual(["abc", "abcd"]);
+
+    // Newest answers first…
+    await act(async () => {
+      pending[1].resolve("free");
+    });
+    // …then the stale one lands, and must be ignored.
+    await act(async () => {
+      pending[0].resolve("taken");
+    });
+
+    expect(screen.queryByText("Ник занят — попробуй другой")).toBeNull();
+    expect(saveButtons()[1]).toBeEnabled();
+
+    // Still enabled after the debounce window has fully drained — no late
+    // probe re-enters "checking".
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(saveButtons()[1]).toBeEnabled();
   });
 
   it("re-marks the field as taken when the write loses the race", async () => {

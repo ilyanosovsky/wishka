@@ -8,9 +8,9 @@ import type { MetadataRoute } from "next";
  * meant to be discoverable.
  *
  * This covers the *listing* half of the fix; the *per-page* `noindex`
- * metadata for `/u/[nickname]` and `/w/[id]` (belt-and-suspenders — some
- * crawlers ignore robots.txt for pages linked from elsewhere) is owned by
- * the agent working those route files, tracked separately.
+ * metadata (belt-and-suspenders — some crawlers ignore robots.txt for pages
+ * linked from elsewhere) lives on the route files themselves: `/u/[nickname]`,
+ * `/w/[id]`, `/g/[token]/confirm` and `/invite/[token]`.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -26,6 +26,10 @@ export default function robots(): MetadataRoute.Robots {
         "/g/",
         "/u/",
         "/w/",
+        // The token is a live 14-day join credential and the page names the
+        // group before any session check — an invite pasted into a public
+        // channel must not become a search result.
+        "/invite/",
       ],
     },
   };

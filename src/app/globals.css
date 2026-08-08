@@ -62,12 +62,19 @@ body {
   color: var(--accent-ink);
 }
 
-/* The app's single focus indicator. Keyboard-only by design (:focus-visible),
-   drawn outside the box so it survives the ink-filled controls — active tab,
-   TabBar, Fab, toast bar — that would otherwise swallow it. Components must
-   not spend `outline` on a resting or selected state; use a border or an
-   inset ring there (see groups/group-appearance-fields.tsx). */
-:focus-visible {
+/* The app's focus indicator for everything that is not a text entry, drawn
+   outside the box so it survives the ink-filled controls — active tab, TabBar,
+   Fab, toast bar — that would otherwise swallow it. Components must not spend
+   `outline` on a resting or selected state; use a border or an inset ring
+   there (see groups/group-appearance-fields.tsx).
+
+   Scoped away from text entries on purpose: per spec, inputs/textareas match
+   `:focus-visible` on a plain mouse click or touch tap too, not only via the
+   keyboard — so the unscoped rule painted this ring *on top of* the field's
+   own accent border + inset ring (ui/field.tsx) and every tap on the Paper
+   Ledger's deliberately quiet forms produced a triple halo. Fields keep their
+   own indicator; it is the single one they need, in every input modality. */
+:focus-visible:not(input):not(textarea):not(select):not([contenteditable]) {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }

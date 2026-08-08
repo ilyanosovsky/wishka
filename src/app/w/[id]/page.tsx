@@ -70,8 +70,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const t = await getTranslations();
+  // `absolute` so the root layout's `%s · Wishka` template does not turn the
+  // fallback — the card a stranger sees on a dead or restricted link — into
+  // "Wishka · Wishka".
   const generic: Metadata = {
-    title: "Wishka",
+    title: { absolute: "Wishka" },
     robots: { index: false, follow: false },
   };
 
@@ -124,9 +127,13 @@ export default async function SharedWishPage({
   }
 
   // §6.5/§6.8 name the owner by their display name; the nickname only builds
-  // the link back to their list.
+  // the link back to their list. «Из списка: {name}» and «Вы смотрите список:
+  // {name}» both need *something*, so a nameless owner (email signup that
+  // skipped onboarding — `getPublicIdentityByUserId` returns null, not "")
+  // falls back to the nickname, which is never empty. Only a wish whose owner
+  // has no profile row at all leaves this blank, and that row cannot exist.
   const owner = await getPublicIdentityByUserId(db, wish.ownerId);
-  const ownerName = owner?.name ?? "";
+  const ownerName = owner ? (owner.name ?? owner.nickname) : "";
   const listHref = owner ? `/u/${owner.nickname}` : "/";
 
   const rawLocale = await getLocale();

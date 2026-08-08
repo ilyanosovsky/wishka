@@ -19,6 +19,7 @@ import {
 import type { PreviewViewer } from "@/db/access/types";
 import { getAudienceCandidates } from "@/db/access/visibility";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
+import { extractStorageKey } from "@/lib/storage/uploadthing";
 import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
 
 /**
@@ -114,27 +115,39 @@ export async function generateMetadata({
   const t = await getTranslations();
 
   // An unknown nickname renders the invalid-link screen; its card says nothing
-  // about whether that nickname exists.
+  // about whether that nickname exists. `absolute` because the root layout's
+  // `%s · Wishka` template would otherwise render "Wishka · Wishka".
   if (!identity) {
-    return { title: "Wishka", robots: { index: false, follow: false } };
+    return {
+      title: { absolute: "Wishka" },
+      robots: { index: false, follow: false },
+    };
   }
 
+  // A user who signed in by email and skipped onboarding has no name at all —
+  // the nickname is the only thing that is never empty.
+  const title = identity.name ?? identity.nickname;
   const description = t("meta.description");
+  // Only an image on OUR storage may enter a share card. A Google OAuth avatar
+  // is hotlinked on `user.image` today (see next.config.ts's img-src note);
+  // putting it here would publish a Google CDN URL into every link preview.
+  const image =
+    identity.image && extractStorageKey(identity.image) ? identity.image : null;
   return {
-    title: identity.name,
+    title,
     description,
     robots: { index: false, follow: false },
     openGraph: {
       type: "profile",
-      title: identity.name,
+      title,
       description,
-      ...(identity.image ? { images: [identity.image] } : {}),
+      ...(image ? { images: [image] } : {}),
     },
     twitter: {
-      card: identity.image ? "summary_large_image" : "summary",
-      title: identity.name,
+      card: image ? "summary_large_image" : "summary",
+      title,
       description,
-      ...(identity.image ? { images: [identity.image] } : {}),
+      ...(image ? { images: [image] } : {}),
     },
   };
 }
@@ -162,8 +175,9 @@ export default async function PublicListPage({
   }
 
   // §6.5 names the owner by their display name and avatar; the nickname stays
-  // in the URL. A profile row cannot exist without its `user` row, so the
-  // nickname fallback only ever covers an impossible state.
+  // in the URL. The fallback is load-bearing, not defensive: an email signup
+  // that skipped onboarding has no name (`getPublicIdentityByUserId` normalizes
+  // the empty string to null), and the nickname is never empty.
   const identity = await getPublicIdentityByUserId(db, profile.userId);
   const displayName = identity?.name ?? profile.nickname;
 

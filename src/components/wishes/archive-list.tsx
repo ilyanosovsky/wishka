@@ -102,9 +102,14 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
           >
             {t("archive.title")}
           </h1>
-          <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
-            {t("archive.countLabel", { count: wishes.length })}
-          </p>
+          {/* The `=0 {}` ICU branch renders an empty string, not nothing — an
+              unconditional <p> would still occupy its `mt-0.5` on the empty
+              archive screen. */}
+          {wishes.length > 0 && (
+            <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
+              {t("archive.countLabel", { count: wishes.length })}
+            </p>
+          )}
         </div>
       </header>
 

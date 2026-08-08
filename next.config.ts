@@ -15,6 +15,19 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
  *  - `img-src`: `*.ufs.sh` + `utfs.io` are UploadThing's file-read hosts
  *    (see `src/lib/storage/uploadthing.ts`'s own host-matching doc comment)
  *    — the only place re-hosted wish/avatar images are served from.
+ *    `lh3.googleusercontent.com` is Google's avatar CDN: Better Auth stores
+ *    the OAuth `picture` URL verbatim on `user.image`, and nothing re-hosts it
+ *    yet, so a Google sign-up who never uploaded an avatar would otherwise get
+ *    a CSP-blocked <img> on every public surface. Re-hosting it through
+ *    `lib/storage/` (which is what invariant #6 actually wants) is a recorded
+ *    backlog item; until then this entry keeps the avatar rendering. Note that
+ *    only `img-src` accepts it — such a URL is never emitted into share-card
+ *    metadata, see `generateMetadata` in `src/app/u/[nickname]/page.tsx`.
+ *  - `base-uri` / `form-action` have NO fallback to `default-src` in CSP L3,
+ *    so they are stated explicitly: with `script-src 'unsafe-inline'`
+ *    conceded, these are the cheapest directives left that still stop an
+ *    injected `<base href>` from re-pointing every relative URL, and stop an
+ *    injected form from posting to an external origin.
  *  - `connect-src`: `*.uploadthing.com` covers both `api.uploadthing.com`
  *    (the SDK's control-plane calls) and `ingest.uploadthing.com` (where the
  *    browser PUTs the file bytes directly during upload); `*.ufs.sh` covers
@@ -34,12 +47,15 @@ function buildCsp(): string {
       "'self'",
       "https://*.ufs.sh",
       "https://utfs.io",
+      "https://lh3.googleusercontent.com",
       "data:",
       "blob:",
     ],
     "script-src": scriptSrc,
     "style-src": ["'self'", "'unsafe-inline'"],
     "connect-src": ["'self'", "https://*.ufs.sh", "https://*.uploadthing.com"],
+    "base-uri": ["'self'"],
+    "form-action": ["'self'"],
     "frame-ancestors": ["'none'"],
   };
 

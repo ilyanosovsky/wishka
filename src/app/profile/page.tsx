@@ -33,10 +33,16 @@ export default async function ProfilePage() {
     ? (candidates.people.find((p) => p.userId === profile.partnerId) ?? null)
     : null;
 
+  // Better Auth writes `name: ""` for an email signup, and «Пропустить» on
+  // /welcome never fills it in — so `??` alone would render a blank header and
+  // an aria-hidden "?" avatar. Trim-then-fallback, same rule the public
+  // identity read applies in SQL (`src/db/access/public-identity.ts`).
+  const displayName = session.user.name?.trim() || profile.nickname;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-6 px-6 pt-14 pb-28">
       <ProfileIdentity
-        name={session.user.name ?? profile.nickname}
+        name={displayName}
         image={session.user.image ?? null}
         nickname={profile.nickname}
         appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ""}

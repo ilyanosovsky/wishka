@@ -94,19 +94,38 @@ export function ProfileIdentity({
           ? nickCheck.result
           : "checking";
 
+  /**
+   * Generation counter for the availability probe — the same guard
+   * `add-wish-sheet.tsx` uses for `parseUrlAction`.
+   *
+   * Debouncing cancels the *timer*, not an already-issued request, so two
+   * probes can overlap whenever a value settles for 400 ms while the previous
+   * one is still open. Whichever resolved last used to win `setNickCheck`, and
+   * if that was the older value then `nickCheck.value !== nickValue` forever ⇒
+   * `nickState` stuck at "checking" ⇒ Save greyed out on a perfectly free
+   * nickname, with no further probe scheduled to break the deadlock. Only the
+   * newest probe may answer.
+   */
+  const nickProbeRef = useRef(0);
+
   // Debounced availability probe — same shape as the onboarding form's.
   useEffect(() => {
     if (!nickOpen) return;
     const value = nickDraft.trim().toLowerCase();
     if (!value || !NICKNAME_RE.test(value) || value === nickname) return;
     const timer = setTimeout(async () => {
+      nickProbeRef.current += 1;
+      const generation = nickProbeRef.current;
       const result = await checkNicknameAction(value);
+      if (nickProbeRef.current !== generation) return; // a newer probe owns the answer
       setNickCheck({ value, result });
     }, 400);
     return () => clearTimeout(timer);
   }, [nickDraft, nickOpen, nickname]);
 
   function openNickSheet() {
+    // Any probe still in flight belongs to the previous opening of the sheet.
+    nickProbeRef.current += 1;
     setNickDraft(nickname);
     setNickCheck(null);
     setNickOpen(true);

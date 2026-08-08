@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
@@ -16,7 +17,17 @@ import { AcceptInvitePanel } from "./accept-invite-panel";
  * to stay quiet about — a group invite is meant to be shown and explained, so
  * `expired`/`revoked`/`not_found` each get their own honest dead end instead
  * of a silent redirect.
+ *
+ * Meant to be *shown*, not *indexed*: the token is a live 14-day join
+ * credential and the group name is rendered before any session check, so this
+ * page carries the same per-page `noindex` as `/u` and `/w` on top of the
+ * `/invite/` disallow in `src/app/robots.ts`. Nothing else about the page's
+ * behaviour changes — the metadata is static and never reads the token.
  */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function InvitePage({
   params,
 }: {

@@ -16,6 +16,10 @@ export type DialogProps = {
   open: boolean;
   title: string;
   description?: string;
+  /** Inline failure line, announced via `role="alert"`. For a confirmed action
+   *  that did not go through: the dialog stays open and says so, instead of
+   *  closing as if it had worked (see `auth/sign-out-button.tsx`). */
+  error?: string;
   /** One or two actions — the footer is a two-column split, never more. */
   actions: readonly [DialogAction] | readonly [DialogAction, DialogAction];
   onClose: () => void;
@@ -41,6 +45,7 @@ export function Dialog({
   open,
   title,
   description,
+  error,
   actions,
   onClose,
 }: DialogProps) {
@@ -112,6 +117,14 @@ export function Dialog({
             className="px-[18px] pt-1 pb-3.5 text-[12.5px] leading-[1.5] text-mute"
           >
             {description}
+          </div>
+        )}
+        {error && (
+          <div
+            role="alert"
+            className="px-[18px] pt-1 pb-3.5 text-[12.5px] leading-[1.5] text-neg"
+          >
+            {error}
           </div>
         )}
         <div className="flex border-t border-rule">

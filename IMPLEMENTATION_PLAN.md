@@ -16,7 +16,7 @@
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ✅ done |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
-| 8 | Groups, partner, visibility, view-as | 8a this branch · 8b next | 🔵 |
+| 8 | Groups, partner, visibility, view-as | 8a PR #9 · 8b PR #10 | ✅ |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ✅ |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
@@ -167,9 +167,11 @@ From mockup analysis (design/ vs DESIGN_BRIEF.md):
 - **Public parameters save with an explicit button**, not §6.6's autosave-with-toast — deliberate Phase 7a simplification, kept.
 - **Clipboard is a button, not a conditional suggestion block** (§6.3): proactively reading the clipboard triggers a browser permission prompt, so the app asks only on tap. The pasted text is validated as a URL (Phase 9).
 - **Duplicate state shows the existing wish's title, not a full card preview** (§6.3) — the parse-cache payload stays minimal for MVP.
-- **The grey hierarchy inverted against the design file.** The design pair (`--mute` lighter than `--mute-2`'s AA floor) cannot survive contrast: the lightest AA-legal grey on this paper *is* the mute-2 tier, so shipped `--mute` steps darker to stay a visibly separate tier (mirrored in dark).
+- **The grey hierarchy inverted against the design file.** The design pair (`--mute` lighter than `--mute-2`'s AA floor) cannot survive contrast: the lightest AA-legal grey on this paper *is* the mute-2 tier, so shipped `--mute` steps darker; the two greys now sit ~1.15:1 apart — effectively one tier, the price of AA on this paper (mirrored in dark).
 - **`--null-rule` stops at ≈2.3:1, not 3:1** — NullPill and the warning banner are non-interactive, so WCAG 1.4.11 does not bind them, and 3:1 would read as a second ink line. Pinned in `tokens-contrast.test.ts`'s hairline block.
 - **The focus ring cannot reach 3:1 on `--accent`-filled controls** (mathematically no colour clears paper+ink+accent at once; brute-forced max 2.59). It is optimised for bg/paper/zebra/ink surfaces; `outline-offset: 2px` draws it on the parent surface anyway.
+- **Freed nicknames are immediately claimable.** A rename releases `/u/<old>` for the next taker; the warning copy promises the link stops working, which stays true — a tombstone/cool-off is a v2 nicety, not a launch gate.
+- **DreamStamp/lock badges sit at 92% paper opacity** — AA legibility over any photo beats the 72% overprint look; revisit visually if the stamp reads too solid.
 - **Modal backgrounds get `inert` only, not `aria-hidden` too** — `inert` alone removes the subtree from the tree in every shipping browser, and doubling with `aria-hidden` breaks testing-library queries.
 - **Light-theme `--mute`, `--mute-2` and the NULL family deviate from `design/uploads/tokens.css`**: the design values fail WCAG AA (4.32:1 / 2.61:1 / 3.66:1); Phase 9 darkens them minimally to pass. The source-of-truth file in `design/` is unchanged — the shipped `src/styles/tokens.css` is the accessible variant.
 

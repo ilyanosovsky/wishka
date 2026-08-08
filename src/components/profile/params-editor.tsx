@@ -56,6 +56,17 @@ function isSizesEmpty(sizes: Record<string, string>): boolean {
   return Object.values(sizes).every((value) => !value.trim());
 }
 
+/** Mirror of `sanitizeSizes`' empty-drop rule (params-sanitize.ts): a row left
+ *  blank is not saved, so it must not survive the save locally either — it
+ *  used to keep rendering until the next reload silently removed it. */
+function withoutBlankValues(
+  sizes: Record<string, string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(sizes).filter(([, value]) => value.trim() !== ""),
+  );
+}
+
 /** Anything the four known rows don't cover — «рост», «любимый цвет», … The
  *  sanitizer already tolerates arbitrary keys under the same caps, so this is
  *  purely the write-side UI §6.6 asks for. */
@@ -81,6 +92,10 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
   const [tasteDraft, setTasteDraft] = useState("");
   const [noGiftDraft, setNoGiftDraft] = useState("");
   const [customNameDraft, setCustomNameDraft] = useState("");
+  // The one visible reason a name was refused (duplicate, or the cap). The
+  // field's own error state carries it — `params.*` has no string for this and
+  // the copy catalogue is not this component's to grow.
+  const [customNameRejected, setCustomNameRejected] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -103,8 +118,23 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
       .slice(0, CUSTOM_KEY_MAX_LENGTH)
       .toLowerCase();
     if (!key) return;
+
+    // Guard BEFORE clearing the draft. Clearing first made a refused name look
+    // like an accepted one: the input emptied and nothing else happened.
+    // `Object.hasOwn`, not `in` — `in` also matches `constructor`/`toString`,
+    // which would silently refuse three perfectly ordinary parameter names.
+    const isKnownRow = (KNOWN_SIZE_KEYS as readonly string[]).includes(key);
+    if (
+      isKnownRow ||
+      Object.hasOwn(sizes, key) ||
+      customKeys.length >= MAX_CUSTOM_PARAMS
+    ) {
+      setCustomNameRejected(true);
+      return;
+    }
+
+    setCustomNameRejected(false);
     setCustomNameDraft("");
-    if (key in sizes || customKeys.length >= MAX_CUSTOM_PARAMS) return;
     setSizes((prev) => ({ ...prev, [key]: "" }));
   }
 
@@ -141,8 +171,17 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
   async function handleSave() {
     setSaving(true);
     setSaveError(false);
+    // What you see is what saved: the server drops blank-valued keys, so drop
+    // them here too rather than leave a row on screen that no longer exists.
+    const kept = withoutBlankValues(sizes);
+    setSizes(kept);
+    setCustomNameRejected(false);
     try {
-      const result = await updatePublicParams({ sizes, tastes, noGift });
+      const result = await updatePublicParams({
+        sizes: kept,
+        tastes,
+        noGift,
+      });
       if (result.ok) setSaved(true);
       else setSaveError(true);
     } catch {
@@ -188,7 +227,7 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
                 />
                 <button
                   type="button"
-                  aria-label={t("common.delete")}
+                  aria-label={t("common.removeItem", { name: key })}
                   onClick={() => removeCustomParam(key)}
                   className={REMOVE_BUTTON_CLASS}
                 >
@@ -209,7 +248,11 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
             value={customNameDraft}
             placeholder={t("params.customName")}
             maxLength={CUSTOM_KEY_MAX_LENGTH}
-            onChange={(event) => setCustomNameDraft(event.target.value)}
+            error={customNameRejected}
+            onChange={(event) => {
+              setCustomNameDraft(event.target.value);
+              setCustomNameRejected(false);
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
@@ -240,7 +283,7 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
                 <TagChip>{taste}</TagChip>
                 <button
                   type="button"
-                  aria-label={t("common.delete")}
+                  aria-label={t("common.removeItem", { name: taste })}
                   onClick={() => removeTaste(taste)}
                   className={REMOVE_BUTTON_CLASS}
                 >
@@ -282,7 +325,7 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
                 <NoGiftChip>{item}</NoGiftChip>
                 <button
                   type="button"
-                  aria-label={t("common.delete")}
+                  aria-label={t("common.removeItem", { name: item })}
                   onClick={() => removeNoGift(item)}
                   className={REMOVE_BUTTON_CLASS}
                 >

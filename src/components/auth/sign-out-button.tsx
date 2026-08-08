@@ -17,12 +17,33 @@ export function SignOutButton() {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [failed, setFailed] = useState(false);
 
+  function closeConfirm() {
+    if (signingOut) return;
+    setConfirmOpen(false);
+    setFailed(false);
+  }
+
+  /**
+   * `authClient.signOut()` is better-fetch-backed: an HTTP failure *resolves*
+   * with `{ data: null, error }` rather than throwing. Discarding that result
+   * is how a failed sign-out used to wipe the drafts, close the dialog and
+   * refresh the page while the session was still live — the exact opposite of
+   * what this control promises on a shared device. So: revoke first, and only
+   * then destroy anything.
+   */
   async function confirmSignOut() {
     if (signingOut) return;
     setSigningOut(true);
+    setFailed(false);
     try {
-      await authClient.signOut();
+      const result = await authClient.signOut();
+      if (result?.error) {
+        // Still signed in — the drafts are still this user's own.
+        setFailed(true);
+        return;
+      }
       // Drafts are per-user data — never leave them for the next account
       // on a shared device.
       for (const key of Object.keys(window.localStorage)) {
@@ -30,10 +51,14 @@ export function SignOutButton() {
           window.localStorage.removeItem(key);
         }
       }
+      setConfirmOpen(false);
       router.refresh();
+    } catch {
+      // Hard rejection (offline, aborted request) — same posture: nothing was
+      // revoked, so nothing gets deleted, and the dialog says so.
+      setFailed(true);
     } finally {
       setSigningOut(false);
-      setConfirmOpen(false);
     }
   }
 
@@ -51,18 +76,13 @@ export function SignOutButton() {
         open={confirmOpen}
         title={t("profile.signOutTitle")}
         description={t("profile.signOutBody")}
-        onClose={() => {
-          if (signingOut) return;
-          setConfirmOpen(false);
-        }}
+        error={failed ? t("common.actionFailed") : undefined}
+        onClose={closeConfirm}
         actions={[
           {
             label: t("common.cancel"),
             tone: "neutral",
-            onClick: () => {
-              if (signingOut) return;
-              setConfirmOpen(false);
-            },
+            onClick: closeConfirm,
           },
           {
             label: t("home.signOut"),

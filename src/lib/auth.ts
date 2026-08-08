@@ -48,8 +48,12 @@ async function resolveEmailLocale(): Promise<Locale> {
   return DEFAULT_LOCALE;
 }
 
+/** `Object.hasOwn`, not `in`: `"constructor" in authCode` is true, so `in`
+ *  would hand back a prototype member and make `copy.subject[locale]` throw
+ *  inside `sendVerificationOTP` — blocking the sign-in email entirely, which is
+ *  the opposite of what this fallback exists for. */
 function authCodeType(type: string): AuthCodeType {
-  return type in authCode ? (type as AuthCodeType) : "sign-in";
+  return Object.hasOwn(authCode, type) ? (type as AuthCodeType) : "sign-in";
 }
 
 /**

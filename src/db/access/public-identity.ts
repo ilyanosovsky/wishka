@@ -22,8 +22,16 @@ export type PublicIdentity = {
   userId: string;
   /** Canonical stored nickname — the `/u/<nickname>` URL segment. */
   nickname: string;
-  /** Display name (§6.5) — what headers, banners and share cards show. */
-  name: string;
+  /**
+   * Display name (§6.5) — what headers, banners and share cards show, or null
+   * when this user has none. Normalized here rather than at the call sites:
+   * Better Auth's email-OTP signup writes `name: ""` and «Пропустить» on
+   * `/welcome` never fills it in, and `"" ?? fallback` is `""` — so an
+   * un-normalized empty string slipped past every `??` guard and rendered as a
+   * blank `<h1>`, a blank «Из списка: » and a `" · Wishka"` title. A single
+   * `nullif(btrim(...))` at the boundary makes those fallbacks fire.
+   */
+  name: string | null;
   /** Avatar URL on our own storage, or null for the initial-tile fallback. */
   image: string | null;
 };
@@ -31,7 +39,7 @@ export type PublicIdentity = {
 const columns = {
   userId: profiles.userId,
   nickname: profiles.nickname,
-  name: user.name,
+  name: sql<string | null>`nullif(btrim(${user.name}), '')`,
   image: user.image,
 };
 

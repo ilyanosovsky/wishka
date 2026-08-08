@@ -100,6 +100,7 @@
   "common": {
     "cancel": "Cancel",
     "delete": "Delete",
+    "removeItem": "Remove {name}",
     "save": "Save",
     "undo": "Undo",
     "back": "Back",
@@ -293,6 +294,7 @@
     "urlLabel": "Product link",
     "urlPlaceholder": "https://…",
     "pasteClipboard": "Paste from clipboard",
+    "clipboardNoLink": "No link in the clipboard — paste one into the field",
     "parseCta": "Add from link",
     "orManual": "or",
     "manualCta": "Fill in manually",
@@ -344,10 +346,10 @@
     "filterAll": "All",
     "filterFree": "Available only",
     "filterLabel": "Filter",
-    "emptyOwner": "Nothing on this list yet",
+    "emptyOwner": "{name}'s list is empty so far",
     "emptyOwnerHint": "Check \"Good to know\" — there are gift hints there.",
     "allReserved": "All taken 🎉",
-    "backToList": "See the whole list →",
+    "backToList": "See {name}'s whole list →",
     "fromList": "From: {name}"
   },
   "share": {

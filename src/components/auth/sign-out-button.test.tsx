@@ -85,4 +85,63 @@ describe("SignOutButton", () => {
     expect(window.localStorage.getItem("wishka-wish-draft:42")).toBeNull();
     expect(window.localStorage.getItem("wishka-locale")).toBe("ru");
   });
+
+  /**
+   * `authClient.signOut()` resolves with `{ data, error }` instead of throwing,
+   * so a 500/403 used to sail straight into the draft wipe and the refresh
+   * while the session was still valid. Both failure shapes are pinned here.
+   */
+  it("keeps the drafts, the session and the dialog when sign-out fails", async () => {
+    signOut.mockResolvedValue({
+      data: null,
+      error: { status: 500, message: "boom" },
+    });
+    window.localStorage.setItem("wishka-wish-draft:new", "{}");
+    renderControl();
+
+    fireEvent.click(signOutButtons()[0]);
+    fireEvent.click(signOutButtons()[1]);
+
+    expect(
+      await screen.findByText("Не получилось — попробуй ещё раз"),
+    ).toBeInTheDocument();
+    // Still signed in: nothing was deleted and nothing was re-rendered as if
+    // the session had gone.
+    expect(window.localStorage.getItem("wishka-wish-draft:new")).toBe("{}");
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.getByText("Выйти из аккаунта?")).toBeInTheDocument();
+  });
+
+  it("treats a rejected sign-out the same way", async () => {
+    signOut.mockRejectedValue(new Error("offline"));
+    window.localStorage.setItem("wishka-wish-draft:new", "{}");
+    renderControl();
+
+    fireEvent.click(signOutButtons()[0]);
+    fireEvent.click(signOutButtons()[1]);
+
+    expect(
+      await screen.findByText("Не получилось — попробуй ещё раз"),
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem("wishka-wish-draft:new")).toBe("{}");
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("clears the failure when the dialog is dismissed and retried", async () => {
+    signOut.mockResolvedValueOnce({ data: null, error: { status: 500 } });
+    renderControl();
+
+    fireEvent.click(signOutButtons()[0]);
+    fireEvent.click(signOutButtons()[1]);
+    expect(
+      await screen.findByText("Не получилось — попробуй ещё раз"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    fireEvent.click(signOutButtons()[0]);
+
+    expect(
+      screen.queryByText("Не получилось — попробуй ещё раз"),
+    ).not.toBeInTheDocument();
+  });
 });

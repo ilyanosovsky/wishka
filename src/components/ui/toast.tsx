@@ -51,6 +51,9 @@ function useAutoDismiss(
   const remainingRef = useRef(ms);
   const startedAtRef = useRef(0);
   const pausedRef = useRef(false);
+  /** Set by `cancel()`, cleared only by a fresh `open`. A cancelled countdown
+   *  is over for good — `resume()` must not be able to restart it. */
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     dismissRef.current = onDismiss;
@@ -77,16 +80,24 @@ function useAutoDismiss(
   useEffect(() => {
     if (!open) return;
     pausedRef.current = false;
+    cancelledRef.current = false;
     start(ms);
     return clear;
   }, [open, ms, start, clear]);
 
   const cancel = useCallback(() => {
+    // `pausedRef` alone was not enough: the pointer leaving the bar after the
+    // action button was clicked calls `resume()`, which would `start()` the
+    // *full* remaining time again and eventually fire `onDismiss` on a toast
+    // the user had already acted on.
+    cancelledRef.current = true;
     pausedRef.current = true;
+    remainingRef.current = 0;
     clear();
   }, [clear]);
 
   const pause = useCallback(() => {
+    if (cancelledRef.current) return;
     if (pausedRef.current || timerRef.current === null) return;
     pausedRef.current = true;
     remainingRef.current = Math.max(
@@ -97,6 +108,7 @@ function useAutoDismiss(
   }, [clear]);
 
   const resume = useCallback(() => {
+    if (cancelledRef.current) return;
     if (!pausedRef.current) return;
     pausedRef.current = false;
     start(remainingRef.current);

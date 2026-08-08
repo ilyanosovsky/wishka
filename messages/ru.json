@@ -100,6 +100,7 @@
   "common": {
     "cancel": "Отмена",
     "delete": "Удалить",
+    "removeItem": "Удалить: {name}",
     "save": "Сохранить",
     "undo": "Отменить",
     "back": "Назад",
@@ -293,6 +294,7 @@
     "urlLabel": "Ссылка на товар",
     "urlPlaceholder": "https://…",
     "pasteClipboard": "Вставить из буфера",
+    "clipboardNoLink": "В буфере нет ссылки — вставьте её в поле",
     "parseCta": "Добавить по ссылке",
     "orManual": "или",
     "manualCta": "Заполнить вручную",
@@ -344,10 +346,10 @@
     "filterAll": "Все",
     "filterFree": "Только свободные",
     "filterLabel": "Фильтр",
-    "emptyOwner": "В списке пока пусто",
-    "emptyOwnerHint": "Загляни в «Что важно знать» — там подсказки для подарка.",
+    "emptyOwner": "Список {name}: пока пусто",
+    "emptyOwnerHint": "Загляните в «Что важно знать» — там подсказки для подарка.",
     "allReserved": "Всё уже разобрали 🎉",
-    "backToList": "Посмотреть весь список →",
+    "backToList": "Весь список: {name} →",
     "fromList": "Из списка: {name}"
   },
   "share": {
