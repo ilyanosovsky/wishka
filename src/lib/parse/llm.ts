@@ -105,7 +105,9 @@ export function toFields(raw: unknown): Partial<ParseFields> {
   if (priceMin && priceMax && Number(priceMax) > Number(priceMin)) {
     fields.priceMax = priceMax;
   }
-  if (currency && (priceMin || priceMax)) fields.currency = currency;
+  // Currency rides on priceMin only: a lone priceMax is dropped above, so a
+  // currency without priceMin would attach to no price at all.
+  if (currency && priceMin) fields.currency = currency;
 
   return fields;
 }
@@ -123,32 +125,35 @@ export function createOpenAiExtractor(): LlmExtractor | null {
 
   return {
     async extract(content) {
-      const completion = await client.chat.completions.create(
-        {
-          model,
-          // No temperature override: GPT-5-family models (our default
-          // gpt-5.6-luna) reject any non-default value. Extraction is
-          // constrained by the strict json_schema anyway.
-          max_completion_tokens: MAX_OUTPUT_TOKENS,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "product_fields",
-              strict: true,
-              schema: RESPONSE_SCHEMA,
-            },
-          },
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content },
-          ],
-        },
-        { timeout: REQUEST_TIMEOUT_MS },
-      );
-
-      const answer = completion.choices[0]?.message?.content;
-      if (!answer) return {};
+      // The whole round-trip is best-effort: a rejected request (network,
+      // 429/5xx, invalid model, timeout) or an unparseable answer must never
+      // propagate — the pipeline just treats it as "this layer found nothing".
       try {
+        const completion = await client.chat.completions.create(
+          {
+            model,
+            // No temperature override: GPT-5-family models (our default
+            // gpt-5.6-luna) reject any non-default value. Extraction is
+            // constrained by the strict json_schema anyway.
+            max_completion_tokens: MAX_OUTPUT_TOKENS,
+            response_format: {
+              type: "json_schema",
+              json_schema: {
+                name: "product_fields",
+                strict: true,
+                schema: RESPONSE_SCHEMA,
+              },
+            },
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content },
+            ],
+          },
+          { timeout: REQUEST_TIMEOUT_MS },
+        );
+
+        const answer = completion.choices[0]?.message?.content;
+        if (!answer) return {};
         return toFields(JSON.parse(answer));
       } catch {
         return {};

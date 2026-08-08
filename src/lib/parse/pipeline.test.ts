@@ -110,6 +110,22 @@ describe("runPipeline — L0 (fetch + OG/JSON-LD)", () => {
     expect(headers["Accept-Language"]).toContain("en-US");
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
+
+  it("caps the buffered HTML and still extracts top-of-document metadata", async () => {
+    // Metadata at the top, then a body far larger than the 2 MB read cap. The
+    // cap must not prevent extraction, and the read must not buffer it all.
+    const huge = shopifyLike + "<p>" + "x".repeat(3 * 1024 * 1024) + "</p>";
+    const result = await runPipeline(
+      URL_UNDER_TEST,
+      deps({
+        fetchFn: stubFetch([
+          { match: URL_UNDER_TEST, response: () => html(huge) },
+        ]),
+      }),
+    );
+    expect(result.fields.title).toBe("Handmade Ceramic Vase");
+    expect(result.status).toBe("ok");
+  });
 });
 
 describe("runPipeline — L1 (LLM over fetched HTML)", () => {

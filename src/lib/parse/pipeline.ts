@@ -69,7 +69,55 @@ const CHALLENGE_RE =
 const LLM_TEXT_LIMIT = 18_000;
 const LLM_HEAD_LIMIT = 6_000;
 
+/**
+ * Hard cap on the HTML we buffer from an untrusted URL. `response.text()` would
+ * pull the entire body into memory — a hostile or broken URL could stream
+ * gigabytes and OOM the function. All the metadata we need lives near the top
+ * of the document, so 2 MB is generous.
+ */
+const MAX_HTML_BYTES = 2 * 1024 * 1024;
+
 type FetchedPage = { html: string } | { html: null; blocked: true };
+
+/** Reads a response body as text, stopping once `MAX_HTML_BYTES` have arrived
+ *  and discarding the rest. Returns null on a stream error. */
+async function readCappedText(response: Response): Promise<string | null> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    // No stream (e.g. a test Response backed by a string) — fall back, but the
+    // fetch layer already declined bodies we could not size.
+    try {
+      return await response.text();
+    } catch {
+      return null;
+    }
+  }
+
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+  let text = "";
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      const slice =
+        total > MAX_HTML_BYTES
+          ? value.subarray(0, value.byteLength - (total - MAX_HTML_BYTES))
+          : value;
+      text += decoder.decode(slice, { stream: true });
+      if (total >= MAX_HTML_BYTES) {
+        await reader.cancel();
+        return text;
+      }
+    }
+    text += decoder.decode();
+    return text;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * A plain timed fetch for our *trusted* helper endpoints (Jina, Firecrawl):
@@ -120,13 +168,13 @@ async function fetchPage(
   // 403/429 are the polite refusals; 498/499 are Akamai/PerimeterX specials.
   if (!response.ok) {
     log(`L0 blocked: status ${response.status}`);
+    // Release the connection instead of leaving the body dangling.
+    await response.body?.cancel().catch(() => {});
     return { html: null, blocked: true };
   }
 
-  let html: string;
-  try {
-    html = await response.text();
-  } catch {
+  const html = await readCappedText(response);
+  if (html === null) {
     log("L0 body read failed");
     return { html: null, blocked: true };
   }

@@ -13,9 +13,9 @@ import { AddWishSheet } from "./add-wish-sheet";
 import type { ParseFields, ParseUrlResult } from "@/app/wishes/parse-actions";
 
 /**
- * `parse-actions.ts` is owned by a parallel agent and may not exist on disk
- * yet — per the Phase 5 task split, this suite mocks it entirely rather than
- * depending on (or worse, stubbing in) the real file.
+ * `parseUrlAction` is a server action; this suite mocks it so the sheet's
+ * state machine (parse → ok/partial/blocked/duplicate) is tested in isolation
+ * without a DB, network, or session.
  */
 
 afterEach(cleanup);
@@ -168,6 +168,26 @@ describe("AddWishSheet — stoplist/failed", () => {
     fireEvent.click(screen.getByRole("button", { name: "Заполнить вручную" }));
     expect(push).toHaveBeenCalledWith(
       `/wishes/new?url=${encodeURIComponent("https://blocked.example.com/item")}`,
+    );
+  });
+
+  it("degrades to the calm manual path when the action itself rejects", async () => {
+    // Network failure / server crash / session-redirect rejection.
+    parseUrlAction.mockRejectedValue(new Error("network down"));
+
+    renderSheet();
+    typeUrl("https://shop.example.com/z");
+    clickParse();
+
+    expect(
+      await screen.findByText(
+        "Этот магазин не делится данными — заполним вместе",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Заполнить вручную" }));
+    expect(push).toHaveBeenCalledWith(
+      `/wishes/new?url=${encodeURIComponent("https://shop.example.com/z")}`,
     );
   });
 });

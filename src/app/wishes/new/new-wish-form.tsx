@@ -53,13 +53,16 @@ function handoffToInitial(
   baseCurrency: string,
 ): Partial<WishFormValues> {
   const { fields, url } = handoff;
+  const priceType = priceTypeFor(fields);
+  // Keep price fields consistent with the resolved type: a lone priceMax
+  // (no priceMin) resolves to "none", so it must not leak into the form.
   return {
     title: fields.title ?? "",
     description: fields.description,
     imageUrl: fields.imageUrl,
-    priceType: priceTypeFor(fields),
-    priceMin: fields.priceMin,
-    priceMax: fields.priceMax,
+    priceType,
+    priceMin: priceType === "none" ? null : fields.priceMin,
+    priceMax: priceType === "range" ? fields.priceMax : null,
     currency: fields.currency ?? baseCurrency,
     url,
   };

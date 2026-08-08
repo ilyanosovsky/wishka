@@ -193,10 +193,11 @@ export type SafeFetchOptions = {
   lookup?: HostLookup;
 };
 
-function combineSignals(timeoutMs: number, signal?: AbortSignal): AbortSignal {
-  const signals: AbortSignal[] = [AbortSignal.timeout(timeoutMs)];
-  if (signal) signals.push(signal);
-  return AbortSignal.any(signals);
+function combineSignals(
+  timeoutSignal: AbortSignal,
+  signal?: AbortSignal,
+): AbortSignal {
+  return signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 }
 
 async function cancelBody(response: Response): Promise<void> {
@@ -223,6 +224,10 @@ export async function safeFetch(
   const maxHops = opts.maxHops ?? 2;
   let current = url;
 
+  // One timeout for the whole call (all hops), so `timeoutMs` bounds the entire
+  // fetch rather than resetting per redirect.
+  const timeoutSignal = AbortSignal.timeout(opts.timeoutMs);
+
   for (let hop = 0; hop <= maxHops; hop += 1) {
     if (!(await assertPublicUrl(current, { lookup: opts.lookup }))) return null;
 
@@ -231,7 +236,7 @@ export async function safeFetch(
       response = await fetchFn(current, {
         ...init,
         redirect: "manual",
-        signal: combineSignals(opts.timeoutMs, opts.signal),
+        signal: combineSignals(timeoutSignal, opts.signal),
       });
     } catch {
       return null;

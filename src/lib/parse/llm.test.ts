@@ -66,6 +66,13 @@ describe("toFields", () => {
     expect(fields.priceMax).toBe("150.00");
   });
 
+  it("drops a lone price_max and its currency (no priceMin, no currency)", () => {
+    const fields = toFields({ price_max: "150", currency: "USD" });
+    expect(fields.priceMin).toBe(undefined);
+    expect(fields.priceMax).toBe(undefined);
+    expect(fields.currency).toBe(undefined);
+  });
+
   it("clamps the description to 300 chars", () => {
     const fields = toFields({ title: "X", description: "a".repeat(400) });
     expect(fields.description).toHaveLength(300);
@@ -133,6 +140,16 @@ describe("createOpenAiExtractor", () => {
     });
 
     const extractor = createOpenAiExtractor();
+    expect(await extractor!.extract("page text")).toEqual({});
+  });
+
+  it("returns {} when the OpenAI request rejects (network/429/5xx/timeout)", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-test");
+    vi.stubEnv("OPENAI_MODEL_TEXT", "gpt-5.6-luna");
+    createMock.mockRejectedValue(new Error("429 Too Many Requests"));
+
+    const extractor = createOpenAiExtractor();
+    // Must not propagate — the pipeline just skips this layer.
     expect(await extractor!.extract("page text")).toEqual({});
   });
 });

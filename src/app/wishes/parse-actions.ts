@@ -121,7 +121,13 @@ export async function parseUrlAction(rawUrl: string): Promise<ParseUrlResult> {
     return { status: "manual", reason: "failed", url, duplicate };
   }
 
-  await saveParse(db, hash, url, { status, fields });
+  // Caching is best-effort: a transient DB write error must not turn a usable
+  // parse into a 500. The user still gets their fields; the next paste re-parses.
+  try {
+    await saveParse(db, hash, url, { status, fields });
+  } catch {
+    // Swallowed — the cache is an optimisation, not a source of truth.
+  }
 
   if (status === "failed") {
     return { status: "manual", reason: "failed", url, duplicate };

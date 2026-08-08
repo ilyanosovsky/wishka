@@ -13,8 +13,7 @@ import type { StoragePort, StoredFile } from "./index";
  * behaviour) let a shop's `og:image` of `https://attacker-app.ufs.sh/f/x` pass
  * the invariant-#6 host check and be hotlinked instead of re-hosted.
  */
-export function appHostFromToken(token: string | undefined): string | null {
-  if (!token) return null;
+export function appHostFromToken(token: string): string | null {
   try {
     const decoded = JSON.parse(
       Buffer.from(token, "base64").toString("utf8"),
@@ -27,26 +26,52 @@ export function appHostFromToken(token: string | undefined): string | null {
   }
 }
 
-// Decoded once at module load, as the token cannot change at runtime.
-const OUR_HOST = appHostFromToken(process.env.UPLOADTHING_TOKEN);
+/**
+ * How to decide whether a URL lives on our storage:
+ *  - `exact`  — token parsed, match only `<appId>.ufs.sh`;
+ *  - `loose`  — no token at all (local dev / CI, nothing is really uploaded),
+ *               so accept any `*.ufs.sh` subdomain;
+ *  - `strict` — token present but unparseable. In prod that is a real
+ *               misconfiguration, and failing *open* (accepting any `*.ufs.sh`)
+ *               is exactly the invariant-#6 bypass we are closing, so accept
+ *               nothing beyond the legacy `utfs.io` host.
+ */
+export type StorageHostPolicy =
+  { kind: "exact"; host: string } | { kind: "loose" } | { kind: "strict" };
+
+export function resolveHostPolicy(
+  token: string | undefined,
+): StorageHostPolicy {
+  if (!token) return { kind: "loose" };
+  const host = appHostFromToken(token);
+  return host ? { kind: "exact", host } : { kind: "strict" };
+}
+
+// Resolved once at module load, as the token cannot change at runtime.
+const HOST_POLICY = resolveHostPolicy(process.env.UPLOADTHING_TOKEN);
 
 /**
- * The file key when `url` is on *our* storage, else null. Exact host match
- * against the token-derived host, plus the legacy `utfs.io` host.
- *
- * FALLBACK: when no token is configured (local dev / CI, where nothing is ever
- * really uploaded) the app host is unknown, so we fall back to accepting any
- * `*.ufs.sh` subdomain — the old, looser rule. Production always has a token,
- * so the strict path is what ships. Kept as a named helper so tests can pin an
- * explicit host without depending on module-load env.
+ * The file key when `url` is on *our* storage, else null. The legacy `utfs.io`
+ * host is always accepted; everything else is decided by `policy`. Exported as
+ * a named helper so tests can pin a policy without depending on module-load env.
  */
-export function keyForHost(url: string, ourHost: string | null): string | null {
+export function keyForHost(
+  url: string,
+  policy: StorageHostPolicy,
+): string | null {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
-    const isOurs =
-      host === "utfs.io" ||
-      (ourHost ? host === ourHost : host.endsWith(".ufs.sh"));
+    let isOurs: boolean;
+    if (host === "utfs.io") {
+      isOurs = true;
+    } else if (policy.kind === "exact") {
+      isOurs = host === policy.host;
+    } else if (policy.kind === "loose") {
+      isOurs = host.endsWith(".ufs.sh");
+    } else {
+      isOurs = false; // strict: token present but unparseable → fail closed
+    }
     const match = parsed.pathname.match(/^\/f\/([^/]+)$/);
     return isOurs && match ? match[1] : null;
   } catch {
@@ -58,7 +83,7 @@ export function keyForHost(url: string, ourHost: string | null): string | null {
  *  Signature is load-bearing: `db/access/mutations.ts` re-checks stored image
  *  URLs through this, and tightening the host logic tightens that check too. */
 export function extractStorageKey(url: string): string | null {
-  return keyForHost(url, OUR_HOST);
+  return keyForHost(url, HOST_POLICY);
 }
 
 /** Server-only. Requires UPLOADTHING_TOKEN. */

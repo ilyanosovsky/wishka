@@ -104,7 +104,10 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
     pendingOutcomeRef.current = null;
   }, [open]);
 
-  function writeParsedHandoff(outcome: OkOutcome) {
+  /** Returns false when the handoff couldn't be stored (private mode, quota),
+   *  so the caller can fall back to a URL-carrying manual link instead of
+   *  navigating to an empty parsed form. */
+  function writeParsedHandoff(outcome: OkOutcome): boolean {
     try {
       window.sessionStorage.setItem(
         PARSED_STORAGE_KEY,
@@ -114,9 +117,9 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
           partial: outcome.status === "partial",
         }),
       );
+      return true;
     } catch {
-      // sessionStorage can be unavailable (private mode, quota) — the
-      // handoff is a convenience; the new-wish page still works without it.
+      return false;
     }
   }
 
@@ -132,8 +135,13 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
       setPhase("blocked");
       return;
     }
-    writeParsedHandoff(outcome);
-    router.push("/wishes/new?parsed=1");
+    // If the handoff can't be persisted, keep at least the URL so the manual
+    // form isn't blank.
+    router.push(
+      writeParsedHandoff(outcome)
+        ? "/wishes/new?parsed=1"
+        : manualHref(outcome.url),
+    );
   }
 
   function applyResult(result: ParseUrlResult) {
@@ -160,7 +168,18 @@ export function AddWishSheet({ open, onClose }: AddWishSheetProps) {
       if (generationRef.current === generation) setSlow(true);
     }, SLOW_PARSE_MS);
 
-    const result = await parseUrlAction(rawUrl);
+    let result: ParseUrlResult;
+    try {
+      result = await parseUrlAction(rawUrl);
+    } catch {
+      // Network error / server crash / session redirect rejection — degrade to
+      // the calm manual path with the URL preserved, never a dead spinner.
+      clearSlowTimer();
+      if (generationRef.current !== generation) return;
+      setBlockedOutcome({ status: "manual", reason: "failed", url: rawUrl });
+      setPhase("blocked");
+      return;
+    }
 
     clearSlowTimer();
     if (generationRef.current !== generation) return; // cancelled or stale
