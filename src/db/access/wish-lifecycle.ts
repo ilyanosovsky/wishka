@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import type { Locale } from "@/i18n/config";
 import type { Db } from "../index";
-import { guestIdentities, reservations, user } from "../schema";
+import { guestIdentities, reservations, user, wishes } from "../schema";
 import { isUuid } from "./ids";
 import { deleteWish, markGifted, updateWish } from "./mutations";
 import type { WishInput, WishMutationResult } from "./mutations";
@@ -24,12 +24,19 @@ import type { OwnerWish } from "./types";
  *    forward *only* into `after()` and never expose. It is null when no booking
  *    is involved, so its presence cannot be timed or branched on by the owner.
  *  - Capturing the id atomically with the mutation is what makes the email
- *    correct under load: the reserver who held the wish at the moment it changed
- *    is the one notified, even if the booking is cancelled or re-taken a
- *    millisecond later, before `after()` runs.
+ *    correct under load. Each wrapper locks the wish row `FOR UPDATE` first —
+ *    the same lock `reserveWish` takes — so a reserve cannot interleave with a
+ *    delete/edit/gift on the same wish. The single, consistent lock order (wish
+ *    row, always first) rules out deadlocks and the "active reservation left
+ *    pointing at a deleted wish" / "missed gift notification" races.
  *  - `getReservationNotificationTargetById` resolves that id to a recipient. It
  *    is SERVER-SIDE ONLY: its result carries a reserver's identity and must die
  *    inside the `after()` that reads it — never returned, logged, or rendered.
+ *
+ * A holder who cancels their booking in the sliver between the mutation
+ * committing and `after()` sending still receives the email: they held the wish
+ * when it changed, which is exactly what the message is about. That is a
+ * deliberate choice, not a race — the *identity* of the recipient is pinned.
  */
 
 /** Thrown to unwind the delete transaction; never escapes this module. */
@@ -38,6 +45,25 @@ class WishNotDeleted extends Error {
     super("wish not deleted");
     this.name = "WishNotDeleted";
   }
+}
+
+/**
+ * Locks the owner's wish row for the rest of the transaction, establishing the
+ * one lock every reservation-touching flow takes first. Must run before the
+ * capture below so a concurrent `reserveWish` is serialized, not interleaved.
+ */
+async function lockWishRow(
+  tx: Db,
+  ownerId: string,
+  wishId: string,
+): Promise<void> {
+  if (!isUuid(wishId)) return;
+  await tx
+    .select({ id: wishes.id })
+    .from(wishes)
+    .where(and(eq(wishes.ownerId, ownerId), eq(wishes.id, wishId)))
+    .for("update")
+    .limit(1);
 }
 
 /** The active booking on a wish (scoped by the snapshot owner so it can never
@@ -83,6 +109,7 @@ export async function deleteWishAsOwner(
 ): Promise<OwnerMutationOutcome<boolean>> {
   try {
     return await db.transaction(async (tx) => {
+      await lockWishRow(tx, ownerId, wishId);
       const notifyReservationId = await activeReservationId(
         tx,
         wishId,
@@ -116,6 +143,7 @@ export async function updateWishAsOwner(
   OwnerMutationOutcome<WishMutationResult> & { before: OwnerWish | null }
 > {
   return db.transaction(async (tx) => {
+    await lockWishRow(tx, ownerId, wishId);
     const before = await getOwnerWish(tx, ownerId, wishId);
     const result = await updateWish(tx, ownerId, wishId, input);
     const notifyReservationId = result.ok
@@ -134,6 +162,7 @@ export async function markGiftedAsOwner(
   giftedBy: string | null,
 ): Promise<OwnerMutationOutcome<OwnerWish | null>> {
   return db.transaction(async (tx) => {
+    await lockWishRow(tx, ownerId, wishId);
     const notifyReservationId = await activeReservationId(tx, wishId, ownerId);
     const wish = await markGifted(tx, ownerId, wishId, giftedBy);
     return {

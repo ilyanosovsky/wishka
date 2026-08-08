@@ -64,8 +64,15 @@ export type ReserveOptions = {
  * both come back as plain `not_found` — never a distinct reason, never
  * `already_reserved`, which would itself reveal that someone booked a gift.
  *
- * Concurrency is settled by the DB, not by a read-then-write check: the loser
- * of the race gets the unique violation and is told the wish is already taken.
+ * Concurrent double-booking is settled by the DB: the loser of the race gets
+ * the unique violation and is told the wish is already taken.
+ *
+ * Against an owner mutation (delete/edit/gift) the wish row is locked
+ * `FOR UPDATE` inside one transaction — the same lock the owner wrappers in
+ * `wish-lifecycle.ts` take first — so a reserve and a delete cannot interleave:
+ * either the reserve commits and the delete then orphans it, or the delete
+ * commits and the reserve sees no active wish. No `active` row is ever left
+ * pointing at a wish that has been deleted out from under it.
  *
  * The row also copies the wish as it looked right now. That snapshot is what
  * survives the owner deleting or rewriting the wish, and diffing it against the
@@ -81,55 +88,60 @@ export async function reserveWish(
     return { ok: false, reason: "not_found" };
   }
 
-  const wish = await db
-    .select({
-      id: wishes.id,
-      ownerId: wishes.ownerId,
-      title: wishes.title,
-      url: wishes.url,
-      priceType: wishes.priceType,
-      priceMin: wishes.priceMin,
-      priceMax: wishes.priceMax,
-      currency: wishes.currency,
-    })
-    .from(wishes)
-    .where(
-      and(
-        eq(wishes.id, wishId),
-        eq(wishes.status, "active"),
-        visibleTo(asViewer(reserver)),
-      ),
-    )
-    .limit(1);
-  if (wish.length === 0 || isOwnList(wish[0].ownerId, reserver)) {
-    return { ok: false, reason: "not_found" };
-  }
-  const snapshot = wish[0];
-
+  // A constraint violation aborts the whole transaction, so it must escape the
+  // callback (rolling back) and be classified out here, not swallowed inside.
   try {
-    const [row] = await db
-      .insert(reservations)
-      .values({
-        wishId,
-        listOwnerId: snapshot.ownerId,
-        wishTitle: snapshot.title,
-        wishUrl: snapshot.url,
-        wishPriceType: snapshot.priceType,
-        wishPriceMin: snapshot.priceMin,
-        wishPriceMax: snapshot.priceMax,
-        wishCurrency: snapshot.currency,
-        locale: options.locale ?? "ru",
-        reserverUserId: "userId" in reserver ? reserver.userId : null,
-        guestId: "guestId" in reserver ? reserver.guestId : null,
-        state: "active",
-      })
-      .returning({ id: reservations.id });
-    return { ok: true, reservationId: row.id };
+    return await db.transaction(async (tx) => {
+      const wish = await tx
+        .select({
+          id: wishes.id,
+          ownerId: wishes.ownerId,
+          title: wishes.title,
+          url: wishes.url,
+          priceType: wishes.priceType,
+          priceMin: wishes.priceMin,
+          priceMax: wishes.priceMax,
+          currency: wishes.currency,
+        })
+        .from(wishes)
+        .where(
+          and(
+            eq(wishes.id, wishId),
+            eq(wishes.status, "active"),
+            visibleTo(asViewer(reserver)),
+          ),
+        )
+        .for("update")
+        .limit(1);
+      if (wish.length === 0 || isOwnList(wish[0].ownerId, reserver)) {
+        return { ok: false, reason: "not_found" };
+      }
+      const snapshot = wish[0];
+
+      const [row] = await tx
+        .insert(reservations)
+        .values({
+          wishId,
+          listOwnerId: snapshot.ownerId,
+          wishTitle: snapshot.title,
+          wishUrl: snapshot.url,
+          wishPriceType: snapshot.priceType,
+          wishPriceMin: snapshot.priceMin,
+          wishPriceMax: snapshot.priceMax,
+          wishCurrency: snapshot.currency,
+          locale: options.locale ?? "ru",
+          reserverUserId: "userId" in reserver ? reserver.userId : null,
+          guestId: "guestId" in reserver ? reserver.guestId : null,
+          state: "active",
+        })
+        .returning({ id: reservations.id });
+      return { ok: true, reservationId: row.id };
+    });
   } catch (error) {
     if (isUniqueViolation(error)) {
       return { ok: false, reason: "already_reserved" };
     }
-    // The owner deleted the wish between the check above and this insert: the
+    // The owner deleted the wish between the lock attempt and this insert: the
     // FK to `wishes` fails, and to the reserver the wish is simply gone.
     if (isForeignKeyViolation(error)) {
       return { ok: false, reason: "not_found" };
