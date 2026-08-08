@@ -72,6 +72,11 @@
       "nice": "Would be nice",
       "idea": "Just an idea"
     },
+    "priorityCard": {
+      "want": "Want",
+      "nice": "Nice",
+      "idea": "Idea"
+    },
     "imageGenerating": "Painting…",
     "imageFailed": "Couldn't paint it",
     "retry": "Retry",

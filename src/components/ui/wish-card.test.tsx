@@ -104,7 +104,9 @@ describe("WishCard wish content", () => {
   it("renders the formatted price and priority", () => {
     renderIntl(<WishCard role="owner" wish={wish} />);
     expect(screen.getByText("2 400 ₾")).toBeInTheDocument();
-    expect(screen.getByText("Очень хочу")).toBeInTheDocument();
+    // Cards use the short priority labels (wish.priorityCard.*) — the full
+    // ones don't fit next to a price at narrow grid widths.
+    expect(screen.getByText("Хочу")).toBeInTheDocument();
   });
 
   it("renders the null pill when there is no price", () => {
@@ -150,7 +152,12 @@ describe("WishCard wish content", () => {
     renderIntl(
       <WishCard
         role="owner"
-        wish={{ ...wish, imageStatus: "failed", imageUrl: null, category: "home" }}
+        wish={{
+          ...wish,
+          imageStatus: "failed",
+          imageUrl: null,
+          category: "home",
+        }}
       />,
     );
     expect(screen.getByText("Дом")).toBeInTheDocument();

@@ -270,15 +270,16 @@ export function WishCard(props: WishCardProps) {
             <div className="font-mono text-[9px] text-mute-2">{giftedMeta}</div>
           )
         ) : (
-          // Price and priority are ALWAYS stacked on their own lines: a
-          // side-by-side row overflows the card once both labels are long,
-          // and wrapping only the tight cards makes neighbours in the same
-          // grid row visibly inconsistent. One structure for every card.
-          <div className="flex flex-col items-start gap-1">
+          // One line for every card: the flag uses the SHORT priority labels
+          // (wish.priorityCard.*) so price + flag fit at any grid width — the
+          // full labels wouldn't, and both wrapping and stacking left
+          // neighbouring cards visibly inconsistent. The flag may truncate as
+          // a last resort so nothing can bleed past the card border.
+          <div className="flex items-center justify-between gap-[5px]">
             {price ? (
               <span
                 className={cx(
-                  "border border-rule px-[5px] py-0.5 font-mono text-[11px] font-medium whitespace-nowrap",
+                  "flex-none border border-rule px-[5px] py-0.5 font-mono text-[11px] font-medium whitespace-nowrap",
                   reserved && "text-mute",
                 )}
               >
@@ -290,7 +291,8 @@ export function WishCard(props: WishCardProps) {
             <PriorityFlag
               size="sm"
               priority={wish.priority}
-              label={t(`priority.${wish.priority}`)}
+              label={t(`priorityCard.${wish.priority}`)}
+              className="min-w-0 truncate"
             />
           </div>
         )}
