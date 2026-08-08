@@ -75,7 +75,10 @@ type Resolved = {
 };
 
 /** The SSR-safe branches — no browser APIs, so server and client agree. */
-function resolveStatic(url: string | undefined, baseCurrency: string): Resolved {
+function resolveStatic(
+  url: string | undefined,
+  baseCurrency: string,
+): Resolved {
   if (url) {
     return { initial: { url }, parsedUrl: false, parsedPartial: false };
   }

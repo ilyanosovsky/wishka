@@ -269,7 +269,9 @@ describe("AddWishSheet — slow parsing", () => {
         screen.getByText("Магазин отвечает медленно, продолжаем…"),
       ).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole("button", { name: "Заполнить вручную" }));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Заполнить вручную" }),
+      );
       expect(push).toHaveBeenCalledWith(
         `/wishes/new?url=${encodeURIComponent("https://slow.example.com/item")}`,
       );

@@ -12,7 +12,7 @@ import {
   type TestDb,
 } from "../test-support";
 import { reserveWish } from "./reservations";
-import { getVisibleWishes, getWishesAsSeenBy } from "./viewer";
+import { getVisibleWish, getVisibleWishes, getWishesAsSeenBy } from "./viewer";
 
 describe("viewer reads", () => {
   let ctx: TestDb;
@@ -237,5 +237,60 @@ describe("viewer reads", () => {
 
     const asGuest = await getWishesAsSeenBy(db, ownerId, { guestId });
     expect(asGuest.map((w) => w.title)).toEqual(["Public"]);
+  });
+
+  describe("getVisibleWish (single share target)", () => {
+    it("returns a restricted wish only to an authorized viewer", async () => {
+      // Person-restricted to namedFriendId — invisible to everyone else.
+      for (const viewer of [
+        { anonymous: true },
+        { guestId },
+        { userId: strangerId },
+      ] as const) {
+        expect(await getVisibleWish(db, personWishId, viewer)).toBeNull();
+      }
+      const seen = await getVisibleWish(db, personWishId, {
+        userId: namedFriendId,
+      });
+      expect(seen?.id).toBe(personWishId);
+    });
+
+    it("lets the owner open their own restricted wish (own /w share link)", async () => {
+      // personWishId is restricted to namedFriendId, but the owner must still
+      // be able to open its share link — and never see a reservation.
+      const own = await getVisibleWish(db, personWishId, { userId: ownerId });
+      expect(own?.id).toBe(personWishId);
+      expect(own?.reservationStatus).toBe("free");
+    });
+
+    it("treats a missing or malformed id as not found", async () => {
+      expect(
+        await getVisibleWish(db, "not-a-uuid", { anonymous: true }),
+      ).toBeNull();
+      expect(
+        await getVisibleWish(db, "00000000-0000-0000-0000-000000000000", {
+          anonymous: true,
+        }),
+      ).toBeNull();
+    });
+
+    it("reports the reservation status for a non-owner viewer", async () => {
+      // publicWishId was reserved by strangerId earlier in this suite.
+      expect(
+        (await getVisibleWish(db, publicWishId, { userId: strangerId }))
+          ?.reservationStatus,
+      ).toBe("reserved_by_you");
+      expect(
+        (await getVisibleWish(db, publicWishId, { anonymous: true }))
+          ?.reservationStatus,
+      ).toBe("reserved");
+    });
+
+    it("never exposes a reservation to the owner of the wish", async () => {
+      const own = await getVisibleWish(db, publicWishId, { userId: ownerId });
+      expect(own?.id).toBe(publicWishId);
+      expect(own?.reservationStatus).toBe("free");
+      expect(own).not.toHaveProperty("heldByUserId");
+    });
   });
 });

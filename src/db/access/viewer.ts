@@ -54,6 +54,11 @@ export function visibleTo(viewer: Viewer): SQL {
   const userId = viewerUserId(viewer);
   if (!userId) return isPublic;
 
+  // Owners always see their own wishes regardless of visibility — e.g. opening
+  // their own restricted wish via a /w/<id> share link. (Reservation status is
+  // handled separately: owner-viewer paths never join the reservations table.)
+  const isOwnWish = eq(wishes.ownerId, userId);
+
   const restrictedToViewer = sql`exists (
     select 1 from "wish_visibility" wv
     where wv."wish_id" = ${wishes.id}
@@ -74,8 +79,8 @@ export function visibleTo(viewer: Viewer): SQL {
       )
   )`;
 
-  // `or` of two defined conditions is always defined.
-  return or(isPublic, restrictedToViewer) as SQL;
+  // `or` of defined conditions is always defined.
+  return or(isPublic, isOwnWish, restrictedToViewer) as SQL;
 }
 
 /** The visible slice of a list, with no access to reservation rows. */
@@ -116,6 +121,66 @@ export async function getWishesAsSeenBy(
     ...wish,
     reservationStatus: "free" as const,
   }));
+}
+
+/**
+ * A single wish seen through the same visibility rules as the list — the target
+ * of a `/w/<id>` share link. Returns null when the wish is gifted, missing, or
+ * restricted away from this viewer, so a share link is never an existence
+ * oracle for a wish the viewer may not see.
+ *
+ * SURPRISE INVARIANT — when the owner opens their own wish, this never touches
+ * the reservations table: the first query has no access to booking rows, and
+ * the owner short-circuits out before the second one runs. The join happens
+ * only for a non-owner viewer, exactly as in `getVisibleWishes`.
+ */
+export async function getVisibleWish(
+  db: Db,
+  wishId: string,
+  viewer: Viewer,
+): Promise<ViewerWish | null> {
+  if (!isUuid(wishId)) return null;
+
+  const [wish] = await db
+    .select(columns)
+    .from(wishes)
+    .where(
+      and(
+        eq(wishes.id, wishId),
+        eq(wishes.status, "active"),
+        visibleTo(viewer),
+      ),
+    )
+    .limit(1);
+  if (!wish) return null;
+
+  const userId = viewerUserId(viewer);
+  // The owner learns nothing about bookings on their own wish — collapse to
+  // `free` before ever reading a reservation row.
+  if (userId !== null && wish.ownerId === userId) {
+    return { ...wish, reservationStatus: "free" };
+  }
+
+  const guestId = viewerGuestId(viewer);
+  const [held] = await db
+    .select({
+      heldByUserId: reservations.reserverUserId,
+      heldByGuestId: reservations.guestId,
+    })
+    .from(reservations)
+    .where(
+      and(eq(reservations.wishId, wishId), eq(reservations.state, "active")),
+    )
+    .limit(1);
+
+  let reservationStatus: ReservationStatus = "free";
+  if (held && (held.heldByUserId !== null || held.heldByGuestId !== null)) {
+    const isMine =
+      (userId !== null && held.heldByUserId === userId) ||
+      (guestId !== null && held.heldByGuestId === guestId);
+    reservationStatus = isMine ? "reserved_by_you" : "reserved";
+  }
+  return { ...wish, reservationStatus };
 }
 
 export async function getVisibleWishes(

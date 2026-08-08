@@ -9,6 +9,7 @@
 - [Architecture](Architecture) — layout, key decisions, diagram
 - [Data Model](Data-Model) — schema, surprise invariant, visibility rules
 - [Parsing Pipeline](Parsing-Pipeline) — layered URL parsing, cache, image re-hosting
+- [Sharing & Public Lists](Sharing-and-Public-Lists) — public routes, viewer roles, share sheet
 
 ## How this wiki works
 

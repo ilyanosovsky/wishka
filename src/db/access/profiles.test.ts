@@ -6,6 +6,7 @@ import { profiles } from "../schema";
 import { createTestDb, createUser, type TestDb } from "../test-support";
 import {
   getProfile,
+  getProfileByNickname,
   isNicknameAvailable,
   isValidNickname,
   NicknameTakenError,
@@ -131,5 +132,21 @@ describe("profiles", () => {
     for (const bad of ["ab", "Ilya", "with space", "x".repeat(31)]) {
       expect(await isNicknameAvailable(db, bad)).toBe(false);
     }
+  });
+
+  describe("getProfileByNickname", () => {
+    it("resolves a public list URL to its owner", async () => {
+      const profile = await getProfileByNickname(db, "ilya");
+      expect(profile).toMatchObject({ userId, nickname: "ilya" });
+    });
+
+    it("matches the nickname case-insensitively", async () => {
+      const profile = await getProfileByNickname(db, "ILYA");
+      expect(profile?.userId).toBe(userId);
+    });
+
+    it("returns null for a nickname no one holds", async () => {
+      expect(await getProfileByNickname(db, "nobody-here")).toBeNull();
+    });
   });
 });

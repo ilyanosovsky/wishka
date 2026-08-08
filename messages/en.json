@@ -209,7 +209,8 @@
   "tabs": {
     "list": "My list",
     "people": "People",
-    "profile": "Profile"
+    "profile": "Profile",
+    "navLabel": "Main navigation"
   },
   "parse": {
     "sheetTitle": "New wish",
@@ -230,5 +231,58 @@
     "quotaExceeded": "Parsing limit reached for today — fill in manually",
     "urlInvalid": "The link must start with http(s)://",
     "fromParser": "from the parser"
+  },
+  "publicList": {
+    "guestBanner": "You're viewing: {name}",
+    "createOwn": "Create your own",
+    "whatMatters": "Good to know",
+    "sizes": "Sizes",
+    "tastes": "Tastes",
+    "noGift": "Please don't gift",
+    "filterAll": "All",
+    "filterFree": "Available only",
+    "emptyOwner": "{name} has no wishes yet",
+    "emptyOwnerHint": "Check \"Good to know\" — there are gift hints there.",
+    "allReserved": "All taken 🎉",
+    "backToList": "See {name}'s full list →",
+    "fromList": "From: {name}"
+  },
+  "share": {
+    "title": "Share",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "shareVia": "Share…",
+    "qr": "Show QR",
+    "shareList": "The list",
+    "shareWish": "This wish",
+    "restrictedWarningTitle": "This wish isn't visible to everyone",
+    "restrictedWarningBody": "Even with the direct link, only the people it's shared with can open it.",
+    "shareAnyway": "Share anyway"
+  },
+  "params": {
+    "editSizes": "Sizes",
+    "editTastes": "Tastes",
+    "editNoGift": "Please don't gift",
+    "sizeClothing": "Clothing",
+    "sizeShoes": "Shoes",
+    "sizeRing": "Ring",
+    "sizeHead": "Hat",
+    "addParam": "Add a parameter",
+    "addTaste": "Add a taste",
+    "addNoGift": "Add",
+    "tastePlaceholder": "e.g. love tea, board games",
+    "empty": "empty",
+    "fillHint": "Fill this in so people can gift you better",
+    "publicNote": "Your profile is open by link — anyone you send it to can see it",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "service": {
+    "invalidLinkTitle": "This link is invalid or the list was deleted",
+    "invalidLinkCta": "Create your own list",
+    "noAccessTitle": "This list is only visible to group members",
+    "noAccessCta": "Home",
+    "sessionExpiredTitle": "Your session expired",
+    "sessionExpiredCta": "Sign in again"
   }
 }

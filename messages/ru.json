@@ -209,7 +209,8 @@
   "tabs": {
     "list": "Список",
     "people": "Люди",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "navLabel": "Основная навигация"
   },
   "parse": {
     "sheetTitle": "Новое желание",
@@ -230,5 +231,58 @@
     "quotaExceeded": "Лимит парсинга на сегодня исчерпан — заполни вручную",
     "urlInvalid": "Ссылка должна начинаться с http(s)://",
     "fromParser": "из парсера"
+  },
+  "publicList": {
+    "guestBanner": "Вы смотрите список: {name}",
+    "createOwn": "Создать свой",
+    "whatMatters": "Что важно знать",
+    "sizes": "Размеры",
+    "tastes": "Вкусы",
+    "noGift": "Не дарить",
+    "filterAll": "Все",
+    "filterFree": "Только свободные",
+    "emptyOwner": "У {name} пока нет желаний",
+    "emptyOwnerHint": "Загляни в «Что важно знать» — там подсказки для подарка.",
+    "allReserved": "Всё уже разобрали 🎉",
+    "backToList": "Посмотреть весь список {name} →",
+    "fromList": "Из списка: {name}"
+  },
+  "share": {
+    "title": "Поделиться",
+    "copyLink": "Скопировать ссылку",
+    "copied": "Ссылка скопирована",
+    "shareVia": "Поделиться…",
+    "qr": "Показать QR",
+    "shareList": "Списком",
+    "shareWish": "Этим желанием",
+    "restrictedWarningTitle": "Это желание видно не всем",
+    "restrictedWarningBody": "Даже по прямой ссылке его увидят только те, кому оно открыто.",
+    "shareAnyway": "Всё равно поделиться"
+  },
+  "params": {
+    "editSizes": "Размеры",
+    "editTastes": "Вкусы",
+    "editNoGift": "Не дарить",
+    "sizeClothing": "Одежда",
+    "sizeShoes": "Обувь",
+    "sizeRing": "Кольцо",
+    "sizeHead": "Головной убор",
+    "addParam": "Добавить параметр",
+    "addTaste": "Добавить вкус",
+    "addNoGift": "Добавить",
+    "tastePlaceholder": "Например: люблю чай, настолки",
+    "empty": "пусто",
+    "fillHint": "Заполни, чтобы тебе дарили точнее",
+    "publicNote": "Профиль открыт по ссылке — его видит любой, кому ты её отправишь",
+    "save": "Сохранить",
+    "saved": "Сохранено"
+  },
+  "service": {
+    "invalidLinkTitle": "Ссылка недействительна или список удалён",
+    "invalidLinkCta": "Создать свой список",
+    "noAccessTitle": "Этот список виден только участникам группы",
+    "noAccessCta": "На главную",
+    "sessionExpiredTitle": "Сессия истекла",
+    "sessionExpiredCta": "Войти снова"
   }
 }
