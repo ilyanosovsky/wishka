@@ -73,35 +73,45 @@ export function WishImagePoller({
     }
 
     let cancelled = false;
+    // Guards against overlapping sweeps: if a `getWishImageStateAction` call
+    // takes longer than `intervalMs`, the next tick would otherwise start a
+    // second sweep over the same ids and could double-fire `onSettled`.
+    let running = false;
     const timer = setInterval(() => {
+      if (running) return; // previous sweep still in flight — skip this tick
+      running = true;
       void (async () => {
-        for (const id of wishIds) {
-          if (cancelled || settledRef.current.has(id)) continue;
+        try {
+          for (const id of wishIds) {
+            if (cancelled || settledRef.current.has(id)) continue;
 
-          const startedAt = startedAtRef.current.get(id) ?? now;
-          if (Date.now() - startedAt >= timeoutMs) {
-            // Give up — leave the card on whatever the row already says.
-            settledRef.current.add(id);
-            startedAtRef.current.delete(id);
-            continue;
-          }
+            const startedAt = startedAtRef.current.get(id) ?? now;
+            if (Date.now() - startedAt >= timeoutMs) {
+              // Give up — leave the card on whatever the row already says.
+              settledRef.current.add(id);
+              startedAtRef.current.delete(id);
+              continue;
+            }
 
-          let state: Awaited<ReturnType<typeof getWishImageStateAction>>;
-          try {
-            state = await getWishImageStateAction(id);
-          } catch {
-            continue; // transient — retry next tick
-          }
-          if (cancelled) return;
+            let state: Awaited<ReturnType<typeof getWishImageStateAction>>;
+            try {
+              state = await getWishImageStateAction(id);
+            } catch {
+              continue; // transient — retry next tick
+            }
+            if (cancelled) return;
 
-          if (
-            state &&
-            (state.imageStatus === "ready" || state.imageStatus === "failed")
-          ) {
-            settledRef.current.add(id);
-            startedAtRef.current.delete(id);
-            onSettledRef.current(id, state.imageStatus);
+            if (
+              state &&
+              (state.imageStatus === "ready" || state.imageStatus === "failed")
+            ) {
+              settledRef.current.add(id);
+              startedAtRef.current.delete(id);
+              onSettledRef.current(id, state.imageStatus);
+            }
           }
+        } finally {
+          running = false;
         }
       })();
     }, intervalMs);

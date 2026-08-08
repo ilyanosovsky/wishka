@@ -25,6 +25,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { TextField } from "@/components/ui/field";
 import { InfoToast, UndoToast } from "@/components/ui/toast";
 import type { OwnerWish, WishType } from "@/db/access/types";
+import { isCategoryKey } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { downscaleForWish } from "@/lib/wish-image";
@@ -238,7 +239,9 @@ export function WishDetail({ wish }: WishDetailProps) {
               </span>
               {wish.category && (
                 <span className="font-mono text-[10px] tracking-[var(--track-stamp)] text-mute-2 uppercase">
-                  {t(`wish.category.${wish.category}`)}
+                  {isCategoryKey(wish.category)
+                    ? t(`wish.category.${wish.category}`)
+                    : wish.category}
                 </span>
               )}
               <div className="flex gap-2">
@@ -478,7 +481,7 @@ export function WishDetail({ wish }: WishDetailProps) {
         message={
           imageErrorToast === "quota"
             ? t("ai.imageQuotaExhausted")
-            : t("ai.suggestFailed")
+            : t("wish.imageFailed")
         }
         onDismiss={() => setImageErrorToast(null)}
       />

@@ -14,7 +14,7 @@
 | 3 | Design system: components + wish card matrix | PR #4 | ✅ done |
 | 4 | My list: CRUD, filters, detail, archive | PR #5 | ✅ done |
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
-| 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ⬜ |
+| 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ✅ done |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
 | 8 | Groups, partner, visibility, view-as | 8a this branch · 8b next | 🔵 |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |

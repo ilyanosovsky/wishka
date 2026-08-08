@@ -37,10 +37,19 @@ afterEach(() => {
 });
 
 describe("isAiAvailable", () => {
-  it("follows the API key alone", () => {
+  it("requires the API key AND both model env vars — the client factories throw without the latter", () => {
     vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("OPENAI_MODEL_TEXT", "");
+    vi.stubEnv("OPENAI_MODEL_IMAGE", "");
     expect(isAiAvailable()).toBe(false);
+
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
+    expect(isAiAvailable()).toBe(false); // model env vars still missing
+
+    vi.stubEnv("OPENAI_MODEL_TEXT", "gpt-5.6-luna");
+    expect(isAiAvailable()).toBe(false); // image model still missing
+
+    vi.stubEnv("OPENAI_MODEL_IMAGE", "gpt-image-2");
     expect(isAiAvailable()).toBe(true);
   });
 });

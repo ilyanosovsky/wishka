@@ -84,7 +84,8 @@ const EVERYONE: WishAudience = { mode: "everyone", groupIds: [], userIds: [] };
 
 /** What a save can ask for beyond the wish itself. */
 export type WishActionOptions = {
-  /** The form armed "нарисовать картинку": start the job after saving. */
+  /** The form armed the AI image toggle (`ai.generateImage`): start the job
+   *  after saving. */
   generateImage?: boolean;
 };
 

@@ -84,6 +84,9 @@ export interface WishFormProps {
   /** Where the top-left back control (and the draft dialog's actions) send
    *  the user. Defaults to the list; the edit form points back at the wish. */
   backHref?: string;
+  /** Page heading rendered next to the back control ("Новое желание" /
+   *  "Редактировать") — without it the top row is a lone unlabeled button. */
+  heading?: string;
   /** True when the Link field's initial value came from the URL parser
    *  (§6.3 step 3, "спарсено") — renders it as a read-only parsed-link row
    *  with a small edit affordance instead of the usual editable input. */
@@ -265,6 +268,7 @@ export function WishForm({
   enableDraft = false,
   draftScope,
   backHref = "/",
+  heading,
   parsedUrl = false,
   parsedPartial = false,
   candidates = EMPTY_AUDIENCE_OPTIONS,
@@ -615,15 +619,20 @@ export function WishForm({
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-      <div>
+      <div className="flex items-center gap-3">
         <button
           type="button"
           aria-label={t("common.back")}
           onClick={handleBack}
-          className="flex h-11 w-11 cursor-pointer items-center justify-center border border-rule-2 bg-paper"
+          className="flex h-11 w-11 flex-none cursor-pointer items-center justify-center border border-rule-2 bg-paper"
         >
           <ChevronLeft aria-hidden size={18} strokeWidth={2.2} />
         </button>
+        {heading && (
+          <h1 className="min-w-0 truncate font-serif text-[22px] leading-none font-semibold">
+            {heading}
+          </h1>
+        )}
       </div>
 
       {parsedPartial && (
@@ -1183,6 +1192,7 @@ function SuggestTrigger({
               type="button"
               variant="ghost"
               className="px-0"
+              disabled={exhausted || titleEmpty}
               onClick={onTrigger}
             >
               {tryAgainLabel}

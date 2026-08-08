@@ -411,6 +411,14 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
             </p>
 
             <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setPhase("idle")}
+              >
+                {t("common.back")}
+              </Button>
               {wordsBlockReason === "failed" && (
                 <Button
                   type="button"

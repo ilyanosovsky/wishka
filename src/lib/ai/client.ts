@@ -18,9 +18,17 @@ import type { AiPrompt } from "./prompts";
  */
 
 /** Whether the app is configured for AI at all. Pages call this to decide
- *  whether to render AI affordances; the actions guard again regardless. */
+ *  whether to render AI affordances; the actions guard again regardless.
+ *  Requires all three env vars, not just the API key — the client factories
+ *  below throw if `OPENAI_MODEL_TEXT`/`OPENAI_MODEL_IMAGE` are missing, so a
+ *  visible affordance backed by only the key would error forever instead of
+ *  degrading to hidden. */
 export function isAiAvailable(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY);
+  return Boolean(
+    process.env.OPENAI_API_KEY &&
+    process.env.OPENAI_MODEL_TEXT &&
+    process.env.OPENAI_MODEL_IMAGE,
+  );
 }
 
 export interface AiTextClient {

@@ -297,7 +297,7 @@
     "fromParser": "from the parser"
   },
   "ai": {
-    "entryCta": "Add by words",
+    "entryCta": "Describe a wish",
     "entryHint": "Describe it freely — we'll build the card",
     "textLabel": "What do you wish for?",
     "textPlaceholder": "For example: swimming with whales",

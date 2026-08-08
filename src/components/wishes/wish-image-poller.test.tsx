@@ -199,6 +199,43 @@ describe("WishImagePoller", () => {
     expect(onSettled).toHaveBeenCalledWith("b", "ready");
   });
 
+  it("skips a tick while the previous sweep is still in flight, so a slow call can't double-fire onSettled", async () => {
+    let resolveCall!: (value: {
+      imageStatus: string;
+      imageUrl: string | null;
+    }) => void;
+    const slow = new Promise<{ imageStatus: string; imageUrl: string | null }>(
+      (resolve) => {
+        resolveCall = resolve;
+      },
+    );
+    getWishImageStateAction.mockReturnValue(slow);
+    const onSettled = vi.fn();
+
+    render(
+      <WishImagePoller
+        wishIds={["wish-1"]}
+        onSettled={onSettled}
+        intervalMs={1000}
+      />,
+    );
+
+    // First tick starts the (still-pending) call.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(getWishImageStateAction).toHaveBeenCalledTimes(1);
+
+    // Second tick fires while the first is still in flight — it must be
+    // skipped rather than starting an overlapping sweep for the same id.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(getWishImageStateAction).toHaveBeenCalledTimes(1);
+
+    // Let the slow call resolve — the sweep finishes and onSettled fires once.
+    resolveCall({ imageStatus: "ready", imageUrl: "https://x" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onSettled).toHaveBeenCalledTimes(1);
+    expect(onSettled).toHaveBeenCalledWith("wish-1", "ready");
+  });
+
   it("stops polling once unmounted", async () => {
     getWishImageStateAction.mockResolvedValue({
       imageStatus: "generating",

@@ -52,7 +52,7 @@ export type MyListProps = {
   wishes: OwnerWish[];
   nickname: string;
   /** Server-computed AI availability + daily quota snapshot; undefined hides
-   *  the "Добавь словами" entry in the add-wish sheet entirely. */
+   *  the add-by-words entry (`ai.entryCta`) in the add-wish sheet entirely. */
   ai?: AiQuotaSnapshot;
 };
 
@@ -106,7 +106,11 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   const [imageReadyToast, setImageReadyToast] = useState(false);
   // Per-wish retry-in-flight guard: a double-tap on the same failed card
   // would otherwise burn two image-generation credits and schedule two jobs.
+  // `retryingIds` (state) drives rendering; `retryingIdsRef` is a synchronous
+  // mirror checked at the top of the handler so two clicks in the same frame
+  // — before React has re-rendered with the new state — can't both pass.
   const [retryingIds, setRetryingIds] = useState<Set<string>>(new Set());
+  const retryingIdsRef = useRef<Set<string>>(new Set());
   const [imageErrorToast, setImageErrorToast] = useState<
     "quota" | "other" | null
   >(null);
@@ -123,7 +127,8 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   );
 
   function handleRetryImage(wishId: string) {
-    if (retryingIds.has(wishId)) return; // already in flight — ignore the double-tap
+    if (retryingIdsRef.current.has(wishId)) return; // already in flight — ignore the double-tap
+    retryingIdsRef.current.add(wishId);
     setRetryingIds((prev) => new Set(prev).add(wishId));
     void generateWishImageAction(wishId)
       .then((result) => {
@@ -132,6 +137,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
         }
       })
       .finally(() => {
+        retryingIdsRef.current.delete(wishId);
         setRetryingIds((prev) => {
           const next = new Set(prev);
           next.delete(wishId);
@@ -434,7 +440,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
         message={
           imageErrorToast === "quota"
             ? t("ai.imageQuotaExhausted")
-            : t("ai.suggestFailed")
+            : t("wish.imageFailed")
         }
         onDismiss={() => setImageErrorToast(null)}
       />

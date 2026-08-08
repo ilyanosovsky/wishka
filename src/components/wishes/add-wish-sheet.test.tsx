@@ -336,6 +336,19 @@ describe("AddWishSheet — words entry (AI)", () => {
     ).toBeInTheDocument();
   });
 
+  it("tapping back returns to the idle phase", () => {
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    expect(screen.getByLabelText("Что хочется?")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Назад" }));
+    expect(screen.queryByLabelText("Что хочется?")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Добавь словами" }),
+    ).toBeInTheDocument();
+  });
+
   it("happy path — writes the ai-draft handoff and navigates to ?ai=1", async () => {
     draftWishFromTextAction.mockResolvedValue({
       ok: true,

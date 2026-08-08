@@ -113,7 +113,7 @@ function aiDraftToInitial(
     priceType,
     priceMin: priceType === "none" ? null : (draft.priceMin ?? null),
     priceMax: priceType === "range" ? (draft.priceMax ?? null) : null,
-    currency: priceType === "none" ? null : (draft.currency ?? baseCurrency),
+    currency: draft.currency ?? baseCurrency,
   };
 }
 
@@ -282,6 +282,7 @@ export function NewWishForm({
 
   return (
     <WishForm
+      heading={t("newTitle")}
       enableDraft
       draftScope={userId}
       candidates={candidates}

@@ -105,7 +105,8 @@ function usableInput(input: SuggestionInput): boolean {
   return typeof input?.title === "string" && input.title.trim().length > 0;
 }
 
-/** «Добавь словами»: free text → structured wish draft. Consumes 1 `text`. */
+/** The add-by-words entry point (`ai.entryCta`): free text → structured wish
+ *  draft. Consumes 1 `text`. */
 export async function draftWishFromTextAction(
   text: string,
 ): Promise<AiResult<WishDraft>> {

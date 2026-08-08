@@ -29,7 +29,11 @@ describe("toWishDraft", () => {
     });
   });
 
-  it.each([null, undefined, 42, "string", [], [{ title: "X" }]])(
+  // `it.each` spreads a row that is itself an array as multiple call
+  // arguments, so a bare `[]` or `[{ title: "X" }]` in the table would never
+  // reach `raw` as an array — wrap each in an extra array so it arrives
+  // as a single argument instead.
+  it.each([null, undefined, 42, "string", [[]], [[{ title: "X" }]]])(
     "returns {} for non-object input %j",
     (raw) => {
       expect(toWishDraft(raw)).toEqual({});
@@ -136,7 +140,9 @@ describe("toDescriptionSuggestion", () => {
     ).toHaveLength(300);
   });
 
-  it.each([null, {}, { description: null }, { description: "   " }, 42, []])(
+  // Same `it.each` array-spreading gotcha as above — `[]` needs an extra
+  // wrapping array so `raw` receives it as an array, not zero arguments.
+  it.each([null, {}, { description: null }, { description: "   " }, 42, [[]]])(
     "returns null for unusable answer %j",
     (raw) => {
       expect(toDescriptionSuggestion(raw)).toBeNull();

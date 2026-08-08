@@ -746,7 +746,7 @@ describe("WishForm — description suggestion", () => {
     ).toBeDisabled();
   });
 
-  it("disables the trigger and shows the exhausted caption while the title is empty, without ever calling the action", () => {
+  it("disables the trigger while the title is empty, without ever calling the action", () => {
     renderForm({ ai: AI_QUOTA });
 
     expect(

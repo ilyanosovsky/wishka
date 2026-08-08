@@ -38,7 +38,7 @@ No AI call ever sets `temperature`. Text calls use strict JSON-schema structured
 
 Image generation is the one assist that doesn't finish within the request — it runs in a Vercel `after()` job after the wish (create or edit) has already saved. The wish row's `imageStatus` **is** the job state; there is no separate job table.
 
-```
+```text
 none ──(armed + saved, or retried from failed)──▶ generating ──▶ ready
                                                        │
                                                        └────────▶ failed
@@ -47,7 +47,7 @@ none ──(armed + saved, or retried from failed)──▶ generating ──▶
 - **`none`** — no image, or the owner hasn't touched the AI image affordance.
 - **`generating`** — the job is running. The card/detail view shows a shimmer placeholder (`wish.imageGenerating`). A client-side poller (`WishImagePoller`, `src/components/wishes/wish-image-poller.tsx`) checks `getWishImageStateAction` every ~3 seconds and gives up after ~3 minutes, leaving the card on whatever the row says — the job itself always lands a terminal status via try/catch, so the 3-minute cutoff is belt-and-braces, not the primary mechanism.
 - **`ready`** — the generated image is re-hosted through `lib/storage/` like every other wish image (invariant #6 — never a raw OpenAI URL on a wish). The owner sees a toast (`ai.imageReady`) and the view refreshes.
-- **`failed`** — always the terminal state on any failure, even if the wish already had an older image key. The card offers **Повторить** (`generateWishImageAction`, restart) and **Загрузить фото** (a normal manual upload, which — like a fresh photo pick anywhere on the form — wins over a stuck AI attempt).
+- **`failed`** — always the terminal state on any failure, even if the wish already had an older image key. The card offers **Повторить** (`generateWishImageAction`, restart) and **Загрузить фото** (a normal manual upload, which — like a fresh photo pick anywhere on the form — wins over a stuck AI attempt). Retry is also allowed from a stale `generating` (the same `generateWishImageAction` restart semantics), for a job that got stuck without ever reaching a terminal status.
 
 Uploading a photo manually while a generation is in flight is a race the upload wins: `finishImageGeneration` only updates rows still in `generating`, so a manually-uploaded photo can never be clobbered by a late-arriving generation result.
 
