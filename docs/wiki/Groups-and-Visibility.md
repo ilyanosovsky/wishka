@@ -139,7 +139,7 @@ If an owner narrows a wish's visibility (or switches it to a `restricted` audien
 
 `updateWishAsOwner` (`src/db/access/wish-lifecycle.ts`) gained an optional `audience` parameter and, in the same transaction, an unconditional extra step. It captures the active reservation's holder — a `{ userId }` or `{ guestId }` viewer built from the reservation row, never anything the owner supplied — and **replays `isWishVisibleTo` for that holder twice: once before the write, once after**. The flag is the difference:
 
-```
+```text
 reserverLostAccess = holder !== null && visibleBefore && !visibleAfter
 ```
 
