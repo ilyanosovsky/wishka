@@ -138,3 +138,38 @@ describe("PublicList — empty state", () => {
     expect(screen.queryByText(/Загляни в «Что важно знать»/)).toBeNull();
   });
 });
+
+describe("PublicList — owner identity (§6.5, states audit #1)", () => {
+  it("shows the display name, never the nickname, in header and banner", () => {
+    renderPublicList({
+      name: "Маша",
+      nickname: "ilya-nosovsky",
+      isGuest: true,
+    });
+
+    expect(screen.getByRole("heading", { name: "Маша" })).toBeInTheDocument();
+    expect(screen.getByText("Вы смотрите список: Маша")).toBeInTheDocument();
+    // The nickname survives only where it belongs: inside the share URL.
+    expect(screen.queryByText("ilya-nosovsky")).toBeNull();
+    expect(screen.getByText(/\/u\/ilya-nosovsky$/)).toBeInTheDocument();
+  });
+
+  it("renders the owner's avatar image when they have one", () => {
+    const { container } = renderPublicList({
+      name: "Маша",
+      image: "https://app123.ufs.sh/f/avatar-masha",
+    });
+
+    expect(
+      container.querySelector(
+        'img[src="https://app123.ufs.sh/f/avatar-masha"]',
+      ),
+    ).not.toBeNull();
+  });
+
+  it("falls back to the initial tile when there is no avatar", () => {
+    renderPublicList({ name: "Маша", image: null });
+
+    expect(screen.getByRole("img", { name: "Маша" }).textContent).toBe("М");
+  });
+});

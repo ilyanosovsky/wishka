@@ -54,6 +54,37 @@ function manualHref(url: string): string {
   return `/wishes/new?url=${encodeURIComponent(url)}`;
 }
 
+/** A host-looking string with no whitespace — mirrors `BARE_HOST_RE` in
+ *  `src/lib/parse/normalize.ts`, which accepts "shop.com/x" pasted without a
+ *  scheme. That module imports `node:crypto`, so it cannot be reused here. */
+const BARE_HOST_RE = /^[\w-]+(\.[\w-]+)+(?=$|[/?#])/;
+
+/**
+ * §6.3 only offers the clipboard when it holds a *link*. The permanent button
+ * stays (a proactive `clipboard.readText()` costs a permission prompt in
+ * Chromium — deviation recorded in IMPLEMENTATION_PLAN), but what it pastes is
+ * now checked the same way the server's `normalizeUrl` checks it: anything
+ * that is not an http(s) page shows the invalid-link state instead of dropping
+ * junk into the field.
+ */
+function looksLikeUrl(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed || /\s/.test(trimmed)) return false;
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    if (!BARE_HOST_RE.test(trimmed)) return false;
+    try {
+      url = new URL(`https://${trimmed}`);
+    } catch {
+      return false;
+    }
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+  return Boolean(url.hostname) && url.hostname.includes(".");
+}
+
 export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -273,10 +304,14 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
 
   async function handlePasteClipboard() {
     try {
-      const text = await navigator.clipboard.readText();
-      if (text.trim()) {
-        setUrl(text.trim());
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) return; // empty clipboard: nothing to say, just focus the field
+      if (looksLikeUrl(text)) {
+        setUrl(text);
         setUrlError(false);
+      } else {
+        // Not a link — say so on the field rather than pasting junk into it.
+        setUrlError(true);
       }
     } catch {
       // Clipboard permission denied or unsupported — fall through to focus.

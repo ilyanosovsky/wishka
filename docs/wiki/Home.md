@@ -6,6 +6,7 @@
 
 - **Home** — this page
 - [Local Setup](Local-Setup) — clone, run, quality gate
+- [Deployment](Deployment) — Vercel/Railway/OAuth/Resend/UploadThing checklist, backups, post-deploy smoke test
 - [Architecture](Architecture) — layout, key decisions, diagram
 - [Data Model](Data-Model) — schema, surprise invariant, visibility rules
 - [Parsing Pipeline](Parsing-Pipeline) — layered URL parsing, cache, image re-hosting

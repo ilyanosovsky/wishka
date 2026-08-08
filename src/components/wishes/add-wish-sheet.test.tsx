@@ -439,3 +439,87 @@ describe("AddWishSheet — words entry (AI)", () => {
     expect(draftWishFromTextAction).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("AddWishSheet — clipboard (§6.3, states audit #14)", () => {
+  function withClipboard(text: string | Error) {
+    const readText = vi.fn(() =>
+      text instanceof Error ? Promise.reject(text) : Promise.resolve(text),
+    );
+    Object.defineProperty(navigator, "clipboard", {
+      value: { readText },
+      configurable: true,
+      writable: true,
+    });
+    return readText;
+  }
+
+  it("fills the field when the clipboard holds a link", async () => {
+    withClipboard("https://shop.example/vase");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Ссылка на товар")).toHaveValue(
+        "https://shop.example/vase",
+      ),
+    );
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+  });
+
+  it("accepts a link pasted without a scheme, like the parser does", async () => {
+    withClipboard("shop.example/vase");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Ссылка на товар")).toHaveValue(
+        "shop.example/vase",
+      ),
+    );
+  });
+
+  it("refuses non-link clipboard text instead of pasting junk", async () => {
+    withClipboard("напомнить купить вазу");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    expect(
+      await screen.findByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Ссылка на товар")).toHaveValue("");
+  });
+
+  it("says nothing when the clipboard is empty", async () => {
+    withClipboard("   ");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.readText).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+    expect(screen.getByLabelText("Ссылка на товар")).toHaveValue("");
+  });
+
+  it("stays silent when clipboard access is refused", async () => {
+    withClipboard(new Error("denied"));
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.readText).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+  });
+});

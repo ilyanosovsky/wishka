@@ -15,7 +15,9 @@ const SWATCH_CLASS: Record<string, string> = {
   accent: "border-accent bg-accent text-paper",
   null: "border-null-rule bg-null text-null-txt",
   zebra: "border-rule-2 bg-zebra text-ink",
-  rule: "border-rule bg-rule text-mute",
+  /* text-ink, not text-mute: --mute on --rule is 3.39:1, and the initial is
+     17–21px serif — real text, AA or nothing. */
+  rule: "border-rule bg-rule text-ink",
   mute: "border-mute bg-mute text-paper",
 };
 

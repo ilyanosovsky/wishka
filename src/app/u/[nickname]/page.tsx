@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import {
@@ -11,6 +12,10 @@ import { getDb } from "@/db";
 import type { Db } from "@/db";
 import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getProfileByNickname } from "@/db/access/profiles";
+import {
+  getPublicIdentityByNickname,
+  getPublicIdentityByUserId,
+} from "@/db/access/public-identity";
 import type { PreviewViewer } from "@/db/access/types";
 import { getAudienceCandidates } from "@/db/access/visibility";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
@@ -90,6 +95,50 @@ async function resolvePreview(
   return guest;
 }
 
+/**
+ * Share-card metadata (§6.8 — these links are made to be pasted into a chat).
+ * Only the owner's *public* identity goes in: display name and the avatar we
+ * re-hosted ourselves. Never a wish, never a count, and never anything derived
+ * from reservations — the owner opens this URL too.
+ *
+ * `robots: index: false` — a list is shared with the people its owner sends it
+ * to, not with search engines (Phase 9 production-readiness audit, finding 1).
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ nickname: string }>;
+}): Promise<Metadata> {
+  const { nickname } = await params;
+  const identity = await getPublicIdentityByNickname(getDb(), nickname);
+  const t = await getTranslations();
+
+  // An unknown nickname renders the invalid-link screen; its card says nothing
+  // about whether that nickname exists.
+  if (!identity) {
+    return { title: "Wishka", robots: { index: false, follow: false } };
+  }
+
+  const description = t("meta.description");
+  return {
+    title: identity.name,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      type: "profile",
+      title: identity.name,
+      description,
+      ...(identity.image ? { images: [identity.image] } : {}),
+    },
+    twitter: {
+      card: identity.image ? "summary_large_image" : "summary",
+      title: identity.name,
+      description,
+      ...(identity.image ? { images: [identity.image] } : {}),
+    },
+  };
+}
+
 export default async function PublicListPage({
   params,
   searchParams,
@@ -111,6 +160,12 @@ export default async function PublicListPage({
       />
     );
   }
+
+  // §6.5 names the owner by their display name and avatar; the nickname stays
+  // in the URL. A profile row cannot exist without its `user` row, so the
+  // nickname fallback only ever covers an impossible state.
+  const identity = await getPublicIdentityByUserId(db, profile.userId);
+  const displayName = identity?.name ?? profile.nickname;
 
   // A guest cookie makes the viewer a `guestId`, so their own bookings come
   // back as `reserved_by_you` — the same rule every reserve action resolves by.
@@ -150,10 +205,11 @@ export default async function PublicListPage({
       {preview && <ViewAsBanner lens={preview.lens} />}
       {/* Visitors only — the owner does not need a trail back to their own list. */}
       {!isOwner && (
-        <RecordListVisit nickname={profile.nickname} name={profile.nickname} />
+        <RecordListVisit nickname={profile.nickname} name={displayName} />
       )}
       <PublicList
-        name={profile.nickname}
+        name={displayName}
+        image={identity?.image ?? null}
         nickname={profile.nickname}
         wishes={wishes}
         sizes={profile.sizes}

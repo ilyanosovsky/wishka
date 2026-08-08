@@ -28,8 +28,11 @@ import { toBaseWish } from "./wish-card-props";
  */
 
 export type PublicListProps = {
-  /** Display identity — the owner's nickname, used in banners and empty states. */
+  /** The owner's display name (§6.5) — header, banners, empty states. Never
+   *  the nickname: that is a URL segment, not what a person is called. */
   name: string;
+  /** The owner's avatar on our own storage, if they uploaded one. */
+  image?: string | null;
   /** Drives the `/u/<nickname>` share link. */
   nickname: string;
   wishes: ViewerWish[];
@@ -58,6 +61,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 export function PublicList({
   name,
+  image = null,
   nickname,
   wishes,
   sizes,
@@ -114,7 +118,7 @@ export function PublicList({
           isGuest ? "pt-5" : "pt-14"
         }`}
       >
-        <Avatar name={name} />
+        <Avatar src={image} name={name} />
         <div className="min-w-0 flex-1">
           <h1
             className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em]"

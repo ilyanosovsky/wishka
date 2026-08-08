@@ -133,7 +133,10 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
         </span>
 
         {linkedWishId ? (
-          <Link href={`/w/${linkedWishId}`} className="min-w-0">
+          <Link
+            href={`/w/${linkedWishId}`}
+            className="-my-2.5 inline-flex min-h-11 min-w-0 items-center py-2.5"
+          >
             {title}
           </Link>
         ) : (
@@ -218,7 +221,7 @@ function OwnerLine({ owner }: { owner: MyReservation["owner"] }) {
   return owner.nickname ? (
     <Link
       href={`/u/${encodeURIComponent(owner.nickname)}`}
-      className="flex min-w-0 items-center gap-2"
+      className="-my-2.5 flex min-h-11 min-w-0 items-center gap-2 py-2.5"
     >
       {body}
     </Link>

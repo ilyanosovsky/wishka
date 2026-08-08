@@ -82,7 +82,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 **Goal:** paste a link → card assembles; failure is a calm, first-class path.
 
 - ✅ Parsing pipeline (`src/lib/parse/`, via `parseUrlAction`): **L0** fetch + open-graph-scraper (OG+JSON-LD, real UA, 8s timeout, challenge-page detection) → **L1** LLM extraction over cleaned HTML (`OPENAI_MODEL_TEXT`, structured outputs) → **L2** Jina Reader (`r.jina.ai`) → **L3** Firecrawl (free 1000/mo) → give up gracefully. Stop-list (Amazon-class) → manual immediately. Cache results in `parsed_url_cache` (one parse per URL globally).
-- ✅ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); `next/image` remotePatterns = our storage host only.
+- ✅ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); images render via plain `<img>` from our storage host only (no `next/image`, so no `remotePatterns` entry exists at all — a stronger form of invariant #6).
 - ✅ Add-by-URL UI: clipboard suggestion, parsing states (fast <3s / slow >5s with escape hatch / partial with highlights / failed calm / stop-list / duplicate detection).
 - ✅ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
@@ -160,6 +160,14 @@ From mockup analysis (design/ vs DESIGN_BRIEF.md):
 5. **Wish-card state matrix scattered across screens** → consolidated as the Phase 3 component playground.
 6. **FAB drawn only in Directions (square, 2px border)** → implemented per turn-3 mocks.
 7. `design/uploads/patterns.html` is reference material from the donor design system (finance cabinet) — component recipes only, its product content is irrelevant to Wishka.
+
+### Accepted deviations (recorded by the Phase 9 audit)
+
+- **Hairline borders stay hairline.** `--rule-2` (and the red/green rule families) sit near 1.5:1 against paper — below WCAG 1.4.11's 3 : 1 for component boundaries. This is the Paper Ledger aesthetic; the focused state carries a full-contrast `--accent` border, and darkening every resting border to 3 : 1 would erase the look. Accepted.
+- **Public parameters save with an explicit button**, not §6.6's autosave-with-toast — deliberate Phase 7a simplification, kept.
+- **Clipboard is a button, not a conditional suggestion block** (§6.3): proactively reading the clipboard triggers a browser permission prompt, so the app asks only on tap. The pasted text is validated as a URL (Phase 9).
+- **Duplicate state shows the existing wish's title, not a full card preview** (§6.3) — the parse-cache payload stays minimal for MVP.
+- **Light-theme `--mute`, `--mute-2` and the NULL family deviate from `design/uploads/tokens.css`**: the design values fail WCAG AA (4.32:1 / 2.61:1 / 3.66:1); Phase 9 darkens them minimally to pass. The source-of-truth file in `design/` is unchanged — the shipped `src/styles/tokens.css` is the accessible variant.
 
 ## v2 backlog (not planned yet)
 

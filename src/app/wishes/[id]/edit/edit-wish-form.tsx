@@ -79,6 +79,7 @@ export function EditWishForm({
   audience = EVERYONE_AUDIENCE,
   candidates,
   ai,
+  baseCurrency,
 }: {
   wish: OwnerWish;
   /** The wish's stored audience, read server-side by the page. */
@@ -87,6 +88,8 @@ export function EditWishForm({
   /** Server-computed AI availability + daily quota snapshot; undefined hides
    *  every AI affordance on the form (see `WishForm`'s `ai` prop). */
   ai?: AiQuotaSnapshot;
+  /** The owner's base currency (§6.3) — anchors the currency sheet. */
+  baseCurrency?: string;
 }) {
   const router = useRouter();
   const t = useTranslations("form");
@@ -117,6 +120,7 @@ export function EditWishForm({
       initial={toFormValues(wish, audience)}
       candidates={candidates}
       ai={ai}
+      baseCurrency={baseCurrency}
       submitLabel={t("save")}
       onSubmit={handleSubmit}
       backHref={`/wishes/${wish.id}`}

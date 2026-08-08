@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+
+import { useModalFocus } from "./use-modal-focus";
 
 export type BottomSheetProps = {
   open: boolean;
@@ -23,6 +25,10 @@ export function BottomSheet({
   footer,
 }: BottomSheetProps) {
   const titleId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useModalFocus({ open, panelRef, rootRef });
 
   // The sheet owns the viewport while it is up.
   useEffect(() => {
@@ -45,6 +51,7 @@ export function BottomSheet({
 
   return (
     <div
+      ref={rootRef}
       aria-hidden={!open}
       inert={!open}
       className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
@@ -58,9 +65,12 @@ export function BottomSheet({
         }`}
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        /* -1: takes focus on open when the sheet has no focusable child. */
+        tabIndex={-1}
         className={`absolute inset-x-0 bottom-0 border-t border-rule-2 bg-paper shadow-[var(--shadow-bottom-sheet)] transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}

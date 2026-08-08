@@ -126,20 +126,12 @@ export function WishCard(props: WishCardProps) {
     : null;
 
   return (
+    /* No role="button" on the card: ARIA's presentational-children rule would
+       strip the failed-image retry/upload buttons out of the accessibility
+       tree. The title below is the real control — keyboard and screen readers
+       go through it; this handler only makes the whole tile tappable. */
     <div
       onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
       className={cx(
         "flex flex-col border text-left",
         archived ? "border-rule bg-zebra" : "bg-paper",
@@ -258,11 +250,22 @@ export function WishCard(props: WishCardProps) {
       <div className="flex flex-col gap-[5px] px-[9px] pt-2 pb-2.5">
         <h3
           className={cx(
-            "line-clamp-2 font-serif text-[13.5px] leading-[1.25] font-semibold",
+            "font-serif text-[13.5px] leading-[1.25] font-semibold",
             dimmed && "text-mute",
           )}
         >
-          {wish.title}
+          {onClick ? (
+            <button
+              type="button"
+              /* The tile's click handler would fire a second time on bubble. */
+              onClick={stopped(onClick)}
+              className="line-clamp-2 cursor-pointer text-left"
+            >
+              {wish.title}
+            </button>
+          ) : (
+            <span className="line-clamp-2 block">{wish.title}</span>
+          )}
         </h3>
 
         {archived ? (

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { Dialog } from "./dialog";
 import { InfoToast, UndoToast } from "./toast";
 
@@ -118,6 +119,62 @@ describe("UndoToast", () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
+  it("holds the countdown while the bar is hovered, then finishes it", () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    render(
+      <UndoToast
+        open
+        message="Бронь снята"
+        actionLabel="Отменить"
+        onAction={vi.fn()}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    const bar = screen.getByRole("status");
+    act(() => void vi.advanceTimersByTime(2000));
+    fireEvent.mouseEnter(bar);
+
+    // Hovering is the user reading the toast — 5s of it must not run out.
+    act(() => void vi.advanceTimersByTime(10000));
+    expect(onDismiss).not.toHaveBeenCalled();
+    // The drain bar is the timer made visible; it has to stop with it.
+    expect(screen.getByTestId("toast-progress")).toHaveStyle({
+      animationPlayState: "paused",
+    });
+
+    fireEvent.mouseLeave(bar);
+    act(() => void vi.advanceTimersByTime(2999));
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    act(() => void vi.advanceTimersByTime(1));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("holds the countdown while the Undo button has focus", () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    render(
+      <UndoToast
+        open
+        message="Бронь снята"
+        actionLabel="Отменить"
+        onAction={vi.fn()}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    const undo = screen.getByRole("button", { name: "Отменить" });
+    fireEvent.focusIn(undo);
+    act(() => void vi.advanceTimersByTime(10000));
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    fireEvent.focusOut(undo);
+    act(() => void vi.advanceTimersByTime(5000));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it("stays quiet while closed", () => {
     vi.useFakeTimers();
     const onDismiss = vi.fn();
@@ -159,5 +216,84 @@ describe("InfoToast", () => {
     expect(screen.getByText("Желание добавлено")).toBeInTheDocument();
     act(() => void vi.advanceTimersByTime(3000));
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Dialog focus management", () => {
+  function Harness() {
+    const [open, setOpen] = useState(false);
+    return (
+      <div>
+        <button type="button" onClick={() => setOpen(true)}>
+          Открыть
+        </button>
+        <p>Страница под диалогом</p>
+        <Dialog
+          open={open}
+          title="Удалить желание?"
+          onClose={() => setOpen(false)}
+          actions={[
+            { label: "Отмена", onClick: () => setOpen(false), tone: "neutral" },
+            {
+              label: "Удалить",
+              onClick: () => setOpen(false),
+              tone: "destructive",
+            },
+          ]}
+        />
+      </div>
+    );
+  }
+
+  function openDialog() {
+    const trigger = screen.getByRole("button", { name: "Открыть" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    return trigger;
+  }
+
+  it("moves focus into the panel on open", () => {
+    render(<Harness />);
+    openDialog();
+
+    const panel = screen.getByRole("dialog");
+    expect(panel.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Отмена" }),
+    );
+  });
+
+  it("makes the page behind inert while open", () => {
+    render(<Harness />);
+    const trigger = openDialog();
+
+    expect(trigger).toHaveAttribute("inert");
+    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    expect(trigger).not.toHaveAttribute("inert");
+  });
+
+  it("cycles Tab inside the panel in both directions", () => {
+    render(<Harness />);
+    openDialog();
+
+    const cancel = screen.getByRole("button", { name: "Отмена" });
+    const remove = screen.getByRole("button", { name: "Удалить" });
+
+    remove.focus();
+    fireEvent.keyDown(remove, { key: "Tab" });
+    expect(document.activeElement).toBe(cancel);
+
+    fireEvent.keyDown(cancel, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(remove);
+  });
+
+  it("returns focus to whatever opened it", () => {
+    render(<Harness />);
+    const trigger = openDialog();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
 });

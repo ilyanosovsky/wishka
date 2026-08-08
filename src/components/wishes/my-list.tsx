@@ -4,7 +4,7 @@ import { Archive, List, Search, Share2, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { generateWishImageAction } from "@/app/wishes/ai-actions";
 import { updateWishAction } from "@/app/wishes/actions";
@@ -13,7 +13,6 @@ import {
   PriorityFlag,
   VisibilityLockBadge,
 } from "@/components/ui/badges";
-import { AlertBanner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { SquareAvatar } from "@/components/ui/avatar";
 import { FilterChip } from "@/components/ui/chip";
@@ -95,7 +94,6 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [offline, setOffline] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -179,19 +177,6 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
     },
     [router],
   );
-
-  // Read after mount only: `navigator.onLine` is not knowable while rendering
-  // on the server, and guessing it would mismatch hydration.
-  useEffect(() => {
-    const sync = () => setOffline(!navigator.onLine);
-    sync();
-    window.addEventListener("online", sync);
-    window.addEventListener("offline", sync);
-    return () => {
-      window.removeEventListener("online", sync);
-      window.removeEventListener("offline", sync);
-    };
-  }, []);
 
   /** Only categories actually present get a chip — an empty filter is noise. */
   const categories = useMemo(() => {
@@ -290,12 +275,6 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
           aria-label={t("list.searchPlaceholder")}
           className="mt-3"
         />
-      )}
-
-      {offline && (
-        <AlertBanner tone="warning" className="mt-3">
-          {t("list.offline")}
-        </AlertBanner>
       )}
 
       {wishes.length > 0 && (

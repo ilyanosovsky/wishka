@@ -917,3 +917,108 @@ describe("WishForm — AI never blocks submit (regression)", () => {
     expect(onSubmit.mock.calls[0][0].title).toBe("Ваза");
   });
 });
+
+describe("WishForm — base currency (§6.3, states audit #6)", () => {
+  it("anchors an empty price on the owner's base currency, not USD", () => {
+    renderForm({ baseCurrency: "GEL" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Точная" }));
+
+    expect(
+      screen.getByRole("button", { name: "Валюта" }).textContent,
+    ).toContain("GEL");
+  });
+
+  it("pins the base currency at the top of the currency sheet", () => {
+    renderForm({ baseCurrency: "GEL", initial: { priceType: "exact" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Валюта" }));
+
+    const recentHeading = screen.getByText("Базовая и недавние");
+    const recentSection = recentHeading.parentElement as HTMLElement;
+    expect(recentSection.textContent).toContain("GEL");
+  });
+
+  it("falls back to USD only when no caller supplies a base currency", () => {
+    renderForm();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Точная" }));
+
+    expect(
+      screen.getByRole("button", { name: "Валюта" }).textContent,
+    ).toContain("USD");
+  });
+});
+
+describe("WishForm — photo picker (a11y #3, §6.3 error kinds)", () => {
+  function pick(container: HTMLElement, file: File) {
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    return act(async () => {
+      fireEvent.change(input, { target: { files: [file] } });
+      await Promise.resolve();
+    });
+  }
+
+  it("exposes the picker as a focusable button, not a bare label", () => {
+    renderForm();
+
+    const picker = screen.getByRole("button", { name: "Фото" });
+    picker.focus();
+    expect(document.activeElement).toBe(picker);
+  });
+
+  it("names a non-image pick instead of failing generically", async () => {
+    const { container } = renderForm();
+
+    await pick(
+      container,
+      new File(["x"], "notes.pdf", { type: "application/pdf" }),
+    );
+
+    expect(screen.getByText("Это не картинка")).toBeInTheDocument();
+    expect(startUpload).not.toHaveBeenCalled();
+  });
+
+  it("names an oversized pick instead of failing generically", async () => {
+    const { container } = renderForm();
+    const huge = new File(["x"], "huge.png", { type: "image/png" });
+    Object.defineProperty(huge, "size", { value: 40 * 1024 * 1024 });
+
+    await pick(container, huge);
+
+    expect(screen.getByText("Файл слишком большой")).toBeInTheDocument();
+    expect(startUpload).not.toHaveBeenCalled();
+  });
+
+  it("still shows the generic message when the upload itself fails", async () => {
+    startUpload.mockRejectedValue(new Error("network"));
+    const { container } = renderForm();
+
+    await pick(container, new File(["x"], "photo.png", { type: "image/png" }));
+
+    expect(
+      await screen.findByText("Не получилось загрузить"),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("WishForm — focus visibility (a11y #4)", () => {
+  it("gives the dream toggle a focus cue on its label", () => {
+    const { container } = renderForm();
+
+    const checkbox = container.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    const label = checkbox.closest("label") as HTMLElement;
+
+    expect(label.className).toContain("focus-within:border-accent");
+  });
+
+  it("labels the price-mode tablist", () => {
+    renderForm();
+
+    expect(screen.getByRole("tablist", { name: "Цена" })).toBeInTheDocument();
+  });
+});

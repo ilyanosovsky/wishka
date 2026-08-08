@@ -4,12 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { AppTabBar } from "@/components/app-tab-bar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { BaseCurrencySelect } from "@/components/profile/base-currency-select";
 import { DeleteAccount } from "@/components/profile/delete-account";
 import { ParamsEditor } from "@/components/profile/params-editor";
 import { PartnerBlock } from "@/components/profile/partner-block";
+import { ProfileIdentity } from "@/components/profile/profile-identity";
 import { ViewAsSheet } from "@/components/profile/view-as-sheet";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Avatar } from "@/components/ui/avatar";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
 import { getAudienceCandidates } from "@/db/access/visibility";
@@ -34,21 +35,12 @@ export default async function ProfilePage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-6 px-6 pt-14 pb-28">
-      <header className="flex items-center gap-4 border-b-2 border-ink pb-5">
-        <Avatar
-          size="lg"
-          name={session.user.name ?? profile.nickname}
-          src={session.user.image}
-        />
-        <div className="min-w-0">
-          <h1 className="truncate font-serif text-[24px] font-semibold tracking-[-0.01em]">
-            {session.user.name}
-          </h1>
-          <p className="truncate font-mono text-[12px] text-mute">
-            wishka.app/u/{profile.nickname}
-          </p>
-        </div>
-      </header>
+      <ProfileIdentity
+        name={session.user.name ?? profile.nickname}
+        image={session.user.image ?? null}
+        nickname={profile.nickname}
+        appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ""}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[12px] text-mute">{t("params.publicNote")}</p>
@@ -81,6 +73,7 @@ export default async function ProfilePage() {
           </span>
           <LocaleSwitcher />
         </div>
+        <BaseCurrencySelect value={profile.baseCurrency} />
         <SignOutButton />
         <DeleteAccount />
       </section>

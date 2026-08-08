@@ -235,3 +235,59 @@ describe("WishCard archive", () => {
     expect(screen.queryByText("Маша")).toBeNull();
   });
 });
+
+describe("WishCard activation", () => {
+  it("makes the title the card's control, so inner buttons stay in the a11y tree", () => {
+    const onClick = vi.fn();
+    const onRetryImage = vi.fn();
+    renderIntl(
+      <WishCard
+        role="owner"
+        wish={{ ...wish, imageStatus: "failed", imageUrl: null }}
+        onClick={onClick}
+        onRetryImage={onRetryImage}
+        onUploadImage={vi.fn()}
+      />,
+    );
+
+    const title = screen.getByRole("button", { name: "Керамическая ваза" });
+    // ARIA's presentational-children rule would swallow these two if the card
+    // root were still role="button".
+    expect(screen.getByRole("button", { name: "Повторить" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Загрузить фото" }),
+    ).toBeVisible();
+    // …and the card root must not carry role="button" any more.
+    expect(title.parentElement?.closest('[role="button"]')).toBeNull();
+
+    title.click();
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onRetryImage).not.toHaveBeenCalled();
+  });
+
+  it("fires the card's onClick exactly once when the title is used", () => {
+    const onClick = vi.fn();
+    renderIntl(
+      <WishCard
+        role="viewer"
+        reservationStatus="free"
+        wish={wish}
+        onClick={onClick}
+      />,
+    );
+
+    // The tile keeps its own click handler for pointer convenience; the title
+    // must not double-fire through it.
+    screen.getByRole("button", { name: "Керамическая ваза" }).click();
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders a plain title when the card is not clickable", () => {
+    renderIntl(<WishCard role="archive" wish={wish} />);
+
+    expect(
+      screen.queryByRole("button", { name: "Керамическая ваза" }),
+    ).toBeNull();
+    expect(screen.getByText("Керамическая ваза")).toBeInTheDocument();
+  });
+});

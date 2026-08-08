@@ -286,6 +286,7 @@ export function NewWishForm({
       enableDraft
       draftScope={userId}
       candidates={candidates}
+      baseCurrency={baseCurrency}
       initial={resolved.initial}
       parsedUrl={resolved.parsedUrl}
       parsedPartial={resolved.parsedPartial}

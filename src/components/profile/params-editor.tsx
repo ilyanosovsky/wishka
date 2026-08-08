@@ -44,20 +44,43 @@ const SIZE_LABEL_KEY: Record<KnownSizeKey, string> = {
   head: "params.sizeHead",
 };
 
+/**
+ * 24px is the visual size the Paper Ledger chip row can carry; the pseudo
+ * element widens the *hit* area to 44px without adding a single pixel of
+ * layout, so the tags keep their spacing (§3.1 / WCAG 2.5.8).
+ */
+const REMOVE_BUTTON_CLASS =
+  "relative flex h-6 w-6 flex-none cursor-pointer items-center justify-center text-mute-2 before:absolute before:-inset-2.5 before:content-[''] hover:text-ink";
+
 function isSizesEmpty(sizes: Record<string, string>): boolean {
   return Object.values(sizes).every((value) => !value.trim());
 }
+
+/** Anything the four known rows don't cover — «рост», «любимый цвет», … The
+ *  sanitizer already tolerates arbitrary keys under the same caps, so this is
+ *  purely the write-side UI §6.6 asks for. */
+function customKeysOf(sizes: Record<string, string>): string[] {
+  const known = new Set<string>(KNOWN_SIZE_KEYS);
+  return Object.keys(sizes).filter((key) => !known.has(key));
+}
+
+/** Client-side mirror of `sanitizePublicParams`' caps (80 chars, 30 keys
+ *  total) so the editor can't offer to write something the server drops. */
+const CUSTOM_KEY_MAX_LENGTH = 80;
+const MAX_CUSTOM_PARAMS = 30 - KNOWN_SIZE_KEYS.length;
 
 export function ParamsEditor({ initial }: ParamsEditorProps) {
   const t = useTranslations();
   const tasteFieldId = useId();
   const noGiftFieldId = useId();
+  const customFieldId = useId();
 
   const [sizes, setSizes] = useState<Record<string, string>>(initial.sizes);
   const [tastes, setTastes] = useState<string[]>(initial.tastes);
   const [noGift, setNoGift] = useState<string[]>(initial.noGift);
   const [tasteDraft, setTasteDraft] = useState("");
   const [noGiftDraft, setNoGiftDraft] = useState("");
+  const [customNameDraft, setCustomNameDraft] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -66,8 +89,31 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
   const allEmpty =
     isSizesEmpty(sizes) && tastes.length === 0 && noGift.length === 0;
 
-  function setSizeValue(key: KnownSizeKey, value: string) {
+  const customKeys = customKeysOf(sizes);
+
+  function setSizeValue(key: string, value: string) {
     setSizes((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function addCustomParam() {
+    // Keys are lower-cased here for the same reason the sanitizer does it:
+    // «Рост» and «рост» must not become two rows on the public profile.
+    const key = customNameDraft
+      .trim()
+      .slice(0, CUSTOM_KEY_MAX_LENGTH)
+      .toLowerCase();
+    if (!key) return;
+    setCustomNameDraft("");
+    if (key in sizes || customKeys.length >= MAX_CUSTOM_PARAMS) return;
+    setSizes((prev) => ({ ...prev, [key]: "" }));
+  }
+
+  function removeCustomParam(key: string) {
+    setSizes((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   function addTaste() {
@@ -128,6 +174,58 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
               />
             </div>
           ))}
+
+          {customKeys.map((key) => (
+            <div key={key} className="flex flex-col gap-1.5">
+              <span className={ROW_LABEL_CLASS}>{key}</span>
+              <div className="flex items-center gap-2">
+                <Field
+                  aria-label={key}
+                  value={sizes[key] ?? ""}
+                  placeholder={t("params.empty")}
+                  onChange={(event) => setSizeValue(key, event.target.value)}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  aria-label={t("common.delete")}
+                  onClick={() => removeCustomParam(key)}
+                  className={REMOVE_BUTTON_CLASS}
+                >
+                  <X aria-hidden size={12} strokeWidth={2.4} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Name only: the new row lands in the list above with its own value
+            field, exactly like the four known ones — one control, no second
+            input whose accessible name we would have to invent. */}
+        <div className="flex items-center gap-2">
+          <Field
+            id={customFieldId}
+            aria-label={t("params.customName")}
+            value={customNameDraft}
+            placeholder={t("params.customName")}
+            maxLength={CUSTOM_KEY_MAX_LENGTH}
+            onChange={(event) => setCustomNameDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addCustomParam();
+              }
+            }}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            className="flex-none"
+            disabled={!customNameDraft.trim()}
+            onClick={addCustomParam}
+          >
+            {t("params.addParam")}
+          </Button>
         </div>
       </section>
 
@@ -144,7 +242,7 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
                   type="button"
                   aria-label={t("common.delete")}
                   onClick={() => removeTaste(taste)}
-                  className="flex h-6 w-6 flex-none cursor-pointer items-center justify-center text-mute-2 hover:text-ink"
+                  className={REMOVE_BUTTON_CLASS}
                 >
                   <X aria-hidden size={12} strokeWidth={2.4} />
                 </button>
@@ -186,7 +284,7 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
                   type="button"
                   aria-label={t("common.delete")}
                   onClick={() => removeNoGift(item)}
-                  className="flex h-6 w-6 flex-none cursor-pointer items-center justify-center text-mute-2 hover:text-ink"
+                  className={REMOVE_BUTTON_CLASS}
                 >
                   <X aria-hidden size={12} strokeWidth={2.4} />
                 </button>

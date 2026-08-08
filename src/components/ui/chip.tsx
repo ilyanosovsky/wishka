@@ -8,7 +8,9 @@ export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement>
   selected?: boolean;
 }
 
-/** Multi-select square chip — filters, tag pickers. min-h-9 (36px) keeps it a legal tap target. */
+/** Multi-select square chip — filters, tag pickers. min-h-11 (44px): these are
+ *  the list filters and the whole category picker in the wish form, so they hold
+ *  the kit's tap-target rule (§3.1) like every other control. */
 export function FilterChip({
   selected = false,
   className,
@@ -20,7 +22,7 @@ export function FilterChip({
       type="button"
       aria-pressed={selected}
       className={cx(
-        "inline-flex min-h-9 items-center gap-1.5 border px-3 text-[12px]",
+        "inline-flex min-h-11 items-center gap-1.5 border px-3 text-[12px]",
         selected
           ? "border-ink bg-ink font-medium text-paper"
           : "border-rule-2 bg-paper text-mute",

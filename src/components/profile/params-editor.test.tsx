@@ -147,3 +147,56 @@ describe("ParamsEditor — save", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("ParamsEditor — custom size parameters (§6.6)", () => {
+  it("adds an arbitrary parameter row, lower-cased, and saves it", async () => {
+    renderEditor();
+
+    fireEvent.change(screen.getByLabelText("Свой параметр"), {
+      target: { value: " Рост " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Добавить параметр" }));
+
+    // The new row lands in the sizes list with its own value field.
+    const valueField = screen.getByLabelText("рост");
+    fireEvent.change(valueField, { target: { value: "180" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
+
+    await vi.waitFor(() => expect(updatePublicParams).toHaveBeenCalledTimes(1));
+    expect(updatePublicParams).toHaveBeenCalledWith({
+      sizes: { рост: "180" },
+      tastes: [],
+      noGift: [],
+    });
+  });
+
+  it("renders custom keys that came from the server and can remove them", () => {
+    renderEditor({
+      sizes: { clothing: "M", рост: "180" },
+      tastes: [],
+      noGift: [],
+    });
+
+    expect(screen.getByLabelText("рост")).toHaveValue("180");
+    // The four known rows have no remove button — only the custom one does.
+    fireEvent.click(screen.getByLabelText("Удалить"));
+    expect(screen.queryByLabelText("рост")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Одежда")).toHaveValue("M");
+  });
+
+  it("will not add an empty name, and never duplicates a known key", () => {
+    renderEditor({ sizes: { clothing: "M" }, tastes: [], noGift: [] });
+    const add = screen.getByRole("button", { name: "Добавить параметр" });
+    expect(add).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Свой параметр"), {
+      target: { value: "clothing" },
+    });
+    fireEvent.click(add);
+
+    // No second "Одежда" row appeared, and the existing value survived.
+    expect(screen.getAllByLabelText("Одежда")).toHaveLength(1);
+    expect(screen.getByLabelText("Одежда")).toHaveValue("M");
+  });
+});

@@ -83,9 +83,14 @@ export function GroupAppearanceFields({
                    rather than named — nothing untranslated reaches the user. */
                 aria-label={`${t("colorLabel")} ${index + 1}`}
                 onClick={() => onColorChange(selected ? null : option)}
-                className={`flex h-11 w-11 flex-none items-center justify-center border ${groupSwatchClass(
+                /* Selection is an inset ring in the swatch's own foreground
+                   (every swatch pairs its fill with a legible one — same reason
+                   the tick works). `outline` is reserved for :focus-visible;
+                   spending it here made "selected" and "focused" the same
+                   picture. */
+                className={`flex h-11 w-11 flex-none cursor-pointer items-center justify-center border ${groupSwatchClass(
                   option,
-                )} ${selected ? "outline-2 outline-offset-2 outline-ink" : ""}`}
+                )} ${selected ? "shadow-[inset_0_0_0_2px_currentColor]" : ""}`}
               >
                 {/* The tick is `currentColor`: every swatch pairs its fill with
                     a legible foreground, so it reads on all of them. */}

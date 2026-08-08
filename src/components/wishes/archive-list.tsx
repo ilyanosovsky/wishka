@@ -91,7 +91,7 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
         <Link
           href="/"
           aria-label={t("common.back")}
-          className="flex h-10 w-10 flex-none items-center justify-center border border-rule-2 bg-paper"
+          className="flex h-11 w-11 flex-none items-center justify-center border border-rule-2 bg-paper"
         >
           <ChevronLeft aria-hidden size={16} strokeWidth={2.2} />
         </Link>

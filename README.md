@@ -1,8 +1,16 @@
 # Wishka 🎁
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **An open-source, mobile-first wishlist service.** Paste a product link — the wish card assembles itself (image, title, price, description, with AI fallbacks). Share your list with family and friends; they reserve gifts while you never see the reservations. Surprises survive, gifts never duplicate.
 
 > Built as a personal pet project, designed to be usable by anyone. Runs entirely on free tiers.
+
+**Live demo:** not deployed yet — this section will link to it once Wishka is live (see [Deployment](https://github.com/ilyanosovsky/wishka/wiki/Deployment)).
+
+## Screenshots
+
+<!-- TODO: screenshots after deploy -->
 
 ## Why another wishlist?
 
@@ -44,7 +52,7 @@ cp .env.example .env.local   # fill in database + OpenAI keys
 npm run dev
 ```
 
-You’ll need a Postgres database (any provider — we use [Railway](https://railway.com)), an [OpenAI](https://platform.openai.com) API key, and free accounts for [Resend](https://resend.com) (emails) and [UploadThing](https://uploadthing.com) (images). See [`.env.example`](.env.example) for every variable and [`CLAUDE.md`](CLAUDE.md) for full setup notes (Google OAuth, etc.).
+You’ll need a Postgres database (any provider — we use [Railway](https://railway.com)), an [OpenAI](https://platform.openai.com) API key, and free accounts for [Resend](https://resend.com) (emails) and [UploadThing](https://uploadthing.com) (images). See [`.env.example`](.env.example) for every variable and the wiki's [Local Setup](https://github.com/ilyanosovsky/wishka/wiki/Local-Setup) page for the full walkthrough (Google OAuth redirect URI, database migrations, quality gate). Deploying your own instance? See [Deployment](https://github.com/ilyanosovsky/wishka/wiki/Deployment).
 
 ### Scripts
 

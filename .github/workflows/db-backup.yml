@@ -1,0 +1,49 @@
+name: DB backup
+
+# Phase 9 prod-readiness audit: Railway Postgres has no backups on the Hobby
+# tier (IMPLEMENTATION_PLAN.md, Phase 0). This is the pg_dump-cron mitigation
+# the plan calls for.
+#
+# SECURITY — this repo is PUBLIC. A raw pg_dump holds user emails, wishes and
+# reservations, so the artifact this job produces is never allowed to be
+# plaintext: the dump is piped straight through `age` (asymmetric encryption)
+# before it ever touches disk or `actions/upload-artifact`, using only the
+# *public* key (`AGE_PUBLIC_KEY`, a repo variable — safe to be visible).
+# Nothing here can decrypt its own output; only whoever holds the matching
+# private key (kept outside the repo — see docs/wiki/Deployment.md) can
+# restore. `DATABASE_URL` is read from a secret and is never echoed, printed,
+# or included in an artifact.
+#
+# Inert by default: the job only runs once `vars.BACKUP_ENABLED` is set to
+# "true" (see docs/wiki/Deployment.md's backup setup section), so adding this
+# file does not by itself require any secret to exist.
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # daily, 03:17 UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    name: backup
+    runs-on: ubuntu-latest
+    if: vars.BACKUP_ENABLED == 'true'
+    steps:
+      - name: Install pg_dump and age
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client age
+
+      - name: Dump, compress and encrypt
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AGE_PUBLIC_KEY: ${{ vars.AGE_PUBLIC_KEY }}
+        run: |
+          pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges \
+            | gzip \
+            | age -r "$AGE_PUBLIC_KEY" -o dump.age
+
+      - name: Upload encrypted dump
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: dump.age
+          retention-days: 90

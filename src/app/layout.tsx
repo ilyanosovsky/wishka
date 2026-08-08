@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Literata, Newsreader } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { OfflineBanner } from "@/components/offline-banner";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -29,15 +30,24 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Wishka",
-  description: "Open-source mobile-first wishlist service",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations();
+  return {
+    title: { default: "Wishka", template: "%s · Wishka" },
+    description: t("meta.description"),
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // Verbatim from src/styles/tokens.css `--bg` (light `:root` / dark
+  // `[data-theme="dark"]`) so mobile browser chrome matches the app shell.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f0e9" },
+    { media: "(prefers-color-scheme: dark)", color: "#1f1c16" },
+  ],
 };
 
 export default async function RootLayout({
@@ -56,7 +66,10 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <OfflineBanner />
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   );

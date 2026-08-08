@@ -53,7 +53,10 @@ export function DreamStamp({
   return (
     <span
       className={cx(
-        "inline-block -rotate-[8deg] border-2 border-null-txt bg-paper/72 font-semibold tracking-[var(--track-stamp)] whitespace-nowrap text-null-txt uppercase",
+        /* 92%, not 72%: the stamp sits over an arbitrary product photo, so its
+           backdrop has to be opaque enough that the text contrast stops
+           tracking whatever is underneath (worst case 4.75:1 over black). */
+        "inline-block -rotate-[8deg] border-2 border-null-txt bg-paper/92 font-semibold tracking-[var(--track-stamp)] whitespace-nowrap text-null-txt uppercase",
         size === "sm"
           ? "px-[7px] py-0.5 text-[9.5px]"
           : "px-2 py-0.5 text-[10px]",
@@ -140,7 +143,8 @@ export function VisibilityLockBadge({
       aria-label={label}
       title={label}
       className={cx(
-        "inline-flex h-5 w-5 items-center justify-center border border-rule-2 bg-paper/85 text-mute",
+        /* 92% for the same reason as DreamStamp — it also floats over a photo. */
+        "inline-flex h-5 w-5 items-center justify-center border border-rule-2 bg-paper/92 text-mute",
         className,
       )}
     >
