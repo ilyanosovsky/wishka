@@ -1,14 +1,26 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import messages from "../../../messages/ru.json";
 import type { ViewerWish } from "@/db/access/types";
 import { PublicList, type PublicListProps } from "./public-list";
 
+const push = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push, refresh: vi.fn() }),
   usePathname: () => "/u/ilya",
 }));
+
+// The merge banner pulls in the reserve server actions; keep them off the
+// client test's import graph.
+vi.mock("@/app/reserve/actions", () => ({
+  mergeGuestReservationsAction: vi.fn(async () => ({ ok: true, moved: 0 })),
+}));
+
+beforeEach(() => {
+  push.mockClear();
+  window.sessionStorage.clear();
+});
 
 // LocaleSwitcher (guest banner) imports the server action; stub it out.
 vi.mock("@/i18n/actions", () => ({
@@ -68,11 +80,36 @@ describe("PublicList — guest vs friend chrome", () => {
     expect(screen.queryByRole("navigation")).toBeNull();
   });
 
+  it("sends «Создать свой» back to this list after login", () => {
+    renderPublicList({ isGuest: true });
+
+    fireEvent.click(screen.getByRole("button", { name: "Создать свой" }));
+
+    expect(push).toHaveBeenCalledWith("/login?next=%2Fu%2Filya");
+  });
+
   it("shows the tab bar and no guest banner for a logged-in viewer", () => {
     renderPublicList({ isGuest: false });
 
     expect(screen.getByRole("navigation")).toBeInTheDocument();
     expect(screen.queryByText("Вы смотрите список: ilya")).toBeNull();
+  });
+});
+
+describe("PublicList — guest booking merge prompt", () => {
+  it("is absent when this device holds no guest bookings", async () => {
+    renderPublicList();
+    await vi.waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Перенести" })).toBeNull(),
+    );
+  });
+
+  it("appears when the signed-in viewer still carries guest bookings", async () => {
+    renderPublicList({ mergeCount: 1 });
+
+    expect(
+      await screen.findByRole("button", { name: "Перенести" }),
+    ).toBeInTheDocument();
   });
 });
 

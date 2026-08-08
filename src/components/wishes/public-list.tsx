@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { MergeBanner } from "@/components/reservations/merge-banner";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { NoGiftChip, TagChip } from "@/components/ui/chip";
@@ -13,6 +14,7 @@ import { AppTabBar } from "@/components/app-tab-bar";
 import { Tabs } from "@/components/ui/tabs";
 import { WishCard } from "@/components/ui/wish-card";
 import type { ViewerWish } from "@/db/access/types";
+import { loginHrefWithNext } from "@/lib/next-param";
 import { ShareSheet } from "./share-sheet";
 import { toBaseWish } from "./wish-card-props";
 
@@ -36,6 +38,9 @@ export type PublicListProps = {
   noGift: string[];
   /** No session behind this view — show the guest banner, hide the tab bar. */
   isGuest: boolean;
+  /** Live guest bookings still held by this device's cookie while the viewer
+   *  is signed in — > 0 offers to move them into the account (§6.5). */
+  mergeCount?: number;
 };
 
 type FilterKey = "all" | "free";
@@ -59,6 +64,7 @@ export function PublicList({
   tastes,
   noGift,
   isGuest,
+  mergeCount = 0,
 }: PublicListProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -91,7 +97,12 @@ export function PublicList({
           </span>
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
-            <Button variant="primary" onClick={() => router.push("/login")}>
+            <Button
+              variant="primary"
+              /* Signing up from someone's list should land back on that list,
+                 not on an empty home screen. */
+              onClick={() => router.push(loginHrefWithNext(`/u/${nickname}`))}
+            >
               {t("publicList.createOwn")}
             </Button>
           </div>
@@ -124,6 +135,8 @@ export function PublicList({
           <Share2 aria-hidden size={16} strokeWidth={2.4} />
         </button>
       </header>
+
+      {mergeCount > 0 && <MergeBanner count={mergeCount} className="mt-3.5" />}
 
       {hasWhatMatters && (
         <WhatMatters sizes={sizeEntries} tastes={tastes} noGift={noGift} />

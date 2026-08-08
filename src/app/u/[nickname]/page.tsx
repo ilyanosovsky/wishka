@@ -1,11 +1,13 @@
 import { getTranslations } from "next-intl/server";
 
+import { RecordListVisit } from "@/components/reservations/record-list-visit";
 import { ServiceScreen } from "@/components/service-screen";
 import { PublicList } from "@/components/wishes/public-list";
 import { getDb } from "@/db";
+import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getProfileByNickname } from "@/db/access/profiles";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
-import { resolveViewer } from "@/lib/viewer";
+import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
 
 /**
  * A public list, which is also its owner's public profile (DESIGN_BRIEF §6.5).
@@ -47,15 +49,29 @@ export default async function PublicListPage({
     ? await getWishesAsSeenBy(db, profile.userId, { anonymous: true })
     : await getVisibleWishes(db, profile.userId, viewer);
 
+  // Signed in, yet this device still carries a guest identity: the bookings
+  // made before signing in are strandable, so offer to move them (§6.5).
+  const guest = viewerUserId ? await resolveGuestIdentity(db) : null;
+  const mergeCount = guest
+    ? await countActiveGuestReservations(db, guest.id)
+    : 0;
+
   return (
-    <PublicList
-      name={profile.nickname}
-      nickname={profile.nickname}
-      wishes={wishes}
-      sizes={profile.sizes}
-      tastes={profile.tastes}
-      noGift={profile.noGift}
-      isGuest={viewerUserId === null}
-    />
+    <>
+      {/* Visitors only — the owner does not need a trail back to their own list. */}
+      {!isOwner && (
+        <RecordListVisit nickname={profile.nickname} name={profile.nickname} />
+      )}
+      <PublicList
+        name={profile.nickname}
+        nickname={profile.nickname}
+        wishes={wishes}
+        sizes={profile.sizes}
+        tastes={profile.tastes}
+        noGift={profile.noGift}
+        isGuest={viewerUserId === null}
+        mergeCount={mergeCount}
+      />
+    </>
   );
 }

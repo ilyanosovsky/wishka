@@ -3,11 +3,20 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ReservePanel } from "@/components/reserve/reserve-panel";
 import { ServiceScreen } from "@/components/service-screen";
-import { DreamStamp, NullPill, PriorityFlag } from "@/components/ui/badges";
+import {
+  DreamStamp,
+  NullPill,
+  PriorityFlag,
+  StatusBadge,
+  type WishStatus,
+} from "@/components/ui/badges";
 import { getDb } from "@/db";
 import { getProfile } from "@/db/access/profiles";
+import type { ReservationStatus } from "@/db/access/types";
 import { getVisibleWish } from "@/db/access/viewer";
+import { loginHrefWithNext } from "@/lib/next-param";
 import { formatPrice } from "@/lib/price";
 import { resolveViewer } from "@/lib/viewer";
 
@@ -17,11 +26,21 @@ import { resolveViewer } from "@/lib/viewer";
  * rules as the list, so a restricted wish this viewer may not see (and a bad or
  * gifted id) both fall through to the invalid-link screen (§6.10).
  *
- * 7a shows the card only; the reserve action arrives in 7b.
+ * 7b adds the booking half: the status badge and `ReservePanel`. Both are
+ * withheld from the list owner — `getVisibleWish` already flattens their own
+ * wish to `free` (it never reads a reservation row for them), and showing a
+ * hardcoded "Свободно" plus a «Забронирую» button on your own wish would be
+ * noise at best and a hint at worst.
  */
 
 const PLACEHOLDER_STRIPES =
   "repeating-linear-gradient(45deg, var(--zebra) 0 10px, color-mix(in srgb, var(--rule) 35%, var(--zebra)) 10px 20px)";
+
+const RESERVATION_TO_STATUS: Record<ReservationStatus, WishStatus> = {
+  free: "free",
+  reserved: "reserved",
+  reserved_by_you: "reservedByYou",
+};
 
 export default async function SharedWishPage({
   params,
@@ -52,6 +71,8 @@ export default async function SharedWishPage({
   const price = formatPrice(wish);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
   const isGuest = !("userId" in viewer);
+  const isOwner = "userId" in viewer && viewer.userId === wish.ownerId;
+  const badgeStatus = RESERVATION_TO_STATUS[wish.reservationStatus];
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pb-16">
@@ -63,7 +84,7 @@ export default async function SharedWishPage({
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             <Link
-              href="/login"
+              href={loginHrefWithNext(`/w/${wish.id}`)}
               className="inline-flex min-h-11 items-center justify-center border border-accent bg-accent px-4 text-[13px] font-medium text-paper hover:bg-accent-ink"
             >
               {t("publicList.createOwn")}
@@ -127,10 +148,18 @@ export default async function SharedWishPage({
           ) : (
             <NullPill label={t("wish.noPrice")} />
           )}
-          <PriorityFlag
-            priority={wish.priority}
-            label={t(`wish.priority.${wish.priority}`)}
-          />
+          <div className="flex items-center gap-2.5">
+            {!isOwner && (
+              <StatusBadge
+                status={badgeStatus}
+                label={t(`wish.status.${badgeStatus}`)}
+              />
+            )}
+            <PriorityFlag
+              priority={wish.priority}
+              label={t(`wish.priority.${wish.priority}`)}
+            />
+          </div>
         </div>
 
         {wish.description && (
@@ -154,6 +183,15 @@ export default async function SharedWishPage({
             <ExternalLink aria-hidden size={15} strokeWidth={2.4} />
             {t("detail.openInStore")}
           </a>
+        )}
+
+        {!isOwner && (
+          <ReservePanel
+            wishId={wish.id}
+            reservationStatus={wish.reservationStatus}
+            isGuest={isGuest}
+            listHref={listHref}
+          />
         )}
 
         <Link
