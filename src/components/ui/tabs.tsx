@@ -38,11 +38,17 @@ export function Tabs({
   className,
   ariaLabel,
 }: TabsProps) {
+  // max-w-full + overflow-x-auto: labels are nowrap, so a row that cannot fit
+  // (four RU type tabs on a narrow screen) scrolls inside its own box instead
+  // of painting over the page padding.
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cx("inline-flex border border-rule-2", className)}
+      className={cx(
+        "inline-flex max-w-full overflow-x-auto border border-rule-2",
+        className,
+      )}
     >
       {items.map((item, index) => {
         const active = item.value === value;

@@ -113,6 +113,7 @@ export function EditWishForm({
 
   return (
     <WishForm
+      heading={t("editTitle")}
       initial={toFormValues(wish, audience)}
       candidates={candidates}
       ai={ai}
