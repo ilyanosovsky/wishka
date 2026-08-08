@@ -227,8 +227,11 @@ export function buildPricePrompt(
 export function buildImagePrompt(input: SuggestionInput): string {
   const parts = [
     "A clean, friendly illustration of a gift for a wishlist card.",
-    "Centred subject, soft neutral paper-like background, no text, no logos,",
-    "no watermark, no people.",
+    // "Centred subject on a neutral background" used to invite circular
+    // vignettes floating in blank margins; the cards need edge-to-edge art.
+    "Full-bleed composition that fills the entire square canvas edge to edge:",
+    "no circular vignette, no frame, no border, no matte, no blank margins.",
+    "Muted paper-toned palette, no text, no logos, no watermark, no people.",
     `The gift: ${clip(input.title)}.`,
   ];
   const category = safeCategory(input.category);
