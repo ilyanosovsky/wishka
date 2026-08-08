@@ -128,13 +128,13 @@ describe("PublicList — what matters block", () => {
 describe("PublicList — empty state", () => {
   it("shows the owner-empty message with a hint for a logged-in viewer", () => {
     renderPublicList({ wishes: [], isGuest: false });
-    expect(screen.getByText("У ilya пока нет желаний")).toBeInTheDocument();
+    expect(screen.getByText("В списке пока пусто")).toBeInTheDocument();
     expect(screen.getByText(/Загляни в «Что важно знать»/)).toBeInTheDocument();
   });
 
   it("drops the friend hint for a guest", () => {
     renderPublicList({ wishes: [], isGuest: true });
-    expect(screen.getByText("У ilya пока нет желаний")).toBeInTheDocument();
+    expect(screen.getByText("В списке пока пусто")).toBeInTheDocument();
     expect(screen.queryByText(/Загляни в «Что важно знать»/)).toBeNull();
   });
 });
