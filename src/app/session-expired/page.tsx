@@ -10,7 +10,7 @@ import { loginHrefWithNext } from "@/lib/next-param";
 export default async function SessionExpiredPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const t = await getTranslations();
   const { next } = await searchParams;
@@ -19,7 +19,7 @@ export default async function SessionExpiredPage({
     <ServiceScreen
       title={t("service.sessionExpiredTitle")}
       ctaLabel={t("service.sessionExpiredCta")}
-      ctaHref={loginHrefWithNext(next ?? "/")}
+      ctaHref={loginHrefWithNext(next)}
     />
   );
 }

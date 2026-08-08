@@ -181,7 +181,7 @@ describe("GuestFormSheet — success", () => {
     submit();
 
     await screen.findByRole("button", { name: "Сохранить почту" });
-    typeInto("Почта (необязательно)", "masha@example.com");
+    typeInto("Почта", "masha@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Сохранить почту" }));
 
     expect(
@@ -205,7 +205,7 @@ describe("GuestFormSheet — success", () => {
     submit();
 
     await screen.findByRole("button", { name: "Сохранить почту" });
-    typeInto("Почта (необязательно)", "masha@");
+    typeInto("Почта", "masha@");
     fireEvent.click(screen.getByRole("button", { name: "Сохранить почту" }));
 
     expect(

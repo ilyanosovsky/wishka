@@ -222,7 +222,7 @@ export function GuestFormSheet({
                     {t("reserve.successEmailPrompt")}
                   </p>
                   <TextField
-                    label={t("reserve.guestEmailLabel")}
+                    label={t("reserve.successEmailLabel")}
                     type="email"
                     inputMode="email"
                     autoComplete="email"

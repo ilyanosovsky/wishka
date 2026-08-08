@@ -15,7 +15,7 @@ export default async function GuestSwitchPage({
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const { token } = await params;
   const next = sanitizeNextPath((await searchParams).next);

@@ -69,7 +69,7 @@ export type ReserveOptions = {
  *
  * The row also copies the wish as it looked right now. That snapshot is what
  * survives the owner deleting or rewriting the wish, and diffing it against the
- * live row is how "Мои брони" reports what changed.
+ * live row is how "My bookings" reports what changed.
  */
 export async function reserveWish(
   db: Db,
@@ -182,7 +182,7 @@ export async function cancelReservation(
 }
 
 /**
- * Releases a booking from "Мои брони", where the reservation id is the only
+ * Releases a booking from "My bookings", where the reservation id is the only
  * handle the holder has: the wish may already be gone, in which case `wish_id`
  * is NULL and `cancelReservation`'s wish-first lookup has nothing to work with.
  *

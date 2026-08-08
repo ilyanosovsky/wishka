@@ -11,7 +11,7 @@ import { OnboardingForm } from "./onboarding-form";
 export default async function WelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   // Every sign-in lands here first; `next` carries where the user was headed
   // (an expired session's page, a shared list) through the onboarding stop.

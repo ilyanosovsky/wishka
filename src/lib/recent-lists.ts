@@ -1,5 +1,5 @@
 /**
- * "Недавно просмотренные списки" (DESIGN_BRIEF §6.7) — a device-local trail of
+ * "Recently viewed lists" (DESIGN_BRIEF §6.7) — a device-local trail of
  * the public lists this browser has opened, so a link followed once stays
  * findable afterwards.
  *

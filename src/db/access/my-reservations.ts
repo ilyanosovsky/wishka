@@ -6,7 +6,7 @@ import { hasUsableIdentity, reserverMatch } from "./reservations";
 import type { Reserver, WishPriceType } from "./types";
 
 /**
- * "Мои брони" — the reserver's own side of the surprise.
+ * "My bookings" — the reserver's own side of the surprise.
  *
  * This is the mirror image of `owner.ts`: it reads reservation rows freely,
  * because every row here belongs to the caller. It is scoped by reserver

@@ -47,9 +47,14 @@ async function requestLocale(): Promise<Locale> {
   return isLocale(locale) ? locale : DEFAULT_LOCALE;
 }
 
-/** `/g/<token>` logs the guest's device in, then forwards to the wish. */
-function manageBookingUrl(token: string, wishId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "";
+/**
+ * `/g/<token>` logs the guest's device in, then forwards to the wish. Returns
+ * null when `NEXT_PUBLIC_APP_URL` is unset — a relative link is useless in an
+ * email client, so the caller skips the send rather than mail a dead link.
+ */
+function manageBookingUrl(token: string, wishId: string): string | null {
+  const base = process.env.NEXT_PUBLIC_APP_URL;
+  if (!base) return null;
   return `${base}/g/${token}?next=${encodeURIComponent(`/w/${wishId}`)}`;
 }
 
@@ -63,19 +68,22 @@ function queueGuestConfirmation(wishId: string, guestId: string): void {
   after(async () => {
     const target = await getReservationNotificationTarget(getDb(), wishId);
     if (
-      target?.isGuest &&
-      target.guestId === guestId &&
-      target.email &&
-      target.guestToken
+      !target?.isGuest ||
+      target.guestId !== guestId ||
+      !target.email ||
+      !target.guestToken
     ) {
-      await sendGuestBookingConfirmation({
-        to: target.email,
-        locale: target.locale,
-        guestName: target.name,
-        wishTitle: target.wishTitle,
-        manageUrl: manageBookingUrl(target.guestToken, wishId),
-      });
+      return;
     }
+    const manageUrl = manageBookingUrl(target.guestToken, wishId);
+    if (!manageUrl) return;
+    await sendGuestBookingConfirmation({
+      to: target.email,
+      locale: target.locale,
+      guestName: target.name,
+      wishTitle: target.wishTitle,
+      manageUrl,
+    });
   });
 }
 
@@ -184,7 +192,7 @@ export async function cancelReservationAction(
   return { ok: result.ok };
 }
 
-/** Cancel by reservation id — the "Мои брони" card, where the wish itself may
+/** Cancel by reservation id — the "My bookings" card, where the wish itself may
  *  already be gone. */
 export async function dismissReservationAction(
   reservationId: string,

@@ -81,16 +81,21 @@ export function MergeBanner({ count, className }: MergeBannerProps) {
   async function handleMerge() {
     if (busy) return;
     setBusy(true);
-    const result = await mergeGuestReservationsAction();
-    setBusy(false);
-    // A signed-out session is the likely failure; surface it rather than
-    // leaving a dead button.
-    if (!result.ok) {
+    try {
+      const result = await mergeGuestReservationsAction();
+      // A signed-out session is the likely failure; surface it rather than
+      // leaving a dead button. A rejected action (network) lands here too.
+      if (!result.ok) {
+        setFailed(true);
+        return;
+      }
+      setMerged(true);
+      router.refresh();
+    } catch {
       setFailed(true);
-      return;
+    } finally {
+      setBusy(false);
     }
-    setMerged(true);
-    router.refresh();
   }
 
   return (

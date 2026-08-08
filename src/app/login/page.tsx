@@ -9,7 +9,7 @@ import { LoginForm } from "./login-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const session = await getAuth().api.getSession({ headers: await headers() });
   const next = sanitizeNextPath((await searchParams).next);

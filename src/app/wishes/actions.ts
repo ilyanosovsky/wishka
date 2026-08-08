@@ -7,17 +7,16 @@ import { after } from "next/server";
 import { getDb } from "@/db";
 import {
   createWish,
-  markGifted,
   restoreWish,
-  updateWish,
   type WishInput,
   type WishValidationError,
 } from "@/db/access/mutations";
-import { getOwnerWish } from "@/db/access/owner";
 import type { OwnerWish } from "@/db/access/types";
 import {
   deleteWishAsOwner,
-  getReservationNotificationTarget,
+  getReservationNotificationTargetById,
+  markGiftedAsOwner,
+  updateWishAsOwner,
 } from "@/db/access/wish-lifecycle";
 import { getAuth } from "@/lib/auth";
 import type { ReservationChangedField } from "@/lib/email/copy";
@@ -34,10 +33,10 @@ async function requireUserId(): Promise<string> {
 }
 
 /**
- * SURPRISE INVARIANT — the email dispatch below runs the same statements for
- * every owner mutation, booked or not: the notification target is read
- * unconditionally, consumed only inside `after()` (post-response), and nothing
- * derived from it ever reaches a return value. The owner-visible result of
+ * SURPRISE INVARIANT — every owner mutation captures the booking to notify
+ * *atomically inside its own transaction* (`updateWishAsOwner` &co.), then
+ * dispatches the email from that opaque id inside `after()` (post-response).
+ * The captured id never reaches a return value, and the owner-visible result of
  * each action is exactly what it was before reservations existed.
  */
 
@@ -82,30 +81,30 @@ export async function updateWishAction(
   input: Partial<WishInput>,
 ): Promise<WishActionResult> {
   const userId = await requireUserId();
-  const db = getDb();
-  const before = await getOwnerWish(db, userId, wishId);
-  const result = await updateWish(db, userId, wishId, input);
+  const { result, before, notifyReservationId } = await updateWishAsOwner(
+    getDb(),
+    userId,
+    wishId,
+    input,
+  );
   if (result.ok) {
-    if (before) {
-      const changed = materialChanges(before, result.wish);
-      if (changed.length > 0) {
-        // The reservation outlives an edit, so the target can be read lazily.
-        after(async () => {
-          const target = await getReservationNotificationTarget(
-            getDb(),
-            wishId,
-          );
-          if (target?.email) {
-            await sendReservedWishChanged({
-              to: target.email,
-              locale: target.locale,
-              wishTitle: target.wishTitle,
-              changedFields: changed,
-              wishAppUrl: wishAppUrl(wishId),
-            });
-          }
-        });
-      }
+    const changed = before ? materialChanges(before, result.wish) : [];
+    if (changed.length > 0 && notifyReservationId) {
+      after(async () => {
+        const target = await getReservationNotificationTargetById(
+          getDb(),
+          notifyReservationId,
+        );
+        if (target?.email) {
+          await sendReservedWishChanged({
+            to: target.email,
+            locale: target.locale,
+            wishTitle: target.wishTitle,
+            changedFields: changed,
+            wishAppUrl: wishAppUrl(wishId),
+          });
+        }
+      });
     }
     revalidatePath("/");
     revalidatePath("/archive");
@@ -119,20 +118,27 @@ export async function deleteWishAction(
   wishId: string,
 ): Promise<{ ok: boolean }> {
   const userId = await requireUserId();
-  const db = getDb();
-  // Read before the delete: orphaning ends the active reservation.
-  const target = await getReservationNotificationTarget(db, wishId);
-  const ok = await deleteWishAsOwner(db, userId, wishId);
+  const { result: ok, notifyReservationId } = await deleteWishAsOwner(
+    getDb(),
+    userId,
+    wishId,
+  );
   if (ok) {
-    after(async () => {
-      if (target?.email) {
-        await sendReservedWishDeleted({
-          to: target.email,
-          locale: target.locale,
-          wishTitle: target.wishTitle,
-        });
-      }
-    });
+    if (notifyReservationId) {
+      after(async () => {
+        const target = await getReservationNotificationTargetById(
+          getDb(),
+          notifyReservationId,
+        );
+        if (target?.email) {
+          await sendReservedWishDeleted({
+            to: target.email,
+            locale: target.locale,
+            wishTitle: target.wishTitle,
+          });
+        }
+      });
+    }
     revalidatePath("/");
     revalidatePath(`/wishes/${wishId}`);
   }
@@ -145,25 +151,30 @@ export async function markGiftedAction(
 ): Promise<{ ok: boolean }> {
   const userId = await requireUserId();
   // giftedBy is FREE TEXT by invariant #1 — never derived from reservations.
-  const wish = await markGifted(
+  const { result: wish, notifyReservationId } = await markGiftedAsOwner(
     getDb(),
     userId,
     wishId,
     giftedBy?.trim() || null,
   );
   if (wish) {
-    // "Твой подарок отмечен как вручённый" — the booking stays active, so the
-    // target is read after the response, adding nothing to the owner's request.
-    after(async () => {
-      const target = await getReservationNotificationTarget(getDb(), wishId);
-      if (target?.email) {
-        await sendGiftGiven({
-          to: target.email,
-          locale: target.locale,
-          wishTitle: target.wishTitle,
-        });
-      }
-    });
+    // "Your gift is marked as delivered" — reaches the booking that was active
+    // when the wish was gifted, pinned atomically inside the mutation.
+    if (notifyReservationId) {
+      after(async () => {
+        const target = await getReservationNotificationTargetById(
+          getDb(),
+          notifyReservationId,
+        );
+        if (target?.email) {
+          await sendGiftGiven({
+            to: target.email,
+            locale: target.locale,
+            wishTitle: target.wishTitle,
+          });
+        }
+      });
+    }
     revalidatePath("/");
     revalidatePath("/archive");
     revalidatePath(`/wishes/${wishId}`);
@@ -194,7 +205,7 @@ export async function destroyWishAction(
   wishId: string,
 ): Promise<{ ok: boolean }> {
   const userId = await requireUserId();
-  const ok = await deleteWishAsOwner(getDb(), userId, wishId);
+  const { result: ok } = await deleteWishAsOwner(getDb(), userId, wishId);
   if (ok) {
     revalidatePath("/archive");
     revalidatePath(`/wishes/${wishId}`);

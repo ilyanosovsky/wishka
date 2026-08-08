@@ -8,7 +8,7 @@ A guest is deliberately thin: a display name, an optional email, and one credent
 
 - **`guest_identities`** (`src/db/schema.ts`, access in `src/db/access/guest-identities.ts`): `id`, `token` (32 random bytes, `node:crypto` `randomBytes`, base64url — cookie- and URL-safe), `name` (≤100 chars, trimmed, required), `email` (optional, ≤254 chars, validated by a deliberately loose regex — the real verdict comes from the mail provider, not from the app rejecting a valid-looking address).
 - **The device cookie** — `wishka-guest` (`src/lib/guest.ts`, `GUEST_COOKIE`): httpOnly, `sameSite: "lax"`, `secure` in production, `path: "/"`, max-age 400 days (the ceiling Chrome allows). It carries the raw token. Because it's httpOnly, client-side JS never sees it — the token only ever travels in this cookie or in a manage-booking email link.
-- **Resolution precedence** — `resolveViewer`/`resolveReserver` (`src/lib/viewer.ts`): a Better Auth session wins over the guest cookie; the guest cookie wins over anonymous. This is the *only* place that decides identity, so it can't drift between the reserve panel, "Мои брони", and the manage-booking route.
+- **Resolution precedence** — `resolveViewer`/`resolveReserver` (`src/lib/viewer.ts`): a Better Auth session wins over the guest cookie; the guest cookie wins over anonymous. This is the *only* place that decides identity, so it can't drift between the reserve panel, "My bookings", and the manage-booking route.
 
 A signed-in user who also carries a guest cookie (e.g. they booked as a guest, then logged in on the same device) is **deliberately not merged automatically** — their guest bookings keep showing as guest bookings until they accept the merge prompt (see below). That gap is what makes the prompt worth showing.
 
@@ -47,7 +47,7 @@ When a signed-in user's browser also carries a live guest cookie, `getGuestMerge
 
 No unique-index conflict is possible during the transfer: the partial unique index allows at most one `active` row per wish, so if the guest already holds it, the signed-in user cannot hold a second one on the same wish.
 
-`mergeGuestReservationsAction` (`src/app/reserve/actions.ts`) requires a session, reads the guest cookie, calls the merge, and **clears the guest cookie either way** — including when the token was stale/unknown (nothing to merge, but the dead cookie is dropped so the merge prompt stops asking). `revalidatePath("/people")` refreshes "Мои брони" afterward.
+`mergeGuestReservationsAction` (`src/app/reserve/actions.ts`) requires a session, reads the guest cookie, calls the merge, and **clears the guest cookie either way** — including when the token was stale/unknown (nothing to merge, but the dead cookie is dropped so the merge prompt stops asking). `revalidatePath("/people")` refreshes "My bookings" afterward.
 
 ## Privacy notes — what a guest token can and cannot do
 

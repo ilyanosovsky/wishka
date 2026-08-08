@@ -1,9 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getDb } from "@/db";
 import { findGuestByToken } from "@/db/access/guest-identities";
+import { getAuth } from "@/lib/auth";
 import { setGuestCookie } from "@/lib/guest";
 import { sanitizeNextPath } from "@/lib/next-param";
 
@@ -18,6 +20,11 @@ export async function adoptGuestTokenAction(
   next: string,
 ): Promise<void> {
   const target = sanitizeNextPath(next);
+  // Mirror the route handler: a signed-in visitor is never turned into a guest,
+  // or `resolveGuestIdentity` would count that identity in the merge prompt.
+  const session = await getAuth().api.getSession({ headers: await headers() });
+  if (session) redirect(target);
+
   const guest = await findGuestByToken(getDb(), token);
   if (guest) await setGuestCookie(token);
   redirect(target);

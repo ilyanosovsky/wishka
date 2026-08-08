@@ -55,9 +55,14 @@ describe("wish lifecycle", () => {
         title: "Doomed gift",
         url: "https://example.test/doomed",
       });
-      await reserveWish(db, wishId, { userId: friendId });
+      const reservation = await reserveWish(db, wishId, { userId: friendId });
+      if (!reservation.ok) throw new Error("setup failed");
 
-      expect(await deleteWishAsOwner(db, ownerId, wishId)).toBe(true);
+      const outcome = await deleteWishAsOwner(db, ownerId, wishId);
+      expect(outcome.result).toBe(true);
+      // The booking active at delete time is captured for the "wish deleted"
+      // email — pinned by id, atomically inside the delete transaction.
+      expect(outcome.notifyReservationId).toBe(reservation.reservationId);
 
       const [row] = await db
         .select()
@@ -72,17 +77,21 @@ describe("wish lifecycle", () => {
 
     /**
      * SURPRISE INVARIANT — the owner-visible result of a delete must not depend
-     * on whether anyone booked the wish. Same value, same follow-up list.
+     * on whether anyone booked the wish. `notifyReservationId` is captured for
+     * `after()` and is never returned to the owner, so it may differ; `result`,
+     * the value the owner sees, must not.
      */
-    it("returns the same thing with and without a booking", async () => {
+    it("returns the same owner-visible result with and without a booking", async () => {
       const free = await createWish(db, { ownerId, title: "Unbooked" });
       const booked = await createWish(db, { ownerId, title: "Booked" });
       await reserveWish(db, booked, { userId: friendId });
 
       const freeResult = await deleteWishAsOwner(db, ownerId, free);
       const bookedResult = await deleteWishAsOwner(db, ownerId, booked);
-      expect(freeResult).toBe(bookedResult);
-      expect(bookedResult).toBe(true);
+      expect(freeResult.result).toBe(bookedResult.result);
+      expect(bookedResult.result).toBe(true);
+      expect(freeResult.notifyReservationId).toBeNull();
+      expect(bookedResult.notifyReservationId).not.toBeNull();
 
       const remaining = await getOwnerWishes(db, ownerId);
       expect(remaining.some((w) => w.title === "Unbooked")).toBe(false);
@@ -93,10 +102,14 @@ describe("wish lifecycle", () => {
       const wishId = await createWish(db, { ownerId, title: "Once only" });
       await reserveWish(db, wishId, { userId: friendId });
 
-      expect(await deleteWishAsOwner(db, ownerId, wishId)).toBe(true);
-      expect(await deleteWishAsOwner(db, ownerId, wishId)).toBe(false);
-      expect(await deleteWishAsOwner(db, friendId, wishId)).toBe(false);
-      expect(await deleteWishAsOwner(db, ownerId, "not-a-uuid")).toBe(false);
+      expect((await deleteWishAsOwner(db, ownerId, wishId)).result).toBe(true);
+      expect((await deleteWishAsOwner(db, ownerId, wishId)).result).toBe(false);
+      expect((await deleteWishAsOwner(db, friendId, wishId)).result).toBe(
+        false,
+      );
+      expect((await deleteWishAsOwner(db, ownerId, "not-a-uuid")).result).toBe(
+        false,
+      );
     });
 
     /** A failed delete must not leave the booking marked as orphaned. */
@@ -104,7 +117,9 @@ describe("wish lifecycle", () => {
       const wishId = await createWish(db, { ownerId, title: "Not yours" });
       await reserveWish(db, wishId, { userId: friendId });
 
-      expect(await deleteWishAsOwner(db, friendId, wishId)).toBe(false);
+      expect((await deleteWishAsOwner(db, friendId, wishId)).result).toBe(
+        false,
+      );
 
       const [row] = await db
         .select()

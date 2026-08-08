@@ -7,7 +7,7 @@ import { RecentLists } from "./recent-lists";
 import { ReservationCard } from "./reservation-card";
 
 /**
- * The «Мои брони» tab body (§6.7): every booking this viewer holds across all
+ * The "My bookings" tab body (§6.7): every booking this viewer holds across all
  * lists, the footnote explaining that owner edits arrive by email, and the way
  * back to lists they browsed.
  *

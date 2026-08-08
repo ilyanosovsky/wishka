@@ -17,7 +17,7 @@ import type {
 import { formatPrice } from "@/lib/price";
 
 /**
- * One row of "Мои брони" (DESIGN_BRIEF §6.7) — the reserver's own side of the
+ * One row of "My bookings" (DESIGN_BRIEF §6.7) — the reserver's own side of the
  * surprise, so unlike every owner-facing card this one may say "забронировано"
  * out loud.
  *
@@ -83,11 +83,19 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
   async function runDismiss() {
     if (busy) return;
     setBusy(true);
-    const result = await dismissReservationAction(reservation.id);
-    setBusy(false);
-    setConfirmOpen(false);
-    if (result.ok) router.refresh();
-    else setFailed(true);
+    try {
+      const result = await dismissReservationAction(reservation.id);
+      setConfirmOpen(false);
+      if (result.ok) router.refresh();
+      else setFailed(true);
+    } catch {
+      // A rejected action (e.g. network) must still free the button and the
+      // dialog, and tell the user something went wrong.
+      setConfirmOpen(false);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
   }
 
   const title = (

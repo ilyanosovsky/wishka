@@ -306,6 +306,7 @@
     "successTitle": "Done! We'll remember you on this device",
     "successBody": "The owner won't know a thing — bookings are visible only to the list's guests.",
     "successEmailPrompt": "Leave your email — we'll send a link to manage the booking from any device",
+    "successEmailLabel": "Email",
     "successEmailSave": "Save email",
     "successEmailSaved": "Done — the email is on its way",
     "successDone": "Got it",

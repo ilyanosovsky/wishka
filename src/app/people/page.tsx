@@ -12,7 +12,7 @@ import { loginHrefWithNext } from "@/lib/next-param";
 import { resolveGuestIdentity } from "@/lib/viewer";
 
 /**
- * «Люди» (§6.7): groups (placeholder until Phase 8) and «Мои брони».
+ * «Люди» (§6.7): groups (placeholder until Phase 8) and "My bookings".
  *
  * Bookings are read as the *session user* here — never as the guest cookie,
  * even when both are present. That pairing is what the merge prompt is for:

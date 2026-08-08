@@ -321,7 +321,7 @@ export const guestIdentities = pgTable("guest_identities", {
 
 /**
  * A reservation outlives the wish it was made on. Deleting a wish nulls
- * `wish_id` instead of removing the row, so "Мои брони" can still tell its
+ * `wish_id` instead of removing the row, so "My bookings" can still tell its
  * holder what disappeared — hence the `wish_*` snapshot columns, written once
  * at reserve time and never updated: they are the reserver's record of what
  * they agreed to buy, and comparing them to the live wish is what surfaces
@@ -385,7 +385,7 @@ export const reservations = pgTable(
       .on(t.wishId)
       .where(sql`state = 'active'`),
     index("reservations_wish_id_idx").on(t.wishId),
-    // "Мои брони" looks rows up by holder, whichever identity that is.
+    // "My bookings" looks rows up by holder, whichever identity that is.
     index("reservations_reserver_user_id_idx").on(t.reserverUserId),
     index("reservations_guest_id_idx").on(t.guestId),
   ],

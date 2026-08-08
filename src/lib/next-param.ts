@@ -10,11 +10,16 @@
  * the authority-introducing prefixes, and then re-parse against a throwaway
  * origin — if the path resolves anywhere other than that origin, it escaped.
  */
-export function sanitizeNextPath(next: string | null | undefined): string {
-  if (!next) return "/";
+export function sanitizeNextPath(
+  next: string | string[] | null | undefined,
+): string {
+  // Next.js delivers a repeated `?next=` key as an array; take the first value
+  // rather than calling string methods on an array (which would throw).
+  const raw = Array.isArray(next) ? next[0] : next;
+  if (!raw) return "/";
   // The URL parser discards C0 controls + DEL; strip them so none can hide a
   // "//" or "/\" that would only surface after parsing.
-  const cleaned = next.replace(/[\x00-\x1f\x7f]/g, "");
+  const cleaned = raw.replace(/[\x00-\x1f\x7f]/g, "");
   if (
     !cleaned.startsWith("/") ||
     cleaned.startsWith("//") ||
@@ -32,7 +37,9 @@ export function sanitizeNextPath(next: string | null | undefined): string {
 }
 
 /** Appends a validated `?next=` to `/login` (or leaves it bare for "/"). */
-export function loginHrefWithNext(next: string): string {
+export function loginHrefWithNext(
+  next: string | string[] | null | undefined,
+): string {
   const target = sanitizeNextPath(next);
   return target === "/"
     ? "/login"
