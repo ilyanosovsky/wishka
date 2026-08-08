@@ -11,20 +11,20 @@ describe("Dialog", () => {
     render(
       <Dialog
         open
-        title="Удалить желание?"
+        title="Delete this wish?"
         description="«Керамическая ваза» исчезнет из списка."
         onClose={onCancel}
         actions={[
-          { label: "Отмена", onClick: onCancel, tone: "neutral" },
-          { label: "Удалить", onClick: onDelete, tone: "destructive" },
+          { label: "Cancel", onClick: onCancel, tone: "neutral" },
+          { label: "Delete", onClick: onDelete, tone: "destructive" },
         ]}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Удалить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onDelete).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
@@ -32,11 +32,11 @@ describe("Dialog", () => {
     render(
       <Dialog
         open
-        title="Удалить желание?"
+        title="Delete this wish?"
         onClose={vi.fn()}
         actions={[
-          { label: "Удалить", onClick: vi.fn(), tone: "destructive" },
-          { label: "Отмена", onClick: vi.fn(), tone: "neutral" },
+          { label: "Delete", onClick: vi.fn(), tone: "destructive" },
+          { label: "Cancel", onClick: vi.fn(), tone: "neutral" },
         ]}
       />,
     );
@@ -44,7 +44,7 @@ describe("Dialog", () => {
     const labels = screen
       .getAllByRole("button")
       .map((button) => button.textContent);
-    expect(labels).toEqual(["Отмена", "Удалить"]);
+    expect(labels).toEqual(["Cancel", "Delete"]);
   });
 
   it("closes on a scrim tap and renders nothing when closed", () => {
@@ -207,7 +207,7 @@ describe("InfoToast", () => {
       <InfoToast
         open
         message="Желание добавлено"
-        actionLabel="Открыть"
+        actionLabel="Open dialog"
         onAction={onAction}
         onDismiss={onDismiss}
       />,
@@ -225,17 +225,17 @@ describe("Dialog focus management", () => {
     return (
       <div>
         <button type="button" onClick={() => setOpen(true)}>
-          Открыть
+          Open dialog
         </button>
-        <p>Страница под диалогом</p>
+        <p>Page behind the dialog</p>
         <Dialog
           open={open}
-          title="Удалить желание?"
+          title="Delete this wish?"
           onClose={() => setOpen(false)}
           actions={[
-            { label: "Отмена", onClick: () => setOpen(false), tone: "neutral" },
+            { label: "Cancel", onClick: () => setOpen(false), tone: "neutral" },
             {
-              label: "Удалить",
+              label: "Delete",
               onClick: () => setOpen(false),
               tone: "destructive",
             },
@@ -246,7 +246,7 @@ describe("Dialog focus management", () => {
   }
 
   function openDialog() {
-    const trigger = screen.getByRole("button", { name: "Открыть" });
+    const trigger = screen.getByRole("button", { name: "Open dialog" });
     trigger.focus();
     fireEvent.click(trigger);
     return trigger;
@@ -259,7 +259,7 @@ describe("Dialog focus management", () => {
     const panel = screen.getByRole("dialog");
     expect(panel.contains(document.activeElement)).toBe(true);
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Отмена" }),
+      screen.getByRole("button", { name: "Cancel" }),
     );
   });
 
@@ -268,7 +268,7 @@ describe("Dialog focus management", () => {
     const trigger = openDialog();
 
     expect(trigger).toHaveAttribute("inert");
-    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(trigger).not.toHaveAttribute("inert");
   });
 
@@ -276,8 +276,8 @@ describe("Dialog focus management", () => {
     render(<Harness />);
     openDialog();
 
-    const cancel = screen.getByRole("button", { name: "Отмена" });
-    const remove = screen.getByRole("button", { name: "Удалить" });
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const remove = screen.getByRole("button", { name: "Delete" });
 
     remove.focus();
     fireEvent.keyDown(remove, { key: "Tab" });
@@ -295,5 +295,34 @@ describe("Dialog focus management", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(trigger);
+  });
+});
+
+describe("Dialog error region", () => {
+  it("renders a passed error as a role=alert line", () => {
+    render(
+      <Dialog
+        open
+        title="Delete this wish?"
+        error="Something went wrong — try again"
+        onClose={() => {}}
+        actions={[{ label: "Cancel", onClick: () => {}, tone: "neutral" }]}
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Something went wrong — try again",
+    );
+  });
+
+  it("renders no alert region without an error", () => {
+    render(
+      <Dialog
+        open
+        title="Delete this wish?"
+        onClose={() => {}}
+        actions={[{ label: "Cancel", onClick: () => {}, tone: "neutral" }]}
+      />,
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

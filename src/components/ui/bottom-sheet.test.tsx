@@ -49,26 +49,26 @@ describe("BottomSheet focus management", () => {
     return (
       <div>
         <button type="button" onClick={() => setOpen(true)}>
-          Открыть
+          Open sheet
         </button>
         <BottomSheet
           open={open}
           onClose={() => setOpen(false)}
-          title="Кому видно"
+          title="Who can see"
           footer={
             <button type="button" onClick={() => setOpen(false)}>
-              Готово
+              Done
             </button>
           }
         >
-          <button type="button">Всем</button>
+          <button type="button">Everyone</button>
         </BottomSheet>
       </div>
     );
   }
 
   function openSheet() {
-    const trigger = screen.getByRole("button", { name: "Открыть" });
+    const trigger = screen.getByRole("button", { name: "Open sheet" });
     trigger.focus();
     fireEvent.click(trigger);
     return trigger;
@@ -79,7 +79,7 @@ describe("BottomSheet focus management", () => {
     const trigger = openSheet();
 
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Всем" }),
+      screen.getByRole("button", { name: "Everyone" }),
     );
     expect(trigger).toHaveAttribute("inert");
   });
@@ -88,8 +88,8 @@ describe("BottomSheet focus management", () => {
     render(<Harness />);
     openSheet();
 
-    const first = screen.getByRole("button", { name: "Всем" });
-    const last = screen.getByRole("button", { name: "Готово" });
+    const first = screen.getByRole("button", { name: "Everyone" });
+    const last = screen.getByRole("button", { name: "Done" });
 
     fireEvent.keyDown(first, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(last);

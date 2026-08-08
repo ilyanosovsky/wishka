@@ -68,10 +68,14 @@ Google Cloud Console → APIs & Services → Credentials → the existing OAuth 
 
 **Restore:** (`pg_restore` reads the custom-format archive straight off the decrypted stream — no `gunzip` step)
 
+> ⚠️ **Never restore straight over the live production database.** `--clean --if-exists` drops existing objects first, so a restore that fails midway leaves production half-empty. Restore into a fresh database (`RESTORE_DATABASE_URL` below) and verify it, then either point the app at it or copy data over — and if you must restore in place, stop traffic first (Vercel: pause the deployment or enable maintenance) and only proceed with a verified dump.
+
 ```bash
 gh run download <run-id> -n db-backup-<run-id>   # downloads dump.age
+# 1. Restore into a fresh, empty database — never the live one:
 age -d -i wishka-backup-key.txt dump.age | pg_restore \
-  --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-privileges
+  --dbname "$RESTORE_DATABASE_URL" --no-owner --no-privileges
+# 2. Verify (row counts, a spot-check login), then switch DATABASE_URL over.
 ```
 
 ## 7. Post-deploy smoke test

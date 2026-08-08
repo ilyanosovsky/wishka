@@ -129,7 +129,9 @@ describe("PublicList — empty state", () => {
   it("shows the owner-empty message with a hint for a logged-in viewer", () => {
     renderPublicList({ wishes: [], isGuest: false });
     expect(screen.getByText("Список ilya: пока пусто")).toBeInTheDocument();
-    expect(screen.getByText(/Загляните в «Что важно знать»/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Загляните в «Что важно знать»/),
+    ).toBeInTheDocument();
   });
 
   it("drops the friend hint for a guest", () => {
@@ -167,9 +169,14 @@ describe("PublicList — owner identity (§6.5, states audit #1)", () => {
     ).not.toBeNull();
   });
 
-  it("falls back to the initial tile when there is no avatar", () => {
+  it("falls back to a decorative initial tile when there is no avatar", () => {
     renderPublicList({ name: "Маша", image: null });
 
-    expect(screen.getByRole("img", { name: "Маша" }).textContent).toBe("М");
+    // The header avatar is deliberately decorative (alt="") — the adjacent
+    // <h1> announces the name, so the tile must NOT be a named img.
+    expect(screen.queryByRole("img", { name: "Маша" })).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Маша" }),
+    ).toBeInTheDocument();
   });
 });

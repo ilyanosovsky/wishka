@@ -118,7 +118,8 @@ export function PublicList({
           isGuest ? "pt-5" : "pt-14"
         }`}
       >
-        <Avatar src={image} name={name} />
+        {/* Decorative: the adjacent <h1> already announces the owner's name. */}
+        <Avatar src={image} name={name} alt="" />
         <div className="min-w-0 flex-1">
           <h1
             className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em]"

@@ -7,7 +7,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
 
 /**
- * §6.6 «выход (с подтверждением)». Signing out wipes this device's wish
+ * §6.6 sign-out-with-confirmation. Signing out wipes this device's wish
  * drafts, so a mis-tap is destructive — same `Dialog` gate every other
  * destructive action on the profile screen goes through (delete-account,
  * delete-forever, leave-group).

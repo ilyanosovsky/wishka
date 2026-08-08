@@ -38,7 +38,7 @@ type AutoDismiss = {
 
 /** Auto-dismiss that survives inline callbacks: the timer keys off `open`
  *  alone, so a caller re-rendering does not restart the countdown. Pausing on
- *  hover/focus is WCAG 2.2.1 — five seconds is not enough to Tab to «Отменить»
+ *  hover/focus is WCAG 2.2.1 — five seconds is not enough to Tab to the undo action
  *  while the countdown runs underneath you, and for the undo toast running out
  *  is what commits the delete. */
 function useAutoDismiss(
@@ -229,12 +229,12 @@ export function InfoToast({
   return (
     <ToastBar timer={timer}>
       <span className="flex-1 text-[12.5px]">{message}</span>
-      {actionLabel && (
+      {actionLabel && onAction && (
         <button
           type="button"
           onClick={() => {
             timer.cancel();
-            onAction?.();
+            onAction();
           }}
           className="min-h-11 cursor-pointer px-2 text-[12.5px] font-semibold tracking-[0.02em] text-[var(--toast-accent)]"
         >
