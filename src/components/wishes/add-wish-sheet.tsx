@@ -337,20 +337,10 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
               {t("parse.parseCta")}
             </Button>
 
-            <div className="flex items-center gap-3 text-[11px] text-mute-2">
-              <span aria-hidden className="h-px flex-1 bg-rule-2" />
-              {t("parse.orManual")}
-              <span aria-hidden className="h-px flex-1 bg-rule-2" />
-            </div>
-
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() => router.push("/wishes/new")}
-            >
-              {t("parse.manualCta")}
-            </Button>
-
+            {/* §6.3 lists "Добавь словами" as the second of three equal
+                entry options — it sits above the "или вручную" divider so
+                it reads as a peer of the link entry, not a subordinate
+                fourth item under manual entry. */}
             {ai !== undefined && (
               <>
                 <Button
@@ -365,6 +355,20 @@ export function AddWishSheet({ open, onClose, ai }: AddWishSheetProps) {
                 </p>
               </>
             )}
+
+            <div className="flex items-center gap-3 text-[11px] text-mute-2">
+              <span aria-hidden className="h-px flex-1 bg-rule-2" />
+              {t("parse.orManual")}
+              <span aria-hidden className="h-px flex-1 bg-rule-2" />
+            </div>
+
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => router.push("/wishes/new")}
+            >
+              {t("parse.manualCta")}
+            </Button>
           </>
         )}
 

@@ -59,6 +59,14 @@ export function WishImagePoller({
     if (wishIds.length === 0) return;
 
     const now = Date.now();
+    const idSet = new Set(wishIds);
+    // Prune ids no longer present on every effect run — otherwise a wish
+    // that leaves `wishIds` and later re-enters (a second retry) inherits its
+    // stale start time and reads as already-timed-out the instant it comes
+    // back, even though it never got a second polling window.
+    for (const id of startedAtRef.current.keys()) {
+      if (!idSet.has(id)) startedAtRef.current.delete(id);
+    }
     for (const id of wishIds) {
       if (!startedAtRef.current.has(id)) startedAtRef.current.set(id, now);
       settledRef.current.delete(id);
@@ -74,6 +82,7 @@ export function WishImagePoller({
           if (Date.now() - startedAt >= timeoutMs) {
             // Give up — leave the card on whatever the row already says.
             settledRef.current.add(id);
+            startedAtRef.current.delete(id);
             continue;
           }
 
@@ -90,6 +99,7 @@ export function WishImagePoller({
             (state.imageStatus === "ready" || state.imageStatus === "failed")
           ) {
             settledRef.current.add(id);
+            startedAtRef.current.delete(id);
             onSettledRef.current(id, state.imageStatus);
           }
         }

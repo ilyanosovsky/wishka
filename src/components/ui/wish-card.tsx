@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import type { MouseEvent } from "react";
+import { isCategoryKey } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
 import {
   DreamStamp,
@@ -36,6 +37,11 @@ type WishCardCommon = {
   onRetryImage?: () => void;
   onUploadImage?: () => void;
   onClick?: () => void;
+  /** Disables the retry button while a retry for this wish is already in
+   *  flight — guards against a double-tap burning two image-generation
+   *  credits on the same card. Ignored on non-owner cards, which never
+   *  render the retry affordance in the first place. */
+  retryBusy?: boolean;
 };
 
 /**
@@ -77,9 +83,16 @@ function stopped(handler?: () => void) {
 }
 
 export function WishCard(props: WishCardProps) {
-  const { wish, onClick, onRetryImage, onUploadImage } = props;
+  const { wish, onClick, onRetryImage, onUploadImage, retryBusy } = props;
   const t = useTranslations("wish");
   const locale = useLocale();
+
+  // The generating shimmer and the failed retry/upload affordances are
+  // owner-only (Phase 6 §6.2 is an owner-facing async image lifecycle) — a
+  // viewer or archive card has no use for either and must not swallow its
+  // own click behind the failed card's stopPropagation buttons, so both
+  // states fall through to the ordinary no-photo placeholder for them.
+  const isOwner = props.role === "owner";
 
   const reserved =
     props.role === "viewer" && props.reservationStatus === "reserved";
@@ -146,7 +159,7 @@ export function WishCard(props: WishCardProps) {
       </style>
 
       <div className="relative aspect-[4/5] overflow-hidden">
-        {wish.imageStatus === "generating" ? (
+        {isOwner && wish.imageStatus === "generating" ? (
           <div
             className="flex h-full w-full items-end justify-center pb-2.5"
             style={{
@@ -159,7 +172,7 @@ export function WishCard(props: WishCardProps) {
               {t("imageGenerating")}
             </span>
           </div>
-        ) : wish.imageStatus === "failed" ? (
+        ) : isOwner && wish.imageStatus === "failed" ? (
           <div
             className="flex h-full w-full flex-col items-center justify-center gap-1.5 px-2"
             style={{ background: PLACEHOLDER_STRIPES }}
@@ -167,13 +180,19 @@ export function WishCard(props: WishCardProps) {
             <span className="sr-only">{t("imageFailed")}</span>
             {wish.category && (
               <span className="font-mono text-[9px] tracking-[var(--track-label)] text-mute-2 uppercase">
-                {wish.category}
+                {isCategoryKey(wish.category)
+                  ? t(`category.${wish.category}`)
+                  : wish.category}
               </span>
             )}
             <button
               type="button"
+              disabled={retryBusy}
               onClick={stopped(onRetryImage)}
-              className="min-h-11 cursor-pointer border border-[var(--green-rule)] bg-accent-soft px-2.5 text-[10px] font-semibold text-accent"
+              className={cx(
+                "min-h-11 cursor-pointer border border-[var(--green-rule)] bg-accent-soft px-2.5 text-[10px] font-semibold text-accent",
+                retryBusy && "cursor-not-allowed opacity-60",
+              )}
             >
               {t("retry")}
             </button>

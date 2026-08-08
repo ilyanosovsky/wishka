@@ -87,16 +87,16 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ✅ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
 
-## Phase 6 — AI assists & quotas (next PR)
+## Phase 6 — AI assists & quotas
 
 **Goal:** AI fills gaps — on explicit tap, within budget.
 
-- ⬜ "Добавь словами": free text → structured wish draft (type, category, price range, description).
-- ⬜ Description & price suggestions in the form (accept/edit, error states never block saving).
-- ⬜ Image generation (`OPENAI_MODEL_IMAGE`, low, 1024×1024): async job (DB status on wish) — save immediately, card shows "Рисуем…" → toast when ready / failure state with retry+upload.
-- ⬜ Per-user daily quotas in `ai_usage` (server-enforced): counters in UI ("Осталось N"), exhausted states.
-- ⬜ Tests: quota accounting, prompt-builder unit tests, job state machine.
-- **Wiki:** `AI-Features.md` (+ costs note). **Model:** Opus (async job + quotas), Sonnet (form UI).
+- ✅ "Добавь словами": free text → structured wish draft (type, category, price range, description) via `draftWishFromTextAction` (`src/lib/ai/` prompts + hostile-output hardening in `draft.ts`); third entry option in AddWishSheet, handed to the form through the same sessionStorage handoff parsing uses (`wishka-ai-draft` → `/wishes/new?ai=1`).
+- ✅ Description & price suggestions in the form: candidate card with «Принять»/«Скрыть»; every AI error/quota state renders inline and never blocks saving (invariant #3 covered by a submit-never-blocked regression test).
+- ✅ Image generation (`OPENAI_MODEL_IMAGE`, low, 1024×1024): armed in the form («Сгенерируем после сохранения»), started on save; the async job runs in `after()` with the `wishes` row as job state (`imageStatus`), finish updates only rows still `generating` (owner upload during the job wins). Card shows «Рисуем…» → poller + toast «Картинка готова» / failed state with retry + upload (also on wish detail). Retry allowed from `failed` and stale `generating`.
+- ✅ Per-user daily quotas in `ai_usage` (server-enforced, atomic upsert like parse): `text` 30/day shared by draft+suggestions, `image` 10/day; ICU-plural counters «Осталось N», exhausted states with brief copy; graceful no-API-key degradation (affordances hidden, actions answer `unavailable`).
+- ✅ Tests: quota accounting (pools/boundaries/rollover), prompt-builder units, image-job state machine incl. clobber guard, component flows.
+- **Wiki:** ✅ `AI-Features.md` (+ costs note). **Model:** Opus (async job + quotas), Sonnet (form UI).
 
 ## Phase 7 — Sharing, guests, reservations (split: 7a public lists, 7b reservations)
 

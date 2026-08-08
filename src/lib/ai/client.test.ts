@@ -173,6 +173,20 @@ describe("createOpenAiImageClient", () => {
     expect(await createOpenAiImageClient()!.generate("x")).toBeNull();
   });
 
+  it("refuses an oversized answer without decoding it", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-test");
+    vi.stubEnv("OPENAI_MODEL_IMAGE", "gpt-image-2");
+    // Longer than 8MB can possibly encode to (base64 inflates by 4/3), so the
+    // decoded Buffer is never materialised just to be thrown away downstream.
+    imagesMock.mockResolvedValue({
+      data: [
+        { b64_json: "A".repeat(Math.ceil((8 * 1024 * 1024 * 4) / 3) + 4096) },
+      ],
+    });
+
+    expect(await createOpenAiImageClient()!.generate("x")).toBeNull();
+  });
+
   it("returns null when the request rejects", async () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     vi.stubEnv("OPENAI_MODEL_IMAGE", "gpt-image-2");

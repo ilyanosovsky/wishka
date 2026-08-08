@@ -13,6 +13,7 @@
 - [Reservations and Surprise Mode](Reservations-and-Surprise-Mode) — reservation lifecycle, the surprise invariant, the email matrix
 - [Guest Access](Guest-Access) — guest identity, booking without an account, guest→account merge
 - [Groups and Visibility](Groups-and-Visibility) — group model, invite links, how membership feeds `visibleTo()`
+- [AI Features](AI-Features) — add-by-words drafts, form suggestions, async image generation, daily quotas
 
 ## How this wiki works
 

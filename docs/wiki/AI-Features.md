@@ -21,7 +21,7 @@ Per-user, per-UTC-day, enforced server-side (`src/lib/ai/quota.ts`) — the clie
 | `text` | 30 | Draft-from-words, description suggestion, price suggestion — one shared pool |
 | `image` | 10 | Image generation (armed-on-save or retried from a `failed` card) |
 
-Quota is consumed **when the underlying model call actually runs** — a client that never taps an AI affordance spends nothing. For image generation specifically, quota is consumed **before** the async job is scheduled, so a refused quota check leaves the wish's `imageStatus` untouched (it isn't flipped to `generating` for a job that will never run).
+Quota is consumed **before** the underlying model call runs, not after — a client that never taps an AI affordance spends nothing, but once triggered the unit is spent whether or not the call succeeds; it is never refunded on a model failure or timeout. For image generation specifically, that same before-the-call consumption happens **before** the async job is scheduled, so a refused quota check leaves the wish's `imageStatus` untouched (it isn't flipped to `generating` for a job that will never run).
 
 Saving a wish with "Сгенерировать (AI)" armed but the image quota already exhausted still saves the wish normally, with no image and no error — the armed flag is silently a no-op in that case (invariant #3 wins over the AI feature).
 

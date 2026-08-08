@@ -1,6 +1,6 @@
-import type { OwnerWish } from "@/db/access/types";
+import type { OwnerWish, WishType } from "@/db/access/types";
 import type { Locale } from "@/i18n/config";
-import { CATEGORY_KEYS } from "@/lib/categories";
+import { CATEGORY_KEYS, isCategoryKey } from "@/lib/categories";
 import type { SuggestionInput } from "./types";
 
 /**
@@ -12,6 +12,11 @@ import type { SuggestionInput } from "./types";
  * in a wish title is data the model is asked to describe, never an instruction
  * it is asked to obey. The answer is still untrusted: `draft.ts` re-validates
  * every field, category list included.
+ *
+ * BOUNDED — every interpolated value goes through `clip()`, and the two fields
+ * that are pickers in the UI (`type`, `category`) are re-checked against their
+ * whitelists here, so a hand-crafted server-action payload cannot turn one unit
+ * of quota into a megabyte of model input.
  *
  * Pure functions — no env, no network, no `server-only` — so the wording is
  * testable on its own.
@@ -36,7 +41,16 @@ const LANGUAGE: Record<Locale, string> = {
   en: "English",
 };
 
-const WISH_TYPES = "product, experience, service, certificate";
+/** The same closed set `mutations.ts` validates against; kept as its own list
+ *  here because that module is server-only and these builders are pure. */
+const WISH_TYPE_KEYS: readonly WishType[] = [
+  "product",
+  "experience",
+  "service",
+  "certificate",
+];
+
+const WISH_TYPES = WISH_TYPE_KEYS.join(", ");
 
 const CATEGORIES = CATEGORY_KEYS.join(", ");
 
@@ -83,8 +97,29 @@ const PRICE_SCHEMA: Record<string, unknown> = {
   },
 };
 
-function clip(value: string): string {
+/**
+ * The one gate every user-controlled value passes through on its way into a
+ * message. `unknown` on purpose: these values reach the builders through a
+ * server action, where the declared types are a hope, not a guarantee — a
+ * hand-crafted payload must cost a bounded number of tokens, not a crash.
+ */
+function clip(value: unknown): string {
+  if (typeof value !== "string") return "";
   return value.trim().slice(0, MAX_USER_TEXT);
+}
+
+/** Closed sets, not free text: `type` and `category` are pickers in the form,
+ *  so anything outside the whitelist is a crafted payload — an unbounded
+ *  string here used to buy hundreds of thousands of characters of model input
+ *  for a single unit of quota. */
+function safeType(value: unknown): WishType {
+  return (WISH_TYPE_KEYS as readonly unknown[]).includes(value)
+    ? (value as WishType)
+    : "product";
+}
+
+function safeCategory(value: unknown): string | null {
+  return isCategoryKey(value) ? value : null;
 }
 
 /** The wish, as the suggestion prompts read it. Also the source for the image
@@ -101,12 +136,16 @@ export function wishToSuggestionInput(wish: OwnerWish): SuggestionInput {
 
 /** The user-role block: labelled fields, all of them user-controlled text. */
 function contextBlock(input: SuggestionInput): string {
-  const lines = [`Title: ${clip(input.title)}`, `Type: ${input.type}`];
-  if (input.category) lines.push(`Category: ${input.category}`);
-  if (input.url) lines.push(`Link: ${clip(input.url)}`);
-  if (input.description) {
-    lines.push(`Current description: ${clip(input.description)}`);
-  }
+  const lines = [
+    `Title: ${clip(input.title)}`,
+    `Type: ${safeType(input.type)}`,
+  ];
+  const category = safeCategory(input.category);
+  if (category) lines.push(`Category: ${category}`);
+  const url = clip(input.url);
+  if (url) lines.push(`Link: ${url}`);
+  const description = clip(input.description);
+  if (description) lines.push(`Current description: ${description}`);
   return lines.join("\n");
 }
 
@@ -192,7 +231,9 @@ export function buildImagePrompt(input: SuggestionInput): string {
     "no watermark, no people.",
     `The gift: ${clip(input.title)}.`,
   ];
-  if (input.category) parts.push(`Category: ${input.category}.`);
-  if (input.description) parts.push(`Details: ${clip(input.description)}`);
+  const category = safeCategory(input.category);
+  if (category) parts.push(`Category: ${category}.`);
+  const description = clip(input.description);
+  if (description) parts.push(`Details: ${description}`);
   return parts.join(" ");
 }

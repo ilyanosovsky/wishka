@@ -104,6 +104,12 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   // the server-computed `imageStatus` on the card is always what actually
   // landed, never an optimistic guess.
   const [imageReadyToast, setImageReadyToast] = useState(false);
+  // Per-wish retry-in-flight guard: a double-tap on the same failed card
+  // would otherwise burn two image-generation credits and schedule two jobs.
+  const [retryingIds, setRetryingIds] = useState<Set<string>>(new Set());
+  const [imageErrorToast, setImageErrorToast] = useState<
+    "quota" | "other" | null
+  >(null);
   const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { startUpload } = useUploadThing("wishImage");
@@ -117,7 +123,22 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   );
 
   function handleRetryImage(wishId: string) {
-    void generateWishImageAction(wishId).finally(() => router.refresh());
+    if (retryingIds.has(wishId)) return; // already in flight — ignore the double-tap
+    setRetryingIds((prev) => new Set(prev).add(wishId));
+    void generateWishImageAction(wishId)
+      .then((result) => {
+        if (!result.ok) {
+          setImageErrorToast(result.reason === "quota" ? "quota" : "other");
+        }
+      })
+      .finally(() => {
+        setRetryingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(wishId);
+          return next;
+        });
+        router.refresh();
+      });
   }
 
   function handleUploadImage(wishId: string) {
@@ -351,6 +372,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
                   : null,
               }}
               restrictedVisibility={wish.visibility === "restricted"}
+              retryBusy={retryingIds.has(wish.id)}
               onClick={() => router.push(`/wishes/${wish.id}`)}
               onRetryImage={() => handleRetryImage(wish.id)}
               onUploadImage={() => handleUploadImage(wish.id)}
@@ -405,6 +427,16 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
         open={imageReadyToast}
         message={t("ai.imageReady")}
         onDismiss={() => setImageReadyToast(false)}
+      />
+
+      <InfoToast
+        open={imageErrorToast !== null}
+        message={
+          imageErrorToast === "quota"
+            ? t("ai.imageQuotaExhausted")
+            : t("ai.suggestFailed")
+        }
+        onDismiss={() => setImageErrorToast(null)}
       />
 
       <TabBar

@@ -109,6 +109,47 @@ describe("buildDescriptionPrompt", () => {
     expect(user).not.toContain("null");
   });
 
+  /**
+   * `type` and `category` are pickers in the form, so their declared types are
+   * a hope: a hand-crafted server-action payload can put anything there. Before
+   * the whitelists, an unbounded string bought hundreds of thousands of
+   * characters of model input for a single unit of quota.
+   */
+  it("drops a crafted type and category instead of interpolating them", () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any -- the point is a
+       payload TypeScript would refuse */
+    const hostile: SuggestionInput = {
+      title: "Ваза",
+      type: `${"я".repeat(400_000)}` as any,
+      category: `${INJECTION} ${"б".repeat(400_000)}` as any,
+    };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    for (const { user } of [
+      buildDescriptionPrompt(hostile, "ru"),
+      buildPricePrompt(hostile, "ru"),
+    ]) {
+      expect(user).toContain("Type: product");
+      expect(user).not.toContain("Category:");
+      expect(user).not.toContain("я".repeat(100));
+      expect(user).not.toContain(INJECTION);
+      expect(user.length).toBeLessThan(500);
+    }
+
+    const image = buildImagePrompt(hostile);
+    expect(image).not.toContain("Category:");
+    expect(image).not.toContain(INJECTION);
+    expect(image.length).toBeLessThan(500);
+  });
+
+  it("keeps a non-string field from crashing the builder", () => {
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any -- ditto */
+    const junk = { title: 42, type: 7, description: {} } as any;
+    expect(buildDescriptionPrompt(junk, "ru").user).toBe(
+      "Title: \nType: product",
+    );
+  });
+
   it("asks for the user's language and a bounded plain-text answer", () => {
     expect(buildDescriptionPrompt(INPUT, "ru").system).toContain("Russian");
     expect(buildDescriptionPrompt(INPUT, "en").system).toContain("300");

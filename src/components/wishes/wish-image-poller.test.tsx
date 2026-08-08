@@ -138,6 +138,67 @@ describe("WishImagePoller", () => {
     expect(getWishImageStateAction).not.toHaveBeenCalled();
   });
 
+  it("gives a re-entering id a fresh timeout window instead of treating it as already timed out (regression)", async () => {
+    let bResponse: { imageStatus: string; imageUrl: string | null } = {
+      imageStatus: "failed",
+      imageUrl: null,
+    };
+    getWishImageStateAction.mockImplementation((wishId: string) =>
+      Promise.resolve(
+        wishId === "a"
+          ? { imageStatus: "generating", imageUrl: null }
+          : bResponse,
+      ),
+    );
+    const onSettled = vi.fn();
+
+    const { rerender } = render(
+      <WishImagePoller
+        wishIds={["a", "b"]}
+        onSettled={onSettled}
+        intervalMs={1000}
+        timeoutMs={60000}
+      />,
+    );
+
+    // b settles on the very first tick; a stays "generating" and keeps the
+    // poller mounted (non-empty wishIds) for the rest of the test.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(onSettled).toHaveBeenCalledWith("b", "failed");
+    onSettled.mockClear();
+
+    // b leaves the id list for a long stretch — long enough that, if its
+    // original start time were never cleared, it would already read as
+    // "timed out" the instant it reappears.
+    rerender(
+      <WishImagePoller
+        wishIds={["a"]}
+        onSettled={onSettled}
+        intervalMs={1000}
+        timeoutMs={60000}
+      />,
+    );
+    await vi.advanceTimersByTimeAsync(70000);
+
+    // b re-enters (a second retry) with a fresh outcome armed.
+    getWishImageStateAction.mockClear();
+    bResponse = { imageStatus: "ready", imageUrl: "https://x" };
+    rerender(
+      <WishImagePoller
+        wishIds={["a", "b"]}
+        onSettled={onSettled}
+        intervalMs={1000}
+        timeoutMs={60000}
+      />,
+    );
+    await vi.advanceTimersByTimeAsync(1000);
+
+    // The bug: a stale startedAt for "b" made it read as instantly timed
+    // out on re-entry, so it was never polled again and never settled.
+    expect(getWishImageStateAction).toHaveBeenCalledWith("b");
+    expect(onSettled).toHaveBeenCalledWith("b", "ready");
+  });
+
   it("stops polling once unmounted", async () => {
     getWishImageStateAction.mockResolvedValue({
       imageStatus: "generating",

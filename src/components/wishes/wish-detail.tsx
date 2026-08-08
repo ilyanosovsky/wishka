@@ -82,6 +82,9 @@ export function WishDetail({ wish }: WishDetailProps) {
   const [imageActionBusy, setImageActionBusy] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageReadyToast, setImageReadyToast] = useState(false);
+  const [imageErrorToast, setImageErrorToast] = useState<
+    "quota" | "other" | null
+  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { startUpload } = useUploadThing("wishImage");
 
@@ -93,7 +96,10 @@ export function WishDetail({ wish }: WishDetailProps) {
   async function handleRetryImage() {
     setImageActionBusy(true);
     try {
-      await generateWishImageAction(wishId);
+      const result = await generateWishImageAction(wishId);
+      if (!result.ok) {
+        setImageErrorToast(result.reason === "quota" ? "quota" : "other");
+      }
     } finally {
       setImageActionBusy(false);
       router.refresh();
@@ -230,6 +236,11 @@ export function WishDetail({ wish }: WishDetailProps) {
               <span className="font-mono text-[11px] text-mute-2">
                 {t("wish.imageFailed")}
               </span>
+              {wish.category && (
+                <span className="font-mono text-[10px] tracking-[var(--track-stamp)] text-mute-2 uppercase">
+                  {t(`wish.category.${wish.category}`)}
+                </span>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="primary"
@@ -460,6 +471,16 @@ export function WishDetail({ wish }: WishDetailProps) {
         open={imageReadyToast}
         message={t("ai.imageReady")}
         onDismiss={() => setImageReadyToast(false)}
+      />
+
+      <InfoToast
+        open={imageErrorToast !== null}
+        message={
+          imageErrorToast === "quota"
+            ? t("ai.imageQuotaExhausted")
+            : t("ai.suggestFailed")
+        }
+        onDismiss={() => setImageErrorToast(null)}
       />
     </main>
   );

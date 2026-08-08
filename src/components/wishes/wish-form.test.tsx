@@ -311,6 +311,20 @@ describe("WishForm — draft (enableDraft)", () => {
     expect(screen.getByLabelText("Название")).toHaveValue("");
   });
 
+  it("never resumes a draft's armed generateImage flag (mirrors the edit form)", async () => {
+    window.localStorage.setItem(
+      "wishka-wish-draft:user-1",
+      JSON.stringify({ ...DRAFT_FIXTURE, generateImage: true }),
+    );
+    renderForm({ ai: AI_QUOTA, enableDraft: true, draftScope: "user-1" });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Продолжить" }));
+
+    expect(
+      screen.getByRole("button", { name: "Сгенерировать (AI)" }),
+    ).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("cancels the pending autosave on submit so it cannot resurrect a cleared draft", async () => {
     vi.useFakeTimers();
     try {
@@ -664,6 +678,9 @@ describe("WishForm — description suggestion", () => {
     });
     renderForm({ ai: AI_QUOTA });
 
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Свитер" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: "Предложить описание" }),
     );
@@ -688,6 +705,9 @@ describe("WishForm — description suggestion", () => {
     });
     renderForm({ ai: AI_QUOTA });
 
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Свитер" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: "Предложить описание" }),
     );
@@ -707,13 +727,50 @@ describe("WishForm — description suggestion", () => {
     });
     renderForm({ ai: AI_QUOTA });
 
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Свитер" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: "Предложить описание" }),
     );
 
+    // `remaining: 0` moves the shared `text` pool to 0, so the price
+    // trigger's caption switches to the same exhausted copy too.
+    await vi.waitFor(() =>
+      expect(
+        screen.getAllByText("AI-лимит на сегодня исчерпан — заполни вручную"),
+      ).toHaveLength(2),
+    );
     expect(
-      await screen.findByText("AI-лимит на сегодня исчерпан — заполни вручную"),
-    ).toBeInTheDocument();
+      screen.getByRole("button", { name: "Предложить описание" }),
+    ).toBeDisabled();
+  });
+
+  it("disables the trigger and shows the exhausted caption while the title is empty, without ever calling the action", () => {
+    renderForm({ ai: AI_QUOTA });
+
+    expect(
+      screen.getByRole("button", { name: "Предложить описание" }),
+    ).toBeDisabled();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Предложить описание" }),
+    );
+    expect(suggestDescriptionAction).not.toHaveBeenCalled();
+  });
+
+  it("shows the exhausted caption and dims the trigger before any click when the quota is already 0 on mount", () => {
+    renderForm({ ai: { text: 0, image: 3 } });
+
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Свитер" },
+    });
+
+    // Both the description and the price trigger share the `text` pool, so
+    // the exhausted caption shows next to each.
+    expect(
+      screen.getAllByText("AI-лимит на сегодня исчерпан — заполни вручную"),
+    ).toHaveLength(2);
     expect(
       screen.getByRole("button", { name: "Предложить описание" }),
     ).toBeDisabled();
@@ -721,16 +778,23 @@ describe("WishForm — description suggestion", () => {
 });
 
 describe("WishForm — price suggestion", () => {
-  it("accepts a range suggestion into the price fields", async () => {
+  it("accepts a range suggestion into the price fields, stripping normalizeAmount's trailing .00", async () => {
+    // `normalizeAmount` (shared with the parser and the AI prompts) always
+    // answers a fixed-2 string — exercise that realistic shape, not a
+    // pre-trimmed one.
     suggestPriceAction.mockResolvedValue({
       ok: true,
-      value: { priceMin: "1200", priceMax: "1800", currency: "RUB" },
+      value: { priceMin: "1200.00", priceMax: "1800.00", currency: "RUB" },
       remaining: 4,
     });
     renderForm({ ai: AI_QUOTA });
 
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Предложить цену" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
+    expect(await screen.findByText("1200–1800 ₽")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Принять" }));
 
     expect(screen.getByRole("tab", { name: "Вилка от–до" })).toHaveAttribute(
       "aria-selected",
@@ -764,6 +828,39 @@ describe("WishForm — generate-image (armed)", () => {
     expect(
       screen.getByText("AI-лимит на сегодня исчерпан — загрузи своё фото"),
     ).toBeInTheDocument();
+  });
+
+  it("shows the armed state instead of an existing photo preview, and restores the preview on disarm", () => {
+    renderForm({
+      ai: AI_QUOTA,
+      initial: { imageUrl: "https://cdn.example.com/vase.jpg" },
+    });
+
+    // Before arming: the existing photo is visible, no armed copy yet.
+    expect(
+      document.querySelector('img[src="https://cdn.example.com/vase.jpg"]'),
+    ).not.toBeNull();
+    expect(screen.queryByText("Сгенерируем после сохранения")).toBeNull();
+
+    const chip = screen.getByRole("button", { name: "Сгенерировать (AI)" });
+    fireEvent.click(chip);
+
+    // Armed: the preview slot shows the armed state, not the photo — the
+    // outcome (photo will be replaced) is visible before saving.
+    expect(
+      document.querySelector('img[src="https://cdn.example.com/vase.jpg"]'),
+    ).toBeNull();
+    expect(
+      screen.getByText("Сгенерируем после сохранения"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(chip);
+
+    // Disarming restores the untouched photo value.
+    expect(
+      document.querySelector('img[src="https://cdn.example.com/vase.jpg"]'),
+    ).not.toBeNull();
+    expect(screen.queryByText("Сгенерируем после сохранения")).toBeNull();
   });
 
   it("picking and uploading a photo disarms an armed chip", async () => {
@@ -804,6 +901,9 @@ describe("WishForm — AI never blocks submit (regression)", () => {
     });
     renderForm({ ai: AI_QUOTA, onSubmit });
 
+    fireEvent.change(screen.getByLabelText("Название"), {
+      target: { value: "Ваза" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: "Предложить описание" }),
     );
@@ -811,9 +911,6 @@ describe("WishForm — AI never blocks submit (regression)", () => {
       await screen.findByText("Не получилось — попробуй ещё раз"),
     ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Название"), {
-      target: { value: "Ваза" },
-    });
     fireEvent.click(screen.getByRole("button", { name: "Добавить в список" }));
 
     await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));

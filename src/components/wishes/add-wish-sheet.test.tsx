@@ -306,6 +306,23 @@ describe("AddWishSheet — slow parsing", () => {
 });
 
 describe("AddWishSheet — words entry (AI)", () => {
+  it("orders the three entry options as link -> words -> divider -> manual (§6.3)", () => {
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    const parseIndex = labels.indexOf("Добавить по ссылке");
+    const wordsIndex = labels.indexOf("Добавь словами");
+    const manualIndex = labels.indexOf("Заполнить вручную");
+
+    // "Добавь словами" reads as a peer of the link entry, above the divider
+    // — not a subordinate fourth item under "или" + manual entry.
+    expect(parseIndex).toBeGreaterThanOrEqual(0);
+    expect(wordsIndex).toBeGreaterThan(parseIndex);
+    expect(manualIndex).toBeGreaterThan(wordsIndex);
+  });
+
   it("hides the 'Добавь словами' entry when ai is undefined", () => {
     renderSheet();
     expect(screen.queryByText("Добавь словами")).toBeNull();

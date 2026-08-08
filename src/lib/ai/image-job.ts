@@ -41,12 +41,15 @@ export type ImageGenerationJob = {
     name: string,
     contentType: string,
   ) => Promise<{ url: string }>;
+  /** Wired to `storage.delete`, by the URL `storagePut` returned. Called only
+   *  to clean up after a terminal write that did not land — see below. */
+  storageDelete: (url: string) => Promise<void>;
 };
 
 export async function runImageGenerationJob(
   job: ImageGenerationJob,
 ): Promise<void> {
-  const { db, wishId, prompt, imageClient, storagePut } = job;
+  const { db, wishId, prompt, imageClient, storagePut, storageDelete } = job;
 
   let imageUrl: string | null = null;
   try {
@@ -65,12 +68,26 @@ export async function runImageGenerationJob(
     imageUrl = null;
   }
 
+  let landed = false;
   try {
-    await finishImageGeneration(db, wishId, imageUrl);
+    landed = await finishImageGeneration(db, wishId, imageUrl);
   } catch {
     // The database is unreachable at the very end of a post-response job.
     // There is nothing left to fall back to; swallow so `after()` stays clean.
     // The card's poller gives up after ~3 minutes and shows the stored status.
+  }
+
+  // ORPHAN CLEANUP — the picture was uploaded but no row now points at it: the
+  // owner overtook the job with their own photo, edited or deleted the wish, a
+  // newer job superseded this one, or the terminal write itself failed. Nothing
+  // will ever reference this file, so drop it. Best effort by construction: the
+  // job is already over and a failed delete may not disturb `after()`.
+  if (imageUrl !== null && !landed) {
+    try {
+      await storageDelete(imageUrl);
+    } catch {
+      // A leaked file is a rounding error against a broken post-response phase.
+    }
   }
 }
 
@@ -87,6 +104,7 @@ export type ArmImageGenerationDeps = {
   wish: OwnerWish;
   imageClient: AiImageClient;
   storagePut: ImageGenerationJob["storagePut"];
+  storageDelete: ImageGenerationJob["storageDelete"];
   /** Wired to Next's `after()`; called at most once, only after the wish row
    *  really moved into `generating`. */
   schedule: (job: ScheduledImageJob) => void;
@@ -110,7 +128,8 @@ export type ArmImageResult = "armed" | "quota" | "not_found";
 export async function armImageGeneration(
   deps: ArmImageGenerationDeps,
 ): Promise<ArmImageResult> {
-  const { db, userId, wish, imageClient, storagePut, schedule } = deps;
+  const { db, userId, wish, imageClient, storagePut, storageDelete, schedule } =
+    deps;
 
   if (!(await consumeAiQuota(db, userId, "image"))) return "quota";
   if ((await startImageGeneration(db, userId, wish.id)) === "not_found") {
@@ -122,6 +141,7 @@ export async function armImageGeneration(
     prompt: buildImagePrompt(wishToSuggestionInput(wish)),
     imageClient,
     storagePut,
+    storageDelete,
   });
   return "armed";
 }

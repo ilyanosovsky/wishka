@@ -145,6 +145,15 @@ function symbolFor(code: string | null): string {
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
 }
 
+/** `normalizeAmount` (shared with the URL parser and the AI draft/price
+ *  prompts) always answers a fixed-2 string like "1200.00" — strip a
+ *  trailing ".00" so a suggestion with no meaningful cents reads "1200"
+ *  rather than "1200.00", both on display and in the value actually
+ *  accepted into the price fields. */
+function trimTrailingZeroCents(value: string): string {
+  return value.endsWith(".00") ? value.slice(0, -3) : value;
+}
+
 /** "1200–1800 ₽" / "1200 ₽" / "1200" — the candidate card's plain-text
  *  rendering of a price suggestion, mirroring `symbolFor` for the currency,
  *  which the model may leave unset (see `prompts.ts`: never invented). */
@@ -154,9 +163,11 @@ function formatPriceSuggestion(suggestion: {
   currency?: string;
 }): string {
   const symbol = suggestion.currency ? symbolFor(suggestion.currency) : "";
-  const range = suggestion.priceMax
-    ? `${suggestion.priceMin}–${suggestion.priceMax}`
-    : suggestion.priceMin;
+  const min = trimTrailingZeroCents(suggestion.priceMin);
+  const max = suggestion.priceMax
+    ? trimTrailingZeroCents(suggestion.priceMax)
+    : undefined;
+  const range = max ? `${min}–${max}` : min;
   return symbol ? `${range} ${symbol}` : range;
 }
 
@@ -194,6 +205,10 @@ function readDraft(
       ...DEFAULT_VALUES,
       ...parsed,
       audience: normalizeAudience(parsed.audience, candidates),
+      // A day-old draft never carries a stale "generate on save" intent
+      // forward (mirrors edit-wish-form.tsx's `toFormValues`) — re-arm
+      // explicitly each time instead of silently resuming it.
+      generateImage: false,
     };
   } catch {
     return null;
@@ -488,8 +503,10 @@ export function WishForm({
     if (!priceSuggestion) return;
     updateValue({
       priceType: priceSuggestion.priceMax ? "range" : "exact",
-      priceMin: priceSuggestion.priceMin,
-      priceMax: priceSuggestion.priceMax ?? null,
+      priceMin: trimTrailingZeroCents(priceSuggestion.priceMin),
+      priceMax: priceSuggestion.priceMax
+        ? trimTrailingZeroCents(priceSuggestion.priceMax)
+        : null,
       currency:
         priceSuggestion.currency ?? values.currency ?? FALLBACK_BASE_CURRENCY,
     });
@@ -714,6 +731,7 @@ export function WishForm({
             failedLabel={t("ai.suggestFailed")}
             tryAgainLabel={t("ai.tryAgain")}
             unavailableLabel={t("ai.unavailable")}
+            titleEmpty={titleEmpty}
             onTrigger={() => void handleSuggestDescription()}
           />
         ))}
@@ -728,7 +746,18 @@ export function WishForm({
               imageUploading && "pointer-events-none opacity-70",
             )}
           >
-            {values.imageUrl ? (
+            {values.generateImage ? (
+              // Armed generation wins the preview slot over whatever photo is
+              // already on the card (the photo value itself is untouched
+              // underneath — disarming restores it) so the outcome of saving
+              // is visible right now, not buried behind a failed job later.
+              <span
+                aria-hidden
+                className="flex h-full w-full flex-col items-center justify-center gap-1 bg-accent-soft px-1 text-center text-[9.5px] font-medium text-accent"
+              >
+                {t("ai.generateArmed")}
+              </span>
+            ) : values.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- re-hosted CDN preview, no next/image loader configured
               <img
                 src={values.imageUrl}
@@ -787,11 +816,8 @@ export function WishForm({
               >
                 {t("ai.generateImage")}
               </FilterChip>
-              {values.generateImage && (
-                <span className="text-[11px] text-accent">
-                  {t("ai.generateArmed")}
-                </span>
-              )}
+              {/* The armed state itself now shows in the photo preview slot
+                  above (see the thumbnail label) — no need to say it twice. */}
             </div>
             <p className="text-[11px] text-mute-2">
               {aiQuota.image <= 0
@@ -893,6 +919,7 @@ export function WishForm({
             failedLabel={t("ai.suggestFailed")}
             tryAgainLabel={t("ai.tryAgain")}
             unavailableLabel={t("ai.unavailable")}
+            titleEmpty={titleEmpty}
             onTrigger={() => void handleSuggestPrice()}
           />
         ))}
@@ -1115,6 +1142,7 @@ function SuggestTrigger({
   failedLabel,
   tryAgainLabel,
   unavailableLabel,
+  titleEmpty,
   onTrigger,
 }: {
   label: string;
@@ -1128,18 +1156,22 @@ function SuggestTrigger({
   failedLabel: string;
   tryAgainLabel: string;
   unavailableLabel: string;
+  /** The action itself refuses a title-less input with a plain "error" —
+   *  disabling here avoids a dead retry-forever loop on a fresh form. */
+  titleEmpty: boolean;
   onTrigger: () => void;
 }) {
   const busy = state === "busy";
+  const exhausted = quotaLeft <= 0;
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="ghost"
-          className="w-fit px-0"
+          className={cx("w-fit px-0", exhausted && "opacity-60")}
           loading={busy}
-          disabled={busy || quotaLeft <= 0}
+          disabled={busy || exhausted || titleEmpty}
           onClick={onTrigger}
         >
           {busy ? busyLabel : label}
@@ -1157,14 +1189,17 @@ function SuggestTrigger({
             </Button>
           </>
         )}
-        {state === "quota" && (
-          <span className="text-[11px] text-mute-2">{quotaExhaustedLabel}</span>
-        )}
         {state === "unavailable" && (
           <span className="text-[11px] text-mute-2">{unavailableLabel}</span>
         )}
       </div>
-      <p className="text-[11px] text-mute-2">{quotaLeftLabel}</p>
+      {/* Exhausted is shown here unconditionally — mount-time (quota already
+          at 0) and post-refusal (state === "quota", which always lands with
+          remaining 0) both read the same way, so one line covers both
+          instead of only the latter. */}
+      <p className="text-[11px] text-mute-2">
+        {exhausted ? quotaExhaustedLabel : quotaLeftLabel}
+      </p>
     </div>
   );
 }

@@ -72,6 +72,7 @@ describe("runImageGenerationJob", () => {
   it("stores the picture and lands on ready", async () => {
     const wishId = await armedWish();
     const storagePut = vi.fn().mockResolvedValue({ url: OURS });
+    const storageDelete = vi.fn();
     const imageClient = fakeClient(PIXEL);
 
     await runImageGenerationJob({
@@ -80,6 +81,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient,
       storagePut,
+      storageDelete,
     });
 
     expect(imageClient.calls).toEqual(["a vase"]);
@@ -89,6 +91,8 @@ describe("runImageGenerationJob", () => {
       "image/png",
     );
     expect(await rowOf(wishId)).toEqual({ status: "ready", key: OURS });
+    // The row points at the file: deleting it would break the card.
+    expect(storageDelete).not.toHaveBeenCalled();
   });
 
   it("lands on failed when the model returns nothing", async () => {
@@ -101,6 +105,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(null),
       storagePut,
+      storageDelete: vi.fn(),
     });
 
     expect(storagePut).not.toHaveBeenCalled();
@@ -116,6 +121,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(new Error("boom")),
       storagePut: vi.fn(),
+      storageDelete: vi.fn(),
     });
 
     expect((await rowOf(wishId)).status).toBe("failed");
@@ -130,6 +136,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(PIXEL),
       storagePut: vi.fn().mockRejectedValue(new Error("bucket down")),
+      storageDelete: vi.fn(),
     });
 
     expect((await rowOf(wishId)).status).toBe("failed");
@@ -144,6 +151,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(PIXEL),
       storagePut: vi.fn().mockResolvedValue(undefined),
+      storageDelete: vi.fn(),
     });
 
     expect((await rowOf(wishId)).status).toBe("failed");
@@ -160,6 +168,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(bomb),
       storagePut,
+      storageDelete: vi.fn(),
     });
 
     expect(storagePut).not.toHaveBeenCalled();
@@ -176,6 +185,7 @@ describe("runImageGenerationJob", () => {
       prompt: "a vase",
       imageClient: fakeClient(new Uint8Array(0)),
       storagePut,
+      storageDelete: vi.fn(),
     });
 
     expect(storagePut).not.toHaveBeenCalled();
@@ -198,6 +208,7 @@ describe("runImageGenerationJob", () => {
         prompt: "a vase",
         imageClient: fakeClient(PIXEL),
         storagePut: vi.fn().mockResolvedValue({ url: OURS }),
+        storageDelete: vi.fn(),
       }),
     ).resolves.toBeUndefined();
   });
@@ -211,15 +222,40 @@ describe("runImageGenerationJob", () => {
       imageStatus: "ready",
     });
 
+    const storageDelete = vi.fn();
     await runImageGenerationJob({
       db: ctx.db,
       wishId,
       prompt: "a vase",
       imageClient: fakeClient(PIXEL),
       storagePut: vi.fn().mockResolvedValue({ url: OURS }),
+      storageDelete,
     });
 
     expect(await rowOf(wishId)).toEqual({ status: "ready", key: own });
+    // Nothing references the picture we just drew: it must not be left behind
+    // in the bucket forever.
+    expect(storageDelete).toHaveBeenCalledWith(OURS);
+  });
+
+  it("survives a cleanup that itself fails", async () => {
+    const wishId = await createWish(ctx.db, {
+      ownerId,
+      title: "Ваза",
+      imageKey: "https://app123.ufs.sh/f/user-photo",
+      imageStatus: "ready",
+    });
+
+    await expect(
+      runImageGenerationJob({
+        db: ctx.db,
+        wishId,
+        prompt: "a vase",
+        imageClient: fakeClient(PIXEL),
+        storagePut: vi.fn().mockResolvedValue({ url: OURS }),
+        storageDelete: vi.fn().mockRejectedValue(new Error("bucket down")),
+      }),
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -292,6 +328,7 @@ describe("armImageGeneration", () => {
       wish,
       imageClient: fakeClient(PIXEL),
       storagePut: vi.fn().mockResolvedValue({ url: OURS }),
+      storageDelete: vi.fn(),
       schedule: (job) => scheduled.push(job),
     });
 
@@ -309,6 +346,8 @@ describe("armImageGeneration", () => {
     expect(status).toBe("generating");
     expect(scheduled).toHaveLength(1);
     expect(scheduled[0].wishId).toBe(wishId);
+    // The orphan cleanup travels with the job, so every scheduler wires it.
+    expect(typeof scheduled[0].storageDelete).toBe("function");
     // The prompt is built from the wish, not from the caller.
     expect(scheduled[0].prompt).toContain("Ваза");
 

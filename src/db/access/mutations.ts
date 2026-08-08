@@ -297,9 +297,32 @@ export async function updateWish(
   const validated = validate(merge(toInput(existing), input));
   if (!validated.ok) return validated;
 
+  /**
+   * IMAGE STATUS — `image_status` is a job state machine (`wish-image.ts`),
+   * not a form field, and `validate()` only knows the two form states
+   * (`none | ready`). An edit that does not actually change the picture must
+   * therefore leave BOTH image columns alone: the edit form always sends
+   * `imageUrl: wish.imageKey` (null while a job runs), so deriving the status
+   * from it would cancel a running generation — its `finishImageGeneration`
+   * then no-ops and the drawn picture is thrown away — or erase the retry
+   * affordance of a `failed` one. Only a genuinely new or cleared image moves
+   * the pair.
+   */
+  const incomingImage =
+    input.imageUrl === undefined ? undefined : trimmedOrNull(input.imageUrl);
+  const imageUnchanged =
+    incomingImage === undefined ||
+    incomingImage === trimmedOrNull(existing.imageKey);
+
+  const values: Partial<WishValues> = { ...validated.values };
+  if (imageUnchanged) {
+    delete values.imageKey;
+    delete values.imageStatus;
+  }
+
   const [wish] = await db
     .update(wishes)
-    .set({ ...validated.values, updatedAt: new Date() })
+    .set({ ...values, updatedAt: new Date() })
     .where(and(eq(wishes.ownerId, ownerId), eq(wishes.id, wishId)))
     .returning(columns);
   return wish ? { ok: true, wish } : { ok: false, error: "not_found" };

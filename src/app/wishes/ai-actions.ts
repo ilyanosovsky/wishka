@@ -32,6 +32,7 @@ import {
 import { consumeAiQuota, getAiQuotaRemaining } from "@/lib/ai/quota";
 import { getAuth } from "@/lib/auth";
 import { storage } from "@/lib/storage";
+import { extractStorageKey } from "@/lib/storage/uploadthing";
 import type {
   AiQuotaSnapshot,
   AiResult,
@@ -82,6 +83,19 @@ function scheduleImageJob(job: ScheduledImageJob): void {
       // `runImageGenerationJob` already swallows everything; belt and braces.
     }
   });
+}
+
+/**
+ * Drops a generated file whose wish never ended up pointing at it (the owner
+ * uploaded their own photo mid-job, the wish was edited or deleted, a newer job
+ * won). The URL comes from `storage.putBuffer`, so the key is always ours; a
+ * URL we cannot read a key out of is left alone rather than guessed at.
+ *
+ * Duplicated in `actions.ts` for the same reason as the scheduler above.
+ */
+async function deleteStoredImage(url: string): Promise<void> {
+  const key = extractStorageKey(url);
+  if (key) await storage.delete(key);
 }
 
 /** A caller-supplied `SuggestionInput` arrives through a server action, where
@@ -213,6 +227,7 @@ export async function generateWishImageAction(
       imageClient,
       storagePut: (data, name, contentType) =>
         storage.putBuffer(data, name, contentType),
+      storageDelete: deleteStoredImage,
       schedule: scheduleImageJob,
     });
     if (armed === "quota") return { ok: false, reason: "quota", remaining: 0 };
@@ -242,17 +257,5 @@ export async function getWishImageStateAction(
     // The poller reads null as "stop asking"; a transient read error must not
     // surface as a thrown action in the middle of a 3-second interval.
     return null;
-  }
-}
-
-/** Read-only quota snapshot for UI counters; never increments anything. */
-export async function getAiQuotaAction(): Promise<AiQuotaSnapshot> {
-  const userId = await requireUserId();
-  try {
-    return await getAiQuotaRemaining(getDb(), userId);
-  } catch {
-    // Counters are advisory. Zeroes only grey out the affordances; the server
-    // re-checks the real budget on every call anyway.
-    return { text: 0, image: 0 };
   }
 }

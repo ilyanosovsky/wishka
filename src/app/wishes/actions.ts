@@ -37,6 +37,7 @@ import {
   sendReservedWishHidden,
 } from "@/lib/email/reservation-emails";
 import { storage } from "@/lib/storage";
+import { extractStorageKey } from "@/lib/storage/uploadthing";
 
 async function requireUserId(): Promise<string> {
   const session = await getAuth().api.getSession({ headers: await headers() });
@@ -108,6 +109,18 @@ function scheduleImageJob(job: ScheduledImageJob): void {
 }
 
 /**
+ * Drops a generated file whose wish never ended up pointing at it. The job
+ * hands back the URL `storage.putBuffer` returned, so the key is always ours;
+ * a URL we cannot read a key out of is left alone rather than guessed at.
+ *
+ * Duplicated in `ai-actions.ts` for the same reason as the scheduler below.
+ */
+async function deleteStoredImage(url: string): Promise<void> {
+  const key = extractStorageKey(url);
+  if (key) await storage.delete(key);
+}
+
+/**
  * Arms the AI picture job for a wish that has *already* been saved.
  *
  * INVARIANT #3 — nothing in here can fail the save. No API key, an exhausted
@@ -131,6 +144,7 @@ async function armSavedWish(userId: string, wish: OwnerWish): Promise<boolean> {
       imageClient,
       storagePut: (data, name, contentType) =>
         storage.putBuffer(data, name, contentType),
+      storageDelete: deleteStoredImage,
       schedule: scheduleImageJob,
     });
     return armed === "armed";

@@ -46,6 +46,16 @@ const IMAGE_TIMEOUT_MS = 60_000;
  */
 const MAX_OUTPUT_TOKENS = 1_500;
 
+/**
+ * The decoded cap `image-job.ts` enforces before anything is uploaded, mirrored
+ * here as a cap on the *encoded* answer: base64 inflates bytes by 4/3, so a
+ * longer string cannot possibly decode to an acceptable picture, and refusing
+ * it up front avoids materialising a multi-megabyte Buffer we would then throw
+ * away. The slack covers padding and any line breaks in the payload.
+ */
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_B64_CHARS = Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 1_024;
+
 const IMAGE_SIZE = "1024x1024";
 /** Cheapest tier: a wishlist card renders the picture at ~320px anyway. */
 const IMAGE_QUALITY = "low";
@@ -126,6 +136,7 @@ export function createOpenAiImageClient(): AiImageClient | null {
         // TOCTOU double-fetch invariant #6 forbids.
         const encoded = response.data?.[0]?.b64_json;
         if (typeof encoded !== "string" || !encoded) return null;
+        if (encoded.length > MAX_IMAGE_B64_CHARS) return null;
 
         const bytes = Buffer.from(encoded, "base64");
         return bytes.byteLength > 0 ? new Uint8Array(bytes) : null;

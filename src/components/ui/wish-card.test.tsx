@@ -145,6 +145,67 @@ describe("WishCard wish content", () => {
     expect(onRetryImage).toHaveBeenCalledTimes(1);
     expect(onUploadImage).toHaveBeenCalledTimes(1);
   });
+
+  it("translates a raw category key in the failed branch", () => {
+    renderIntl(
+      <WishCard
+        role="owner"
+        wish={{ ...wish, imageStatus: "failed", imageUrl: null, category: "home" }}
+      />,
+    );
+    expect(screen.getByText("Дом")).toBeInTheDocument();
+    expect(screen.queryByText("home")).toBeNull();
+  });
+
+  it("disables the retry button while retryBusy, without blocking upload", () => {
+    const onRetryImage = vi.fn();
+    const onUploadImage = vi.fn();
+    renderIntl(
+      <WishCard
+        role="owner"
+        retryBusy
+        wish={{ ...wish, imageStatus: "failed", imageUrl: null }}
+        onRetryImage={onRetryImage}
+        onUploadImage={onUploadImage}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Повторить" })).toBeDisabled();
+    screen.getByRole("button", { name: "Загрузить фото" }).click();
+    expect(onUploadImage).toHaveBeenCalledTimes(1);
+    expect(onRetryImage).not.toHaveBeenCalled();
+  });
+});
+
+describe("WishCard viewer/archive — no owner-only image states", () => {
+  it("shows a plain placeholder (no shimmer) for a viewer card while the image is generating", () => {
+    renderIntl(
+      <WishCard
+        role="viewer"
+        reservationStatus="free"
+        wish={{ ...wish, imageStatus: "generating", imageUrl: null }}
+      />,
+    );
+    expect(screen.queryByText("Рисуем…")).toBeNull();
+  });
+
+  it("shows a plain placeholder with no retry/upload buttons for a viewer card whose image failed, and the card click still fires", () => {
+    const onClick = vi.fn();
+    renderIntl(
+      <WishCard
+        role="viewer"
+        reservationStatus="free"
+        onClick={onClick}
+        wish={{ ...wish, imageStatus: "failed", imageUrl: null }}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Повторить" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Загрузить фото" })).toBeNull();
+
+    screen.getByRole("button", { name: /Керамическая ваза/ }).click();
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("WishCard archive", () => {
