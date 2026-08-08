@@ -63,6 +63,9 @@ export type NotificationTarget = {
   name: string;
   locale: Locale;
   isGuest: boolean;
+  /** The reserving guest's id, so a caller can prove the booking is theirs
+   *  before sending a guest-facing email. Null for a signed-in reserver. */
+  guestId: string | null;
   /** The guest's bearer token, for the manage-booking link. Never for a user. */
   guestToken: string | null;
   /** The title as booked, so a deleted wish can still be named in the email. */
@@ -114,6 +117,7 @@ export async function getReservationNotificationTarget(
     name: name ?? "",
     locale: row.locale,
     isGuest,
+    guestId: row.guestId,
     guestToken: isGuest ? row.guestToken : null,
     wishTitle: row.wishTitle,
   };

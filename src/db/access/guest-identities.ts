@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 
 import type { Db } from "../index";
 import { guestIdentities, reservations } from "../schema";
@@ -112,9 +112,18 @@ export async function setGuestEmail(
 /** What the merge prompt counts: bookings still worth carrying over. */
 const LIVE_STATES = ["active", "orphaned"] as const;
 
+/**
+ * How many of a guest's live bookings the merge prompt should offer to move.
+ *
+ * SURPRISE INVARIANT — `excludeOwnerId` (the signing-in user) drops bookings a
+ * guest made on *that user's own list*: those are never moved (see
+ * `mergeGuestIntoUser`), so counting them would let the owner infer, from the
+ * prompt's number, that reservations exist on their own wishes.
+ */
 export async function countActiveGuestReservations(
   db: Db,
   guestId: string,
+  excludeOwnerId?: string,
 ): Promise<number> {
   if (!isUuid(guestId)) return 0;
   const rows = await db
@@ -124,6 +133,9 @@ export async function countActiveGuestReservations(
       and(
         eq(reservations.guestId, guestId),
         inArray(reservations.state, [...LIVE_STATES]),
+        excludeOwnerId
+          ? ne(reservations.listOwnerId, excludeOwnerId)
+          : undefined,
       ),
     );
   return rows.length;
@@ -133,15 +145,17 @@ export async function countActiveGuestReservations(
  * "Это ваши брони?" — moves a guest's bookings onto the account that just
  * signed in on the same device.
  *
- * One case cannot be moved: a booking the guest made on a wish from *this
- * user's own list*. `reserveWish` forbids an owner holding their own wish, and
- * transferring would both break that rule and hand the owner a reservation row
- * of their own — the surprise invariant in reverse. Those are cancelled.
+ * One case is deliberately left behind: a booking the guest made on a wish from
+ * *this user's own list*. `reserveWish` forbids an owner holding their own wish,
+ * and transferring would both break that rule and hand the owner a reservation
+ * row of their own — the surprise invariant in reverse. Those rows stay on the
+ * guest identity untouched (never cancelled): cancelling would destroy a
+ * friend's real booking and, via the emptied result, reveal it existed.
  *
  * No unique-index conflict is possible on transfer: the partial index allows a
  * single `active` row per wish, so if the guest holds one, the user cannot.
  *
- * Idempotent — a second run finds nothing left in a live state and returns 0.
+ * Idempotent — a second run finds nothing left to move and returns 0.
  */
 export async function mergeGuestIntoUser(
   db: Db,
@@ -150,28 +164,16 @@ export async function mergeGuestIntoUser(
 ): Promise<number> {
   if (!isUuid(guestId) || !userId) return 0;
 
-  return db.transaction(async (tx) => {
-    await tx
-      .update(reservations)
-      .set({ state: "cancelled", cancelledAt: new Date() })
-      .where(
-        and(
-          eq(reservations.guestId, guestId),
-          eq(reservations.listOwnerId, userId),
-          inArray(reservations.state, [...LIVE_STATES]),
-        ),
-      );
-
-    const moved = await tx
-      .update(reservations)
-      .set({ reserverUserId: userId, guestId: null })
-      .where(
-        and(
-          eq(reservations.guestId, guestId),
-          inArray(reservations.state, [...LIVE_STATES]),
-        ),
-      )
-      .returning({ id: reservations.id });
-    return moved.length;
-  });
+  const moved = await db
+    .update(reservations)
+    .set({ reserverUserId: userId, guestId: null })
+    .where(
+      and(
+        eq(reservations.guestId, guestId),
+        ne(reservations.listOwnerId, userId),
+        inArray(reservations.state, [...LIVE_STATES]),
+      ),
+    )
+    .returning({ id: reservations.id });
+  return moved.length;
 }

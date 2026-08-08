@@ -7,6 +7,7 @@ import { getLocale } from "next-intl/server";
 
 import { getDb } from "@/db";
 import {
+  countActiveGuestReservations,
   createGuestIdentity,
   findGuestByToken,
   isValidGuestEmail,
@@ -18,12 +19,17 @@ import {
   dismissReservation,
   reserveWish,
 } from "@/db/access/reservations";
+import { getVisibleWish } from "@/db/access/viewer";
 import { getReservationNotificationTarget } from "@/db/access/wish-lifecycle";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/i18n/config";
 import { getAuth } from "@/lib/auth";
 import { sendGuestBookingConfirmation } from "@/lib/email/reservation-emails";
 import { clearGuestCookie, readGuestToken, setGuestCookie } from "@/lib/guest";
-import { resolveReserver } from "@/lib/viewer";
+import {
+  resolveGuestIdentity,
+  resolveReserver,
+  resolveViewer,
+} from "@/lib/viewer";
 
 /**
  * The reserver-side half of the booking lifecycle. The owner-side half
@@ -48,14 +54,20 @@ function manageBookingUrl(token: string, wishId: string): string {
 }
 
 /**
- * Sends the guest their confirmation once the dust settles. Reads the target
- * fresh inside `after()` so it only fires while that guest still holds the
- * active booking, and never leaks anything into the response.
+ * Sends the confirmation once the dust settles. Reads the target fresh inside
+ * `after()` and only sends when the active booking still belongs to `guestId`
+ * — so this can never be turned into a mailer aimed at a stranger's booking,
+ * and it never leaks anything into the response.
  */
-function queueGuestConfirmation(wishId: string): void {
+function queueGuestConfirmation(wishId: string, guestId: string): void {
   after(async () => {
     const target = await getReservationNotificationTarget(getDb(), wishId);
-    if (target?.isGuest && target.email && target.guestToken) {
+    if (
+      target?.isGuest &&
+      target.guestId === guestId &&
+      target.email &&
+      target.guestToken
+    ) {
       await sendGuestBookingConfirmation({
         to: target.email,
         locale: target.locale,
@@ -83,14 +95,19 @@ export async function reserveWishAction(
   const result = await reserveWish(db, wishId, reserver, {
     locale: await requestLocale(),
   });
-  return result.ok ? { ok: true } : { ok: false, reason: result.reason };
+  if (!result.ok) return { ok: false, reason: result.reason };
+
+  // A returning guest booking a further gift still gets their confirmation.
+  if ("guestId" in reserver) queueGuestConfirmation(wishId, reserver.guestId);
+  return { ok: true };
 }
 
 export type GuestReserveResult =
   | { ok: true; hasEmail: boolean }
   | {
       ok: false;
-      reason: "already_reserved" | "not_found" | "invalid_name" | "invalid_email";
+      reason:
+        "already_reserved" | "not_found" | "invalid_name" | "invalid_email";
     };
 
 /** First-time guest booking: mint the device identity, then reserve with it. */
@@ -101,15 +118,41 @@ export async function reserveAsGuestAction(
   const db = getDb();
   const locale = await requestLocale();
 
-  // The form is for the truly anonymous; if a session or guest cookie already
-  // identifies the caller (a second tab, a stale sheet), reserve as them
-  // instead of minting a duplicate identity.
-  const existing = await resolveReserver(db);
+  // A signed-in caller who somehow reached the guest form just books as
+  // themselves; their manage-anywhere story is the account, not an email.
+  const viewer = await resolveViewer(db);
+  if ("userId" in viewer) {
+    const result = await reserveWish(db, wishId, viewer, { locale });
+    return result.ok
+      ? { ok: true, hasEmail: true }
+      : { ok: false, reason: result.reason };
+  }
+
+  // A returning guest (second tab, stale sheet) reserves under their existing
+  // identity rather than minting a duplicate; `hasEmail` reflects reality so
+  // the success sheet still offers the prompt when no address is on file.
+  const existing = await resolveGuestIdentity(db);
   if (existing) {
-    const result = await reserveWish(db, wishId, existing, { locale });
+    const result = await reserveWish(
+      db,
+      wishId,
+      { guestId: existing.id },
+      { locale },
+    );
     if (!result.ok) return { ok: false, reason: result.reason };
-    if ("guestId" in existing) queueGuestConfirmation(wishId);
-    return { ok: true, hasEmail: true };
+    const hasEmail = Boolean(existing.email);
+    if (hasEmail) queueGuestConfirmation(wishId, existing.id);
+    return { ok: true, hasEmail };
+  }
+
+  // Truly anonymous: don't mint an identity for a wish that isn't bookable.
+  // Otherwise a loop of bad ids would grow `guest_identities` unbounded.
+  const bookable = await getVisibleWish(db, wishId, viewer);
+  if (!bookable || bookable.reservationStatus !== "free") {
+    return {
+      ok: false,
+      reason: bookable ? "already_reserved" : "not_found",
+    };
   }
 
   const created = await createGuestIdentity(db, input);
@@ -118,11 +161,16 @@ export async function reserveAsGuestAction(
   // guest shouldn't have to introduce themselves twice.
   await setGuestCookie(created.token);
 
-  const result = await reserveWish(db, wishId, { guestId: created.id }, { locale });
+  const result = await reserveWish(
+    db,
+    wishId,
+    { guestId: created.id },
+    { locale },
+  );
   if (!result.ok) return { ok: false, reason: result.reason };
 
   const hasEmail = Boolean(input.email?.trim());
-  if (hasEmail) queueGuestConfirmation(wishId);
+  if (hasEmail) queueGuestConfirmation(wishId, created.id);
   return { ok: true, hasEmail };
 }
 
@@ -150,11 +198,11 @@ export async function dismissReservationAction(
 }
 
 export type SaveGuestEmailResult =
-  | { ok: true }
-  | { ok: false; reason: "invalid_email" | "not_found" };
+  { ok: true } | { ok: false; reason: "invalid_email" | "not_found" };
 
 /** The post-booking "leave an email" prompt. Also (re)sends the confirmation,
- *  since the email is what carries the manage-booking link. */
+ *  since the email is what carries the manage-booking link. Scoped to the
+ *  caller's own booking on this wish — never a lever to mail a stranger. */
 export async function saveGuestEmailAction(
   wishId: string,
   email: string,
@@ -168,14 +216,20 @@ export async function saveGuestEmailAction(
   const saved = await setGuestEmail(db, guest.id, email);
   if (!saved) return { ok: false, reason: "invalid_email" };
 
-  queueGuestConfirmation(wishId);
+  queueGuestConfirmation(wishId, guest.id);
   return { ok: true };
 }
 
 export type MergeResult = { ok: true; moved: number } | { ok: false };
 
-/** "Нашли ваши брони — перенести в аккаунт?" → yes. Consumes the guest cookie
- *  either way: after a merge the device identity has served its purpose. */
+/**
+ * "Нашли ваши брони — перенести в аккаунт?" → yes.
+ *
+ * The cookie is dropped only when the guest identity has nothing live left —
+ * bookings the guest made on this very user's own list stay behind on the
+ * identity (never moved, never cancelled — surprise invariant), so the token
+ * must survive to keep those manageable from this device.
+ */
 export async function mergeGuestReservationsAction(): Promise<MergeResult> {
   const db = getDb();
   const session = await getAuth().api.getSession({ headers: await headers() });
@@ -190,7 +244,8 @@ export async function mergeGuestReservationsAction(): Promise<MergeResult> {
   }
 
   const moved = await mergeGuestIntoUser(db, guest.id, session.user.id);
-  await clearGuestCookie();
+  const remaining = await countActiveGuestReservations(db, guest.id);
+  if (remaining === 0) await clearGuestCookie();
   revalidatePath("/people");
   return { ok: true, moved };
 }

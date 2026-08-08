@@ -63,8 +63,9 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
   // A settled row is a receipt, not a commitment — nothing left to release.
   const isLive = state === "active" || state === "changed";
   const price = formatPrice(reservation);
-  const linkedWishId =
-    state !== "deleted" && reservation.wishId ? reservation.wishId : null;
+  // Only a live wish has a viewable page: `getVisibleWish` filters out gifted
+  // and deleted wishes, so linking those would land on the invalid-link screen.
+  const linkedWishId = isLive && reservation.wishId ? reservation.wishId : null;
 
   const chipLabel =
     state === "active"

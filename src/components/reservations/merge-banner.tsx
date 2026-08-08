@@ -66,6 +66,7 @@ export type MergeBannerProps = {
 
 export function MergeBanner({ count, className }: MergeBannerProps) {
   const t = useTranslations("myReservations");
+  const tCommon = useTranslations("common");
   const router = useRouter();
 
   const dismissed = useSyncExternalStore(
@@ -75,13 +76,19 @@ export function MergeBanner({ count, className }: MergeBannerProps) {
   );
   const [busy, setBusy] = useState(false);
   const [merged, setMerged] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function handleMerge() {
     if (busy) return;
     setBusy(true);
     const result = await mergeGuestReservationsAction();
     setBusy(false);
-    if (!result.ok) return;
+    // A signed-out session is the likely failure; surface it rather than
+    // leaving a dead button.
+    if (!result.ok) {
+      setFailed(true);
+      return;
+    }
     setMerged(true);
     router.refresh();
   }
@@ -119,6 +126,11 @@ export function MergeBanner({ count, className }: MergeBannerProps) {
         open={merged}
         message={t("mergedToast")}
         onDismiss={() => setMerged(false)}
+      />
+      <InfoToast
+        open={failed}
+        message={tCommon("actionFailed")}
+        onDismiss={() => setFailed(false)}
       />
     </>
   );

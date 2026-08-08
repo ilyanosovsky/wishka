@@ -1,11 +1,7 @@
 import "server-only";
 
 import { getFromAddress, getResend } from "./client";
-import {
-  escapeHtml,
-  renderLedgerEmail,
-  type LedgerEmailCta,
-} from "./template";
+import { renderLedgerEmail, type LedgerEmailCta } from "./template";
 import {
   formatChangedFields,
   giftGiven,
@@ -36,7 +32,8 @@ async function send(params: {
     html: params.html,
     text: params.text,
   });
-  if (error) throw new Error(`Resend send failed: ${error.name}: ${error.message}`);
+  if (error)
+    throw new Error(`Resend send failed: ${error.name}: ${error.message}`);
 }
 
 export async function sendGuestBookingConfirmation(params: {
@@ -47,7 +44,6 @@ export async function sendGuestBookingConfirmation(params: {
   manageUrl: string;
 }): Promise<void> {
   try {
-    const wishTitleHtml = escapeHtml(params.wishTitle);
     const cta: LedgerEmailCta = {
       label: guestBookingConfirmation.cta[params.locale],
       url: params.manageUrl,
@@ -56,7 +52,7 @@ export async function sendGuestBookingConfirmation(params: {
       locale: params.locale,
       subject: guestBookingConfirmation.subject[params.locale],
       heading: guestBookingConfirmation.heading[params.locale],
-      bodyLines: guestBookingConfirmation.body(wishTitleHtml, params.locale),
+      bodyLines: guestBookingConfirmation.body(params.wishTitle, params.locale),
       cta,
     });
     await send({ to: params.to, subject: subject!, html, text });
@@ -73,7 +69,6 @@ export async function sendReservedWishChanged(params: {
   wishAppUrl: string;
 }): Promise<void> {
   try {
-    const wishTitleHtml = escapeHtml(params.wishTitle);
     const changedFieldsLabel = formatChangedFields(
       params.changedFields,
       params.locale,
@@ -87,7 +82,7 @@ export async function sendReservedWishChanged(params: {
       subject: reservedWishChanged.subject[params.locale],
       heading: reservedWishChanged.heading[params.locale],
       bodyLines: reservedWishChanged.body(
-        wishTitleHtml,
+        params.wishTitle,
         changedFieldsLabel,
         params.locale,
       ),
@@ -105,12 +100,11 @@ export async function sendReservedWishDeleted(params: {
   wishTitle: string;
 }): Promise<void> {
   try {
-    const wishTitleHtml = escapeHtml(params.wishTitle);
     const { subject, html, text } = renderLedgerEmail({
       locale: params.locale,
       subject: reservedWishDeleted.subject[params.locale],
       heading: reservedWishDeleted.heading[params.locale],
-      bodyLines: reservedWishDeleted.body(wishTitleHtml, params.locale),
+      bodyLines: reservedWishDeleted.body(params.wishTitle, params.locale),
     });
     await send({ to: params.to, subject: subject!, html, text });
   } catch (err) {
@@ -124,12 +118,11 @@ export async function sendGiftGiven(params: {
   wishTitle: string;
 }): Promise<void> {
   try {
-    const wishTitleHtml = escapeHtml(params.wishTitle);
     const { subject, html, text } = renderLedgerEmail({
       locale: params.locale,
       subject: giftGiven.subject[params.locale],
       heading: giftGiven.heading[params.locale],
-      bodyLines: giftGiven.body(wishTitleHtml, params.locale),
+      bodyLines: giftGiven.body(params.wishTitle, params.locale),
     });
     await send({ to: params.to, subject: subject!, html, text });
   } catch (err) {

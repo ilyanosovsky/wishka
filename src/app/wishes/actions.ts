@@ -91,7 +91,10 @@ export async function updateWishAction(
       if (changed.length > 0) {
         // The reservation outlives an edit, so the target can be read lazily.
         after(async () => {
-          const target = await getReservationNotificationTarget(getDb(), wishId);
+          const target = await getReservationNotificationTarget(
+            getDb(),
+            wishId,
+          );
           if (target?.email) {
             await sendReservedWishChanged({
               to: target.email,

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ReservePanel } from "@/components/reserve/reserve-panel";
+import { MergeBanner } from "@/components/reservations/merge-banner";
 import { ServiceScreen } from "@/components/service-screen";
 import {
   DreamStamp,
@@ -13,12 +14,13 @@ import {
   type WishStatus,
 } from "@/components/ui/badges";
 import { getDb } from "@/db";
+import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getProfile } from "@/db/access/profiles";
 import type { ReservationStatus } from "@/db/access/types";
 import { getVisibleWish } from "@/db/access/viewer";
 import { loginHrefWithNext } from "@/lib/next-param";
 import { formatPrice } from "@/lib/price";
-import { resolveViewer } from "@/lib/viewer";
+import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
 
 /**
  * Single-wish share target (DESIGN_BRIEF §6.8) — a wish opened by its own link,
@@ -70,9 +72,18 @@ export default async function SharedWishPage({
 
   const price = formatPrice(wish);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
-  const isGuest = !("userId" in viewer);
-  const isOwner = "userId" in viewer && viewer.userId === wish.ownerId;
+  const viewerUserId = "userId" in viewer ? viewer.userId : null;
+  const isGuest = viewerUserId === null;
+  const isOwner = viewerUserId === wish.ownerId;
   const badgeStatus = RESERVATION_TO_STATUS[wish.reservationStatus];
+
+  // Signed in but this device still holds a guest identity — the manage-booking
+  // link lands here, so this is where a post-signup guest gets the merge offer.
+  const guest = viewerUserId ? await resolveGuestIdentity(db) : null;
+  const mergeCount =
+    guest && viewerUserId
+      ? await countActiveGuestReservations(db, guest.id, viewerUserId)
+      : 0;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pb-16">
@@ -92,6 +103,8 @@ export default async function SharedWishPage({
           </div>
         </div>
       )}
+
+      {mergeCount > 0 && <MergeBanner count={mergeCount} className="mt-4" />}
 
       <header
         className={`pb-3 [border-bottom:3px_double_var(--ink)] ${

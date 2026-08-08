@@ -196,7 +196,7 @@ describe("guest identities", () => {
       expect(await countActiveGuestReservations(db, guestId)).toBe(0);
     });
 
-    it("cancels a booking the guest made on the user's own list", async () => {
+    it("leaves a booking the guest made on the user's own list untouched", async () => {
       const guestId = await createGuest(db, "own-list-token");
       const ownWish = await createWish(db, { ownerId, title: "My own thing" });
       const otherWish = await createWish(db, {
@@ -206,7 +206,10 @@ describe("guest identities", () => {
       await reserveWish(db, ownWish, { guestId });
       await reserveWish(db, otherWish, { guestId });
 
-      // The guest turns out to be the owner of the first list.
+      // The guest turns out to be the owner of the first list: only the
+      // other-list booking moves; the own-list one is neither moved nor
+      // cancelled (moving would hand the owner their own reservation, and
+      // cancelling would destroy a friend's real booking and reveal it exists).
       expect(await mergeGuestIntoUser(db, guestId, ownerId)).toBe(1);
 
       const rows = await db
@@ -214,12 +217,14 @@ describe("guest identities", () => {
         .from(reservations)
         .where(eq(reservations.guestId, guestId));
       expect(rows).toHaveLength(1);
-      expect(rows[0].state).toBe("cancelled");
-      expect(rows[0].cancelledAt).toBeInstanceOf(Date);
-      // …and the slot on their own wish is free, so nobody inherited it.
+      expect(rows[0].state).toBe("active");
+      expect(rows[0].listOwnerId).toBe(ownerId);
+      // The own-list booking still holds the slot — nobody can re-take it.
       expect(
         await reserveWish(db, ownWish, { userId: friendId }),
-      ).toMatchObject({ ok: true });
+      ).toMatchObject({ ok: false, reason: "already_reserved" });
+      // And it is excluded from the count the merge prompt would show the owner.
+      expect(await countActiveGuestReservations(db, guestId, ownerId)).toBe(0);
     });
 
     it("ignores a malformed guest id or an empty user id", async () => {
@@ -227,6 +232,26 @@ describe("guest identities", () => {
       expect(await mergeGuestIntoUser(db, "not-a-uuid", friendId)).toBe(0);
       expect(await mergeGuestIntoUser(db, guestId, "")).toBe(0);
       expect(await countActiveGuestReservations(db, "not-a-uuid")).toBe(0);
+    });
+  });
+
+  describe("countActiveGuestReservations", () => {
+    it("counts every live booking but drops the excluded owner's list", async () => {
+      const guestId = await createGuest(db, "count-exclude-token");
+      const onA = await createWish(db, { ownerId, title: "On A's list" });
+      const onB = await createWish(db, {
+        ownerId: friendId,
+        title: "On B's list",
+      });
+      await reserveWish(db, onA, { guestId });
+      await reserveWish(db, onB, { guestId });
+
+      // Every live booking the guest holds, across every list.
+      expect(await countActiveGuestReservations(db, guestId)).toBe(2);
+      // Excluding owner A drops the booking on A's own list — the surprise
+      // invariant that stops the prompt leaking a reservation to the owner —
+      // while still counting the one on B's list.
+      expect(await countActiveGuestReservations(db, guestId, ownerId)).toBe(1);
     });
   });
 });

@@ -19,8 +19,7 @@ export default async function WishPage({
 }) {
   const { id } = await params;
   const session = await getAuth().api.getSession({ headers: await headers() });
-  if (!session)
-    redirect(`/login?next=${encodeURIComponent(`/wishes/${id}`)}`);
+  if (!session) redirect(`/login?next=${encodeURIComponent(`/wishes/${id}`)}`);
 
   const wish = await getOwnerWish(getDb(), session.user.id, id);
   if (!wish) return <WishNotFound />;

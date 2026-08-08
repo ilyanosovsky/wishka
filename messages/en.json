@@ -308,7 +308,11 @@
     "successEmailPrompt": "Leave your email — we'll send a link to manage the booking from any device",
     "successEmailSave": "Save email",
     "successEmailSaved": "Done — the email is on its way",
-    "successDone": "Got it"
+    "successDone": "Got it",
+    "switchTitle": "Open bookings from this link?",
+    "switchBody": "This device already holds another guest's bookings. Switching makes those unreachable here — you'll only be able to get them back via the link in your own email.",
+    "switchConfirm": "Switch",
+    "switchKeep": "Keep current"
   },
   "myReservations": {
     "title": "My bookings",

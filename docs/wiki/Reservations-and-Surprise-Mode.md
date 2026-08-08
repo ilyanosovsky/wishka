@@ -13,6 +13,19 @@
 
 Because of this split, "does the surprise invariant hold" reduces to: did anyone add a reservation-shaped field to `OwnerWish`, or a reservations query to `mutations.ts`/`owner.ts`? Both are caught by the source-guard tests, so a regression fails CI rather than shipping.
 
+### The boundary: this protects the *authenticated owner*
+
+The invariant is enforced for the owner **as an authenticated session**. Every ownership short-circuit keys off `viewer.userId === wish.ownerId`, and an owner reading their own list (`/` and their own `/u/<nick>`) never joins reservations at all.
+
+What it deliberately does **not** do is hide reservations from a determined owner who *stops being the owner from the app's point of view*. A public list shows `«Забронировано»` badges to every non-owner viewer — that is the whole point of the guest-facing surface — and an owner who opens their own list signed out (or in a private window) is, to the server, just another anonymous viewer. There is no way to show reserved badges to guests while hiding them from a signed-out owner, because the two are indistinguishable. This is inherent to "public list + visible reservation badges", not a defect in the data layer.
+
+Two consequences worth stating plainly, so a future change does not assume protection that isn't there:
+
+- The signed-out owner can read `reservationStatus` on their own wishes via `/u/<nick>` and `/w/<id>`, and the `merge` prompt count excludes own-list rows precisely so the *signed-in* owner never infers a booking from a number.
+- A guest may reserve the list owner's own wish (only a *user* reserver is refused as `not_found` by `reserveWish`), so a signed-out owner acting as a guest could probe a single wish. Blocking guests from the owner's wishes would break normal booking, so this is left as the same signed-out-owner boundary.
+
+If stronger protection is ever required, the fix is a product change — gate `reservationStatus` behind a session so guests see everything as `free` until they book — not a data-layer tweak.
+
 ## Reservation states
 
 `reservations.state`: `active`, `cancelled`, `orphaned`, `fulfilled` (reserved for later use, currently unused).

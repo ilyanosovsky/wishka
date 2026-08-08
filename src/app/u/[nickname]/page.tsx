@@ -51,10 +51,13 @@ export default async function PublicListPage({
 
   // Signed in, yet this device still carries a guest identity: the bookings
   // made before signing in are strandable, so offer to move them (§6.5).
+  // Bookings on the user's OWN list are excluded — counting them would leak,
+  // via the prompt's number, that reservations exist on their own wishes.
   const guest = viewerUserId ? await resolveGuestIdentity(db) : null;
-  const mergeCount = guest
-    ? await countActiveGuestReservations(db, guest.id)
-    : 0;
+  const mergeCount =
+    guest && viewerUserId
+      ? await countActiveGuestReservations(db, guest.id, viewerUserId)
+      : 0;
 
   return (
     <>

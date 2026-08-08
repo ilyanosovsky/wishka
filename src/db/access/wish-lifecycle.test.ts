@@ -138,6 +138,7 @@ describe("wish lifecycle", () => {
         name: "Masha",
         locale: "en",
         isGuest: false,
+        guestId: null,
         guestToken: null,
         wishTitle: "For Masha",
       });
@@ -154,6 +155,7 @@ describe("wish lifecycle", () => {
         name: "Petya",
         locale: "ru",
         isGuest: true,
+        guestId,
         guestToken: "lifecycle-token",
         wishTitle: "For Petya",
       });

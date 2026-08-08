@@ -32,9 +32,9 @@ export type LedgerEmailInput = {
   subject?: string;
   /** Serif masthead heading, e.g. "Бронь подтверждена". */
   heading: string;
-  /** Body paragraphs, rendered as separate <p> rows. Already-escaped fragments
-   *  (e.g. containing a <strong> wrapper) are allowed — callers must escape
-   *  any user-supplied content themselves via escapeHtml before assembling. */
+  /** Body paragraphs, rendered as separate <p> rows. Plain text — the template
+   *  escapes these for the HTML part and uses them verbatim for the text part,
+   *  so callers must NOT pre-escape user content. */
   bodyLines: string[];
   cta?: LedgerEmailCta;
   footnote?: string;
@@ -66,10 +66,10 @@ function toPlainText(input: LedgerEmailInput): string {
 }
 
 /**
- * Renders the single shared Paper Ledger email shell. Callers own escaping
- * of any interpolated user content (wish titles, guest names) BEFORE it
- * lands in heading/bodyLines/footnote — this function does not re-escape,
- * since it also needs to allow safe markup like <strong> wrappers.
+ * Renders the single shared Paper Ledger email shell. User content
+ * (wish titles, guest names) is passed in as PLAIN TEXT: this function escapes
+ * it for the HTML part and reuses it verbatim for the text part, so the two
+ * never diverge and a hostile title cannot break out of either.
  */
 export function renderLedgerEmail(input: LedgerEmailInput): RenderedEmail {
   const bodyRows = input.bodyLines
@@ -77,7 +77,7 @@ export function renderLedgerEmail(input: LedgerEmailInput): RenderedEmail {
       (line) => `
               <tr>
                 <td style="padding:0 0 16px;font-family:${FONT_SANS};font-size:15px;line-height:1.55;color:${COLOR.ink};">
-                  ${line}
+                  ${escapeHtml(line)}
                 </td>
               </tr>`,
     )
@@ -90,7 +90,7 @@ export function renderLedgerEmail(input: LedgerEmailInput): RenderedEmail {
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                       <td style="background-color:${COLOR.accent};border:1px solid ${COLOR.accentInk};">
-                        <a href="${input.cta.url}" style="display:inline-block;padding:12px 24px;font-family:${FONT_SANS};font-size:14px;font-weight:600;color:${COLOR.paper};text-decoration:none;">
+                        <a href="${escapeHtml(input.cta.url)}" style="display:inline-block;padding:12px 24px;font-family:${FONT_SANS};font-size:14px;font-weight:600;color:${COLOR.paper};text-decoration:none;">
                           ${escapeHtml(input.cta.label)}
                         </a>
                       </td>
@@ -126,7 +126,7 @@ export function renderLedgerEmail(input: LedgerEmailInput): RenderedEmail {
             <tr>
               <td style="padding:12px 32px 20px;border-bottom:2px solid ${COLOR.ink};">
                 <div style="font-family:${FONT_SERIF};font-size:22px;font-weight:600;color:${COLOR.ink};">
-                  ${input.heading}
+                  ${escapeHtml(input.heading)}
                 </div>
               </td>
             </tr>

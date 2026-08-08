@@ -6,9 +6,7 @@ describe("escapeHtml", () => {
     const hostile = `<img src=x onerror="alert(1)">`;
     const escaped = escapeHtml(hostile);
     expect(escaped).not.toContain("<img");
-    expect(escaped).toBe(
-      "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;",
-    );
+    expect(escaped).toBe("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
   });
 });
 
@@ -42,14 +40,29 @@ describe("renderLedgerEmail", () => {
     expect(html).not.toContain("<a href=");
   });
 
-  it("HTML-escapes a hostile wish title passed through bodyLines by the caller", () => {
+  it("HTML-escapes a hostile wish title while keeping the text part plain", () => {
     const hostile = `<img src=x onerror=alert(1)>`;
-    const { html } = renderLedgerEmail({
+    const { html, text } = renderLedgerEmail({
       locale: "en",
       heading: "The wish was deleted",
-      bodyLines: [`The wish "${escapeHtml(hostile)}" was removed.`],
+      // Raw, not pre-escaped: the template owns escaping now.
+      bodyLines: [`The wish "${hostile}" was removed.`],
     });
     expect(html).not.toContain("<img src=x");
     expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    // The plain-text alternative stays human-readable, no HTML entities.
+    expect(text).toContain(`The wish "${hostile}" was removed.`);
+    expect(text).not.toContain("&lt;");
+  });
+
+  it("escapes a hostile CTA url in the href attribute", () => {
+    const { html } = renderLedgerEmail({
+      locale: "en",
+      heading: "Booking confirmed",
+      bodyLines: ["Manage below."],
+      cta: { label: "Manage", url: `https://x/"><script>alert(1)</script>` },
+    });
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).toContain("&quot;&gt;&lt;script&gt;");
   });
 });

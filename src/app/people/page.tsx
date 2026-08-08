@@ -24,9 +24,10 @@ export default async function PeoplePage() {
 
   const db = getDb();
   const reservations = await getMyReservations(db, { userId: session.user.id });
+  // Own-list guest bookings are excluded from the count — see `/u/[nickname]`.
   const guest = await resolveGuestIdentity(db);
   const mergeCount = guest
-    ? await countActiveGuestReservations(db, guest.id)
+    ? await countActiveGuestReservations(db, guest.id, session.user.id)
     : 0;
 
   const t = await getTranslations("people");

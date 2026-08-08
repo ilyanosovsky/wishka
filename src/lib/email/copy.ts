@@ -43,14 +43,14 @@ export const guestBookingConfirmation = {
     ru: "Бронь подтверждена",
     en: "Booking confirmed",
   },
-  body: (wishTitleHtml: string, locale: Locale): string[] =>
+  body: (wishTitle: string, locale: Locale): string[] =>
     locale === "ru"
       ? [
-          `Вы забронировали подарок «${wishTitleHtml}». Владелец списка не увидит эту бронь — это часть режима сюрприза.`,
+          `Вы забронировали подарок «${wishTitle}». Владелец списка не увидит эту бронь — это часть режима сюрприза.`,
           "Ссылка ниже открывает управление бронью на любом устройстве — сохраните письмо.",
         ]
       : [
-          `You've reserved the gift "${wishTitleHtml}". The list owner will never see this booking — that's the surprise mode.`,
+          `You've reserved the gift "${wishTitle}". The list owner will never see this booking — that's the surprise mode.`,
           "The link below opens booking management on any device — keep this email.",
         ],
   cta: {
@@ -69,17 +69,17 @@ export const reservedWishChanged = {
     en: "The wish was changed",
   },
   body: (
-    wishTitleHtml: string,
+    wishTitle: string,
     changedFieldsLabel: string,
     locale: Locale,
   ): string[] =>
     locale === "ru"
       ? [
-          `Желание «${wishTitleHtml}», которое вы забронировали, изменилось: ${changedFieldsLabel}.`,
+          `Желание «${wishTitle}», которое вы забронировали, изменилось: ${changedFieldsLabel}.`,
           "Загляните в список, чтобы проверить, актуальна ли ваша бронь.",
         ]
       : [
-          `The wish "${wishTitleHtml}" you reserved has changed: ${changedFieldsLabel}.`,
+          `The wish "${wishTitle}" you reserved has changed: ${changedFieldsLabel}.`,
           "Check the list to see if your booking is still what you expect.",
         ],
   cta: {
@@ -97,13 +97,13 @@ export const reservedWishDeleted = {
     ru: "Желание удалено владельцем",
     en: "The wish was deleted by the owner",
   },
-  body: (wishTitleHtml: string, locale: Locale): string[] =>
+  body: (wishTitle: string, locale: Locale): string[] =>
     locale === "ru"
       ? [
-          `Желание «${wishTitleHtml}», которое вы забронировали, владелец удалил из списка. Бронь больше не действует.`,
+          `Желание «${wishTitle}», которое вы забронировали, владелец удалил из списка. Бронь больше не действует.`,
         ]
       : [
-          `The wish "${wishTitleHtml}" you reserved was removed by the owner. The booking no longer applies.`,
+          `The wish "${wishTitle}" you reserved was removed by the owner. The booking no longer applies.`,
         ],
 };
 
@@ -116,14 +116,14 @@ export const giftGiven = {
     ru: "Подарок вручён 🎉",
     en: "Gift delivered 🎉",
   },
-  body: (wishTitleHtml: string, locale: Locale): string[] =>
+  body: (wishTitle: string, locale: Locale): string[] =>
     locale === "ru"
       ? [
           `Твой подарок отмечен как вручённый 🎉`,
-          `Желание «${wishTitleHtml}» закрыто — спасибо, что порадовал(а)!`,
+          `Желание «${wishTitle}» закрыто — спасибо, что порадовал(а)!`,
         ]
       : [
           `Your gift is marked as delivered 🎉`,
-          `The wish "${wishTitleHtml}" is now closed — thanks for making someone happy!`,
+          `The wish "${wishTitle}" is now closed — thanks for making someone happy!`,
         ],
 };

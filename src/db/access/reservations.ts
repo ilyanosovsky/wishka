@@ -3,7 +3,7 @@ import { and, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import type { Locale } from "@/i18n/config";
 import type { Db } from "../index";
 import { reservations, wishes } from "../schema";
-import { isUniqueViolation } from "./errors";
+import { isForeignKeyViolation, isUniqueViolation } from "./errors";
 import { isUuid } from "./ids";
 import type { Reserver, Viewer } from "./types";
 import { visibleTo } from "./viewer";
@@ -128,6 +128,11 @@ export async function reserveWish(
   } catch (error) {
     if (isUniqueViolation(error)) {
       return { ok: false, reason: "already_reserved" };
+    }
+    // The owner deleted the wish between the check above and this insert: the
+    // FK to `wishes` fails, and to the reserver the wish is simply gone.
+    if (isForeignKeyViolation(error)) {
+      return { ok: false, reason: "not_found" };
     }
     throw error;
   }
