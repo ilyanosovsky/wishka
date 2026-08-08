@@ -3,7 +3,9 @@
 import { Archive, List, Search, Share2, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { isLocale } from "@/i18n/config";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { generateWishImageAction } from "@/app/wishes/ai-actions";
@@ -468,11 +470,13 @@ function LedgerView({
   onOpen: (id: string) => void;
 }) {
   const t = useTranslations();
+  const rawLocale = useLocale();
+  const locale = isLocale(rawLocale) ? rawLocale : "en";
 
   return (
     <div className="mt-3.5 border border-rule-2 bg-paper shadow-[var(--shadow-line)]">
       {wishes.map((wish, index) => {
-        const price = formatPrice(wish);
+        const price = formatPrice(wish, locale);
         return (
           <button
             key={wish.id}

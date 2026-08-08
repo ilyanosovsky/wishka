@@ -1,7 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+
+import { isLocale } from "@/i18n/config";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ReservePanel } from "@/components/reserve/reserve-panel";
@@ -127,7 +129,8 @@ export default async function SharedWishPage({
   const ownerName = owner?.name ?? "";
   const listHref = owner ? `/u/${owner.nickname}` : "/";
 
-  const price = formatPrice(wish);
+  const rawLocale = await getLocale();
+  const price = formatPrice(wish, isLocale(rawLocale) ? rawLocale : "en");
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
   const viewerUserId = "userId" in viewer ? viewer.userId : null;
   const isGuest = viewerUserId === null;

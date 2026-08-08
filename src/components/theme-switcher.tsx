@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
+import { useRovingRadio } from "@/components/ui/use-roving-radio";
 import {
   applyTheme,
   getServerThemeSnapshot,
@@ -19,11 +20,17 @@ export function ThemeSwitcher() {
     getThemeSnapshot,
     getServerThemeSnapshot,
   );
+  const roving = useRovingRadio({
+    values: THEMES,
+    value: theme,
+    onChange: applyTheme,
+  });
 
   return (
     <div
       role="radiogroup"
       aria-label={t("label")}
+      onKeyDown={roving.onKeyDown}
       className="inline-flex border border-rule-2"
     >
       {THEMES.map((value) => {
@@ -33,6 +40,8 @@ export function ThemeSwitcher() {
             key={value}
             role="radio"
             aria-checked={active}
+            tabIndex={roving.tabIndex(value)}
+            ref={roving.itemRef(value)}
             onClick={() => applyTheme(value)}
             className={`min-h-11 cursor-pointer border-r border-rule-2 px-3.5 text-[12px] last:border-r-0 ${
               active ? "bg-ink font-semibold text-paper" : "bg-paper text-mute"

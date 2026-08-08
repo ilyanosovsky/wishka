@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+
+import { isLocale } from "@/i18n/config";
 import type { MouseEvent } from "react";
 import { isCategoryKey } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
@@ -85,7 +87,8 @@ function stopped(handler?: () => void) {
 export function WishCard(props: WishCardProps) {
   const { wish, onClick, onRetryImage, onUploadImage, retryBusy } = props;
   const t = useTranslations("wish");
-  const locale = useLocale();
+  const rawLocale = useLocale();
+  const locale = isLocale(rawLocale) ? rawLocale : "en";
 
   // The generating shimmer and the failed retry/upload affordances are
   // owner-only (Phase 6 §6.2 is an owner-facing async image lifecycle) — a
@@ -101,7 +104,7 @@ export function WishCard(props: WishCardProps) {
   const archived = props.role === "archive";
   const dimmed = reserved || archived;
 
-  const price = formatPrice(wish);
+  const price = formatPrice(wish, locale);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageUrl);
 
   /** Owner is absent by construction — there is no status for them to see. */

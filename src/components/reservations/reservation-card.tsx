@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { isLocale } from "@/i18n/config";
 import { useState } from "react";
 
 import { dismissReservationAction } from "@/app/reserve/actions";
@@ -53,6 +55,8 @@ export type ReservationCardProps = {
 
 export function ReservationCard({ reservation }: ReservationCardProps) {
   const t = useTranslations();
+  const rawLocale = useLocale();
+  const locale = isLocale(rawLocale) ? rawLocale : "en";
   const router = useRouter();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -62,7 +66,7 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
   const { state } = reservation;
   // A settled row is a receipt, not a commitment — nothing left to release.
   const isLive = state === "active" || state === "changed";
-  const price = formatPrice(reservation);
+  const price = formatPrice(reservation, locale);
   // Only a live wish has a viewable page: `getVisibleWish` filters out gifted
   // and deleted wishes, so linking those would land on the invalid-link screen.
   const linkedWishId = isLive && reservation.wishId ? reservation.wishId : null;

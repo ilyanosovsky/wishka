@@ -149,6 +149,7 @@ export function PublicList({
       {wishes.length > 0 && (
         <div className="pt-3.5">
           <Tabs
+            ariaLabel={t("publicList.filterLabel")}
             value={filter}
             onChange={(value) => setFilter(value as FilterKey)}
             items={[

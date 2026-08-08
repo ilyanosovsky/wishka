@@ -117,16 +117,5 @@ describe("formatPrice", () => {
         ),
       ).toBe("2,000–3,000 ₾");
     });
-
-    it("still defaults to ru while the call-site sweep is unfinished", () => {
-      expect(
-        formatPrice({
-          priceType: "exact",
-          priceMin: "1400",
-          priceMax: null,
-          currency: "USD",
-        }),
-      ).toBe(`1${NBSP}400 $`);
-    });
   });
 });

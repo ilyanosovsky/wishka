@@ -684,6 +684,7 @@ export function WishForm({
 
       <Tabs
         fill="ink"
+        ariaLabel={t("form.typeLabel")}
         value={values.type}
         onChange={(v) => updateValue({ type: v as WishFormType })}
         items={[
