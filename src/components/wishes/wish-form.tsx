@@ -4,6 +4,11 @@ import { ChevronDown, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import {
+  suggestDescriptionAction,
+  suggestPriceAction,
+  type SuggestionInput,
+} from "@/app/wishes/ai-actions";
 import { DreamStamp, PriorityFlag } from "@/components/ui/badges";
 import { AlertBanner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
@@ -11,6 +16,7 @@ import { FilterChip } from "@/components/ui/chip";
 import { Dialog } from "@/components/ui/dialog";
 import { Field, TextareaField, TextField } from "@/components/ui/field";
 import { Tabs } from "@/components/ui/tabs";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 import { CATEGORY_KEYS } from "@/lib/categories";
 import { CURRENCIES, type CurrencyCode } from "@/lib/currencies";
 import { useUploadThing } from "@/lib/uploadthing-client";
@@ -53,9 +59,17 @@ export type WishFormValues = {
   notes: string | null;
   /** Who the wish is for (§6.3). Proposed here, validated server-side. */
   audience: WishAudienceValue;
+  /** Armed in the form, started on save (Phase 6 §6.2/§6.3): true means the
+   *  wrapper should pass `opts: { generateImage: true }` to the create/update
+   *  action. Never sent through `toWishInput` — it isn't a wish column. */
+  generateImage: boolean;
 };
 
 export type WishFormResult = { ok: true } | { ok: false; error: string };
+
+/** Local UI state for a suggestion affordance — `AiFailReason` plus `busy`,
+ *  the one client-only state the server result never carries. */
+type SuggestState = "idle" | "busy" | "failed" | "quota" | "unavailable";
 
 export interface WishFormProps {
   initial?: Partial<WishFormValues>;
@@ -70,6 +84,9 @@ export interface WishFormProps {
   /** Where the top-left back control (and the draft dialog's actions) send
    *  the user. Defaults to the list; the edit form points back at the wish. */
   backHref?: string;
+  /** Page heading rendered next to the back control ("Новое желание" /
+   *  "Редактировать") — without it the top row is a lone unlabeled button. */
+  heading?: string;
   /** True when the Link field's initial value came from the URL parser
    *  (§6.3 step 3, "спарсено") — renders it as a read-only parsed-link row
    *  with a small edit affordance instead of the usual editable input. */
@@ -81,6 +98,14 @@ export interface WishFormProps {
   /** Who the owner may address a restricted wish to — the owner's groups and
    *  their members, fetched by the page (server-side), never by the client. */
   candidates?: AudienceOptions;
+  /** Server-computed AI availability + daily quota snapshot. Undefined means
+   *  AI is unavailable (no key, or the page didn't check) — every AI
+   *  affordance (suggestions, generate-image) is hidden, never just disabled. */
+  ai?: AiQuotaSnapshot;
+  /** True when `initial` came from the "Добавь словами" free-text draft
+   *  (§6.3 AI addendum) — shows the `ai.fromAi` meta note, mirroring how
+   *  `parsedUrl` shows `parse.fromParser` on the link field. */
+  aiDraft?: boolean;
 }
 
 const DEFAULT_VALUES: WishFormValues = {
@@ -98,6 +123,7 @@ const DEFAULT_VALUES: WishFormValues = {
   category: null,
   notes: null,
   audience: EVERYONE_AUDIENCE,
+  generateImage: false,
 };
 
 /**
@@ -120,6 +146,32 @@ function cx(...parts: (string | false | undefined)[]): string {
 function symbolFor(code: string | null): string {
   if (!code) return "";
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
+}
+
+/** `normalizeAmount` (shared with the URL parser and the AI draft/price
+ *  prompts) always answers a fixed-2 string like "1200.00" — strip a
+ *  trailing ".00" so a suggestion with no meaningful cents reads "1200"
+ *  rather than "1200.00", both on display and in the value actually
+ *  accepted into the price fields. */
+function trimTrailingZeroCents(value: string): string {
+  return value.endsWith(".00") ? value.slice(0, -3) : value;
+}
+
+/** "1200–1800 ₽" / "1200 ₽" / "1200" — the candidate card's plain-text
+ *  rendering of a price suggestion, mirroring `symbolFor` for the currency,
+ *  which the model may leave unset (see `prompts.ts`: never invented). */
+function formatPriceSuggestion(suggestion: {
+  priceMin: string;
+  priceMax?: string;
+  currency?: string;
+}): string {
+  const symbol = suggestion.currency ? symbolFor(suggestion.currency) : "";
+  const min = trimTrailingZeroCents(suggestion.priceMin);
+  const max = suggestion.priceMax
+    ? trimTrailingZeroCents(suggestion.priceMax)
+    : undefined;
+  const range = max ? `${min}–${max}` : min;
+  return symbol ? `${range} ${symbol}` : range;
 }
 
 /** "Enter a price" covers empty, zero, negative and non-numeric amounts —
@@ -156,6 +208,10 @@ function readDraft(
       ...DEFAULT_VALUES,
       ...parsed,
       audience: normalizeAudience(parsed.audience, candidates),
+      // A day-old draft never carries a stale "generate on save" intent
+      // forward (mirrors edit-wish-form.tsx's `toFormValues`) — re-arm
+      // explicitly each time instead of silently resuming it.
+      generateImage: false,
     };
   } catch {
     return null;
@@ -212,9 +268,12 @@ export function WishForm({
   enableDraft = false,
   draftScope,
   backHref = "/",
+  heading,
   parsedUrl = false,
   parsedPartial = false,
   candidates = EMPTY_AUDIENCE_OPTIONS,
+  ai,
+  aiDraft = false,
 }: WishFormProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -244,6 +303,24 @@ export function WishForm({
   const [imageUploading, setImageUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { startUpload } = useUploadThing("wishImage");
+
+  // The server-issued `ai` snapshot is a starting point; every suggestion
+  // result carries its own `remaining`, which is what actually keeps these in
+  // sync — the counters are advisory (invariant #4), the server always
+  // re-checks at save/generate time.
+  const [aiQuota, setAiQuota] = useState<AiQuotaSnapshot>(
+    () => ai ?? { text: 0, image: 0 },
+  );
+  const [descSuggestState, setDescSuggestState] =
+    useState<SuggestState>("idle");
+  const [descSuggestion, setDescSuggestion] = useState<string | null>(null);
+  const [priceSuggestState, setPriceSuggestState] =
+    useState<SuggestState>("idle");
+  const [priceSuggestion, setPriceSuggestion] = useState<{
+    priceMin: string;
+    priceMax?: string;
+    currency?: string;
+  } | null>(null);
 
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [visibilitySheetOpen, setVisibilitySheetOpen] = useState(false);
@@ -335,7 +412,9 @@ export function WishForm({
       const uploaded = await startUpload([small]);
       const url = uploaded?.[0]?.ufsUrl;
       if (!url) throw new Error("upload failed");
-      updateValue({ imageUrl: url });
+      // A picked-and-uploaded photo wins over an armed AI generation — the
+      // two image sources are mutually exclusive (§6.3 AI addendum).
+      updateValue({ imageUrl: url, generateImage: false });
     } catch {
       // Upload failure never blocks saving — the wish can be saved without a photo.
       setImageError(true);
@@ -352,6 +431,102 @@ export function WishForm({
         ? { currency: FALLBACK_BASE_CURRENCY }
         : {}),
     });
+  }
+
+  /** Everything the description/price suggestion prompts need — read fresh at
+   *  call time so a suggestion always reflects the card as currently filled. */
+  function suggestionInput(): SuggestionInput {
+    return {
+      title: values.title,
+      type: values.type,
+      category: values.category,
+      url: values.url,
+      description: values.description,
+    };
+  }
+
+  /** `remaining` is absent on some failure reasons (e.g. a thrown action never
+   *  resolves at all) — only ever move the counter down, never guess. */
+  function applyTextRemaining(remaining: number | undefined) {
+    if (typeof remaining === "number") {
+      setAiQuota((prev) => ({ ...prev, text: remaining }));
+    }
+  }
+
+  async function handleSuggestDescription() {
+    setDescSuggestState("busy");
+    let result: Awaited<ReturnType<typeof suggestDescriptionAction>>;
+    try {
+      result = await suggestDescriptionAction(suggestionInput());
+    } catch {
+      setDescSuggestState("failed");
+      return;
+    }
+    applyTextRemaining(result.remaining);
+    if (result.ok) {
+      setDescSuggestion(result.value.description);
+      setDescSuggestState("idle");
+      return;
+    }
+    // "error" (a resolved-but-unsuccessful call) reuses the same inline
+    // failed/tryAgain UI as a rejected promise — no separate state for it.
+    setDescSuggestState(result.reason === "error" ? "failed" : result.reason);
+  }
+
+  function acceptDescriptionSuggestion() {
+    if (descSuggestion === null) return;
+    updateValue({ description: descSuggestion });
+    setDescSuggestion(null);
+    setDescSuggestState("idle");
+  }
+
+  function dismissDescriptionSuggestion() {
+    setDescSuggestion(null);
+    setDescSuggestState("idle");
+  }
+
+  async function handleSuggestPrice() {
+    setPriceSuggestState("busy");
+    let result: Awaited<ReturnType<typeof suggestPriceAction>>;
+    try {
+      result = await suggestPriceAction(suggestionInput());
+    } catch {
+      setPriceSuggestState("failed");
+      return;
+    }
+    applyTextRemaining(result.remaining);
+    if (result.ok) {
+      setPriceSuggestion(result.value);
+      setPriceSuggestState("idle");
+      return;
+    }
+    setPriceSuggestState(result.reason === "error" ? "failed" : result.reason);
+  }
+
+  function acceptPriceSuggestion() {
+    if (!priceSuggestion) return;
+    updateValue({
+      priceType: priceSuggestion.priceMax ? "range" : "exact",
+      priceMin: trimTrailingZeroCents(priceSuggestion.priceMin),
+      priceMax: priceSuggestion.priceMax
+        ? trimTrailingZeroCents(priceSuggestion.priceMax)
+        : null,
+      currency:
+        priceSuggestion.currency ?? values.currency ?? FALLBACK_BASE_CURRENCY,
+    });
+    setPriceSuggestion(null);
+    setPriceSuggestState("idle");
+  }
+
+  function dismissPriceSuggestion() {
+    setPriceSuggestion(null);
+    setPriceSuggestState("idle");
+  }
+
+  /** Arming keeps whatever `imageUrl` is already on the card untouched — only
+   *  a freshly picked/uploaded photo (`onPhotoPick`) disarms it, never this. */
+  function toggleGenerateImage() {
+    updateValue({ generateImage: !values.generateImage });
   }
 
   // An amount is "missing" (empty/0/non-numeric) before a range can even be
@@ -444,15 +619,20 @@ export function WishForm({
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-      <div>
+      <div className="flex items-center gap-3">
         <button
           type="button"
           aria-label={t("common.back")}
           onClick={handleBack}
-          className="flex h-11 w-11 cursor-pointer items-center justify-center border border-rule-2 bg-paper"
+          className="flex h-11 w-11 flex-none cursor-pointer items-center justify-center border border-rule-2 bg-paper"
         >
           <ChevronLeft aria-hidden size={18} strokeWidth={2.2} />
         </button>
+        {heading && (
+          <h1 className="min-w-0 truncate font-serif text-[22px] leading-none font-semibold">
+            {heading}
+          </h1>
+        )}
       </div>
 
       {parsedPartial && (
@@ -491,6 +671,10 @@ export function WishForm({
         error={showTitleError}
         helperText={t("form.nameRequired")}
       />
+
+      {aiDraft && (
+        <p className="-mt-3 text-[11px] text-mute-2">{t("ai.fromAi")}</p>
+      )}
 
       {parsedUrl && !linkEditing ? (
         <div className="flex flex-col gap-1.5">
@@ -535,6 +719,32 @@ export function WishForm({
         rows={3}
       />
 
+      {ai !== undefined &&
+        (descSuggestion !== null ? (
+          <SuggestionCard
+            label={t("ai.suggestionLabel")}
+            text={descSuggestion}
+            acceptLabel={t("ai.accept")}
+            dismissLabel={t("ai.dismiss")}
+            onAccept={acceptDescriptionSuggestion}
+            onDismiss={dismissDescriptionSuggestion}
+          />
+        ) : (
+          <SuggestTrigger
+            label={t("ai.suggestDescription")}
+            busyLabel={t("ai.suggesting")}
+            state={descSuggestState}
+            quotaLeft={aiQuota.text}
+            quotaLeftLabel={t("ai.textQuotaLeft", { count: aiQuota.text })}
+            quotaExhaustedLabel={t("ai.textQuotaExhausted")}
+            failedLabel={t("ai.suggestFailed")}
+            tryAgainLabel={t("ai.tryAgain")}
+            unavailableLabel={t("ai.unavailable")}
+            titleEmpty={titleEmpty}
+            onTrigger={() => void handleSuggestDescription()}
+          />
+        ))}
+
       <div className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>{t("form.photoLabel")}</span>
         <div className="flex items-start gap-3">
@@ -545,7 +755,18 @@ export function WishForm({
               imageUploading && "pointer-events-none opacity-70",
             )}
           >
-            {values.imageUrl ? (
+            {values.generateImage ? (
+              // Armed generation wins the preview slot over whatever photo is
+              // already on the card (the photo value itself is untouched
+              // underneath — disarming restores it) so the outcome of saving
+              // is visible right now, not buried behind a failed job later.
+              <span
+                aria-hidden
+                className="flex h-full w-full flex-col items-center justify-center gap-1 bg-accent-soft px-1 text-center text-[9.5px] font-medium text-accent"
+              >
+                {t("ai.generateArmed")}
+              </span>
+            ) : values.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- re-hosted CDN preview, no next/image loader configured
               <img
                 src={values.imageUrl}
@@ -592,6 +813,28 @@ export function WishForm({
             )}
           </div>
         </div>
+
+        {ai !== undefined && (
+          <div className="flex flex-col gap-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterChip
+                selected={values.generateImage}
+                disabled={aiQuota.image <= 0}
+                onClick={toggleGenerateImage}
+                className={aiQuota.image <= 0 ? "opacity-60" : undefined}
+              >
+                {t("ai.generateImage")}
+              </FilterChip>
+              {/* The armed state itself now shows in the photo preview slot
+                  above (see the thumbnail label) — no need to say it twice. */}
+            </div>
+            <p className="text-[11px] text-mute-2">
+              {aiQuota.image <= 0
+                ? t("ai.imageQuotaExhausted")
+                : t("ai.imageQuotaLeft", { count: aiQuota.image })}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -663,6 +906,32 @@ export function WishForm({
           <p className="text-[11px] text-neg">{t("form.priceInvalid")}</p>
         )}
       </div>
+
+      {ai !== undefined &&
+        (priceSuggestion !== null ? (
+          <SuggestionCard
+            label={t("ai.suggestionLabel")}
+            text={formatPriceSuggestion(priceSuggestion)}
+            acceptLabel={t("ai.accept")}
+            dismissLabel={t("ai.dismiss")}
+            onAccept={acceptPriceSuggestion}
+            onDismiss={dismissPriceSuggestion}
+          />
+        ) : (
+          <SuggestTrigger
+            label={t("ai.suggestPrice")}
+            busyLabel={t("ai.suggesting")}
+            state={priceSuggestState}
+            quotaLeft={aiQuota.text}
+            quotaLeftLabel={t("ai.textQuotaLeft", { count: aiQuota.text })}
+            quotaExhaustedLabel={t("ai.textQuotaExhausted")}
+            failedLabel={t("ai.suggestFailed")}
+            tryAgainLabel={t("ai.tryAgain")}
+            unavailableLabel={t("ai.unavailable")}
+            titleEmpty={titleEmpty}
+            onTrigger={() => void handleSuggestPrice()}
+          />
+        ))}
 
       <div className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>{t("form.priorityLabel")}</span>
@@ -822,6 +1091,125 @@ export function WishForm({
           },
         ]}
       />
+    </div>
+  );
+}
+
+/** Accepted/dismissed candidate card — shared shape for the description and
+ *  price suggestion affordances (§6.3 AI addendum). */
+function SuggestionCard({
+  label,
+  text,
+  acceptLabel,
+  dismissLabel,
+  onAccept,
+  onDismiss,
+}: {
+  label: string;
+  text: string;
+  acceptLabel: string;
+  dismissLabel: string;
+  onAccept: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 border border-dashed border-rule-2 bg-zebra p-3">
+      <span className="text-[10.5px] font-semibold tracking-[0.1em] text-mute uppercase">
+        {label}
+      </span>
+      <p className="text-[13px]" style={{ lineHeight: "var(--lead-prose)" }}>
+        {text}
+      </p>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="primary"
+          className="flex-1"
+          onClick={onAccept}
+        >
+          {acceptLabel}
+        </Button>
+        <Button type="button" className="flex-1" onClick={onDismiss}>
+          {dismissLabel}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** The button that kicks off a suggestion, plus its busy/failed/quota states
+ *  — shared by description and price. `quotaLeft` gates the trigger itself:
+ *  the UI counter is advisory (invariant #4), but there is no reason to send
+ *  a request the client already knows the server will refuse. */
+function SuggestTrigger({
+  label,
+  busyLabel,
+  state,
+  quotaLeft,
+  quotaLeftLabel,
+  quotaExhaustedLabel,
+  failedLabel,
+  tryAgainLabel,
+  unavailableLabel,
+  titleEmpty,
+  onTrigger,
+}: {
+  label: string;
+  busyLabel: string;
+  state: SuggestState;
+  quotaLeft: number;
+  /** Pre-rendered `ai.textQuotaLeft` ICU string — refreshes from every
+   *  `AiResult.remaining`, same as the generate-image counter. */
+  quotaLeftLabel: string;
+  quotaExhaustedLabel: string;
+  failedLabel: string;
+  tryAgainLabel: string;
+  unavailableLabel: string;
+  /** The action itself refuses a title-less input with a plain "error" —
+   *  disabling here avoids a dead retry-forever loop on a fresh form. */
+  titleEmpty: boolean;
+  onTrigger: () => void;
+}) {
+  const busy = state === "busy";
+  const exhausted = quotaLeft <= 0;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          className={cx("w-fit px-0", exhausted && "opacity-60")}
+          loading={busy}
+          disabled={busy || exhausted || titleEmpty}
+          onClick={onTrigger}
+        >
+          {busy ? busyLabel : label}
+        </Button>
+        {state === "failed" && (
+          <>
+            <span className="text-[11px] text-neg">{failedLabel}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              className="px-0"
+              disabled={exhausted || titleEmpty}
+              onClick={onTrigger}
+            >
+              {tryAgainLabel}
+            </Button>
+          </>
+        )}
+        {state === "unavailable" && (
+          <span className="text-[11px] text-mute-2">{unavailableLabel}</span>
+        )}
+      </div>
+      {/* Exhausted is shown here unconditionally — mount-time (quota already
+          at 0) and post-refusal (state === "quota", which always lands with
+          remaining 0) both read the same way, so one line covers both
+          instead of only the latter. */}
+      <p className="text-[11px] text-mute-2">
+        {exhausted ? quotaExhaustedLabel : quotaLeftLabel}
+      </p>
     </div>
   );
 }

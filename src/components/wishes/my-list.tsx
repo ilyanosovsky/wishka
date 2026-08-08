@@ -4,8 +4,10 @@ import { Archive, List, Search, Share2, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { generateWishImageAction } from "@/app/wishes/ai-actions";
+import { updateWishAction } from "@/app/wishes/actions";
 import {
   NullPill,
   PriorityFlag,
@@ -19,19 +21,27 @@ import { Fab } from "@/components/ui/fab";
 import { Field } from "@/components/ui/field";
 import { TabBar } from "@/components/ui/tab-bar";
 import { Tabs } from "@/components/ui/tabs";
+import { InfoToast } from "@/components/ui/toast";
 import { WishCard } from "@/components/ui/wish-card";
 import type { OwnerWish, WishPriority } from "@/db/access/types";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 import { CATEGORY_KEYS } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import { downscaleForWish } from "@/lib/wish-image";
 import { AddWishSheet } from "./add-wish-sheet";
 import { ShareSheet } from "./share-sheet";
 import { toBaseWish } from "./wish-card-props";
+import { WishImagePoller } from "./wish-image-poller";
 
 /**
  * My List (Directions 3a "cards" / 3b "ledger").
  *
- * Read-only besides navigation: every mutation lives on the detail screen, so
- * this component takes no server actions and needs no optimistic bookkeeping.
+ * Read-only besides navigation and the card-level async image affordances
+ * (Phase 6 §6.2: retry generation, upload a photo over a `failed` card) —
+ * every other mutation lives on the detail screen, so those two are the only
+ * server actions this component calls, and both just trigger a refresh
+ * rather than keeping any optimistic state of their own.
  *
  * SURPRISE INVARIANT — it renders `OwnerWish`, which has no reservation field
  * to render, and picks `role="owner"` on every card, the one WishCard variant
@@ -41,6 +51,9 @@ import { toBaseWish } from "./wish-card-props";
 export type MyListProps = {
   wishes: OwnerWish[];
   nickname: string;
+  /** Server-computed AI availability + daily quota snapshot; undefined hides
+   *  the add-by-words entry (`ai.entryCta`) in the add-wish sheet entirely. */
+  ai?: AiQuotaSnapshot;
 };
 
 type SortKey = "newest" | "priority" | "price";
@@ -73,7 +86,7 @@ function matches(wish: OwnerWish, query: string): boolean {
   );
 }
 
-export function MyList({ wishes, nickname }: MyListProps) {
+export function MyList({ wishes, nickname, ai }: MyListProps) {
   const t = useTranslations();
   const router = useRouter();
 
@@ -85,6 +98,87 @@ export function MyList({ wishes, nickname }: MyListProps) {
   const [offline, setOffline] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Owner-only async image lifecycle (Phase 6 §6.2): retry re-arms
+  // generation, upload swaps in a photo directly — both end in a refresh so
+  // the server-computed `imageStatus` on the card is always what actually
+  // landed, never an optimistic guess.
+  const [imageReadyToast, setImageReadyToast] = useState(false);
+  // Per-wish retry-in-flight guard: a double-tap on the same failed card
+  // would otherwise burn two image-generation credits and schedule two jobs.
+  // `retryingIds` (state) drives rendering; `retryingIdsRef` is a synchronous
+  // mirror checked at the top of the handler so two clicks in the same frame
+  // — before React has re-rendered with the new state — can't both pass.
+  const [retryingIds, setRetryingIds] = useState<Set<string>>(new Set());
+  const retryingIdsRef = useRef<Set<string>>(new Set());
+  const [imageErrorToast, setImageErrorToast] = useState<
+    "quota" | "other" | null
+  >(null);
+  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { startUpload } = useUploadThing("wishImage");
+
+  const generatingIds = useMemo(
+    () =>
+      wishes
+        .filter((wish) => wish.imageStatus === "generating")
+        .map((wish) => wish.id),
+    [wishes],
+  );
+
+  function handleRetryImage(wishId: string) {
+    if (retryingIdsRef.current.has(wishId)) return; // already in flight — ignore the double-tap
+    retryingIdsRef.current.add(wishId);
+    setRetryingIds((prev) => new Set(prev).add(wishId));
+    void generateWishImageAction(wishId)
+      .then((result) => {
+        if (!result.ok) {
+          setImageErrorToast(result.reason === "quota" ? "quota" : "other");
+        }
+      })
+      .finally(() => {
+        retryingIdsRef.current.delete(wishId);
+        setRetryingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(wishId);
+          return next;
+        });
+        router.refresh();
+      });
+  }
+
+  function handleUploadImage(wishId: string) {
+    setUploadTargetId(wishId);
+    fileInputRef.current?.click();
+  }
+
+  const handleFileSelected = useCallback(
+    async (file: File | undefined) => {
+      const wishId = uploadTargetId;
+      setUploadTargetId(null);
+      if (!file || !wishId) return;
+      try {
+        const small = await downscaleForWish(file);
+        const uploaded = await startUpload([small]);
+        const url = uploaded?.[0]?.ufsUrl;
+        if (!url) return;
+        await updateWishAction(wishId, { imageUrl: url });
+      } catch {
+        // Best-effort — the card just stays on whatever the row already says.
+      } finally {
+        router.refresh();
+      }
+    },
+    [uploadTargetId, startUpload, router],
+  );
+
+  const handleImageSettled = useCallback(
+    (_wishId: string, status: "ready" | "failed") => {
+      if (status === "ready") setImageReadyToast(true);
+      router.refresh();
+    },
+    [router],
+  );
 
   // Read after mount only: `navigator.onLine` is not knowable while rendering
   // on the server, and guessing it would mismatch hydration.
@@ -284,7 +378,10 @@ export function MyList({ wishes, nickname }: MyListProps) {
                   : null,
               }}
               restrictedVisibility={wish.visibility === "restricted"}
+              retryBusy={retryingIds.has(wish.id)}
               onClick={() => router.push(`/wishes/${wish.id}`)}
+              onRetryImage={() => handleRetryImage(wish.id)}
+              onUploadImage={() => handleUploadImage(wish.id)}
             />
           ))}
         </div>
@@ -303,6 +400,7 @@ export function MyList({ wishes, nickname }: MyListProps) {
       <AddWishSheet
         open={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
+        ai={ai}
       />
 
       <ShareSheet
@@ -310,6 +408,41 @@ export function MyList({ wishes, nickname }: MyListProps) {
         onClose={() => setShareOpen(false)}
         url={`${APP_URL}/u/${nickname}`}
         kind="list"
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          void handleFileSelected(file);
+        }}
+      />
+
+      {generatingIds.length > 0 && (
+        <WishImagePoller
+          wishIds={generatingIds}
+          onSettled={handleImageSettled}
+        />
+      )}
+
+      <InfoToast
+        open={imageReadyToast}
+        message={t("ai.imageReady")}
+        onDismiss={() => setImageReadyToast(false)}
+      />
+
+      <InfoToast
+        open={imageErrorToast !== null}
+        message={
+          imageErrorToast === "quota"
+            ? t("ai.imageQuotaExhausted")
+            : t("wish.imageFailed")
+        }
+        onDismiss={() => setImageErrorToast(null)}
       />
 
       <TabBar

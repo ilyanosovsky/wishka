@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { createWishAction } from "@/app/wishes/actions";
+import type { WishDraft } from "@/app/wishes/ai-actions";
 import type { ParseFields } from "@/app/wishes/parse-actions";
 import type { AudienceOptions } from "@/components/wishes/visibility-sheet";
 import {
@@ -12,15 +13,19 @@ import {
   type WishFormResult,
   type WishFormValues,
 } from "@/components/wishes/wish-form";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 import type { WishInput } from "@/db/access/mutations";
 
 const PARSED_STORAGE_KEY = "wishka-parsed-wish";
+const AI_DRAFT_STORAGE_KEY = "wishka-ai-draft";
 
 type ParsedHandoff = {
   fields: ParseFields;
   url: string;
   partial: boolean;
 };
+
+type AiDraftHandoff = { draft: WishDraft };
 
 /** Reads and clears the sessionStorage handoff the add-wish sheet leaves
  *  behind on a successful parse (`?parsed=1`) — one-shot by design, so a
@@ -38,6 +43,23 @@ function readParsedHandoff(): ParsedHandoff | null {
       url: typeof parsed.url === "string" ? parsed.url : "",
       partial: Boolean(parsed.partial),
     };
+  } catch {
+    return null;
+  }
+}
+
+/** Reads and clears the sessionStorage handoff the add-wish sheet leaves
+ *  behind on a drafted-from-words wish (`?ai=1`) — one-shot, same contract as
+ *  `readParsedHandoff`. */
+function readAiDraftHandoff(): AiDraftHandoff | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(AI_DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    window.sessionStorage.removeItem(AI_DRAFT_STORAGE_KEY);
+    const parsed = JSON.parse(raw) as Partial<AiDraftHandoff> | null;
+    if (!parsed || typeof parsed !== "object" || !parsed.draft) return null;
+    return { draft: parsed.draft };
   } catch {
     return null;
   }
@@ -69,10 +91,37 @@ function handoffToInitial(
   };
 }
 
+/** Same resolution rule as `priceTypeFor`, over `WishDraft`'s shape instead
+ *  of `ParseFields` — its price fields are optional rather than nullable, so
+ *  it needs its own presence check. */
+function priceTypeForDraft(draft: WishDraft): WishFormPriceType {
+  if (draft.priceMin && draft.priceMax) return "range";
+  if (draft.priceMin) return "exact";
+  return "none";
+}
+
+function aiDraftToInitial(
+  draft: WishDraft,
+  baseCurrency: string,
+): Partial<WishFormValues> {
+  const priceType = priceTypeForDraft(draft);
+  return {
+    title: draft.title ?? "",
+    type: draft.type ?? "product",
+    category: draft.category ?? null,
+    description: draft.description ?? null,
+    priceType,
+    priceMin: priceType === "none" ? null : (draft.priceMin ?? null),
+    priceMax: priceType === "range" ? (draft.priceMax ?? null) : null,
+    currency: draft.currency ?? baseCurrency,
+  };
+}
+
 type Resolved = {
   initial: Partial<WishFormValues>;
   parsedUrl: boolean;
   parsedPartial: boolean;
+  aiDraft: boolean;
 };
 
 /** The SSR-safe branches — no browser APIs, so server and client agree. */
@@ -81,12 +130,18 @@ function resolveStatic(
   baseCurrency: string,
 ): Resolved {
   if (url) {
-    return { initial: { url }, parsedUrl: false, parsedPartial: false };
+    return {
+      initial: { url },
+      parsedUrl: false,
+      parsedPartial: false,
+      aiDraft: false,
+    };
   }
   return {
     initial: { currency: baseCurrency },
     parsedUrl: false,
     parsedPartial: false,
+    aiDraft: false,
   };
 }
 
@@ -116,6 +171,8 @@ export function NewWishForm({
   candidates,
   url,
   parsed,
+  aiHandoff,
+  ai,
 }: {
   baseCurrency: string;
   /** Scopes the draft's localStorage key so two accounts on one device/
@@ -129,54 +186,86 @@ export function NewWishForm({
   url?: string;
   /** "?parsed=1" — a successful/partial parse left fields in sessionStorage. */
   parsed?: boolean;
+  /** "?ai=1" — a "Добавь словами" draft left fields in sessionStorage. */
+  aiHandoff?: boolean;
+  /** Server-computed AI availability + daily quota snapshot; undefined hides
+   *  every AI affordance on the form (see `WishForm`'s `ai` prop). */
+  ai?: AiQuotaSnapshot;
 }) {
   const router = useRouter();
   const t = useTranslations("form");
 
-  // The `?parsed=1` handoff lives in sessionStorage — a browser-only source.
-  // Reading it during render would make the first client render diverge from
-  // the server's (which has no sessionStorage), causing a hydration mismatch.
-  // So: parsed starts unresolved (null) and is filled in a mount effect; the
-  // SSR-safe url/default branches resolve synchronously and render right away.
+  // The `?parsed=1`/`?ai=1` handoffs live in sessionStorage — a browser-only
+  // source. Reading them during render would make the first client render
+  // diverge from the server's (which has no sessionStorage), causing a
+  // hydration mismatch. So: a pending handoff starts unresolved (null) and is
+  // filled in a mount effect; the SSR-safe url/default branches resolve
+  // synchronously and render right away.
   const [resolved, setResolved] = useState<Resolved | null>(() =>
-    parsed ? null : resolveStatic(url, baseCurrency),
+    parsed || aiHandoff ? null : resolveStatic(url, baseCurrency),
   );
 
-  // readParsedHandoff() consumes the storage entry, so it must run exactly
-  // once — without this guard React 19 StrictMode's double-invoked mount
-  // effect would read it on pass 1 and get null on pass 2, blanking the form.
+  // read*Handoff() consumes the storage entry, so it must run exactly once —
+  // without this guard React 19 StrictMode's double-invoked mount effect
+  // would read it on pass 1 and get null on pass 2, blanking the form.
   const didResolve = useRef(false);
 
   useEffect(() => {
-    if (!parsed || didResolve.current) return;
+    if ((!parsed && !aiHandoff) || didResolve.current) return;
     didResolve.current = true;
     // Named function, invoked once — keeps the setState out of the effect's
     // synchronous top level (react-hooks/set-state-in-effect).
-    const resolveParsed = () => {
+    const resolveHandoff = () => {
+      // A resolved handoff (of either kind) wins over any stored draft —
+      // clear it so WishForm's mount-time draft offer finds nothing and never
+      // shows the "resume draft?" banner this once. Autosave then re-saves as
+      // the user edits.
+      const clearStoredDraft = () => {
+        try {
+          window.localStorage.removeItem(`wishka-wish-draft:${userId}`);
+        } catch {
+          // Best-effort — an unclearable draft only means the banner may show.
+        }
+      };
+
+      if (aiHandoff) {
+        const draftHandoff = readAiDraftHandoff(); // one-shot: consumes the entry
+        if (!draftHandoff) {
+          setResolved(resolveStatic(url, baseCurrency));
+          return;
+        }
+        clearStoredDraft();
+        setResolved({
+          initial: aiDraftToInitial(draftHandoff.draft, baseCurrency),
+          parsedUrl: false,
+          parsedPartial: false,
+          aiDraft: true,
+        });
+        return;
+      }
+
       const handoff = readParsedHandoff(); // one-shot: consumes the storage entry
       if (!handoff) {
         setResolved(resolveStatic(url, baseCurrency));
         return;
       }
-      // A parsed handoff wins over any stored draft — clear it so WishForm's
-      // mount-time draft offer finds nothing and never shows the "resume
-      // draft?" banner this once. Autosave then re-saves as the user edits.
-      try {
-        window.localStorage.removeItem(`wishka-wish-draft:${userId}`);
-      } catch {
-        // Best-effort — an unclearable draft only means the banner may show.
-      }
+      clearStoredDraft();
       setResolved({
         initial: handoffToInitial(handoff, baseCurrency),
         parsedUrl: true,
         parsedPartial: handoff.partial,
+        aiDraft: false,
       });
     };
-    resolveParsed();
-  }, [parsed, url, baseCurrency, userId]);
+    resolveHandoff();
+  }, [parsed, aiHandoff, url, baseCurrency, userId]);
 
   async function handleSubmit(values: WishFormValues): Promise<WishFormResult> {
-    const result = await createWishAction(toWishInput(values), values.audience);
+    const result = await createWishAction(
+      toWishInput(values),
+      values.audience,
+      { generateImage: values.generateImage },
+    );
     if (result.ok) {
       router.push("/");
       return { ok: true };
@@ -184,21 +273,24 @@ export function NewWishForm({
     return { ok: false, error: result.error };
   }
 
-  // Only reached for `?parsed=1`, and only for the one frame before the mount
-  // effect resolves the handoff (that route is always entered via client
-  // navigation, so this is momentary).
+  // Only reached for `?parsed=1`/`?ai=1`, and only for the one frame before
+  // the mount effect resolves the handoff (that route is always entered via
+  // client navigation, so this is momentary).
   if (!resolved) {
     return <div className="min-h-dvh" aria-busy="true" />;
   }
 
   return (
     <WishForm
+      heading={t("newTitle")}
       enableDraft
       draftScope={userId}
       candidates={candidates}
       initial={resolved.initial}
       parsedUrl={resolved.parsedUrl}
       parsedPartial={resolved.parsedPartial}
+      aiDraft={resolved.aiDraft}
+      ai={ai}
       submitLabel={t("submit")}
       onSubmit={handleSubmit}
     />

@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { deleteWishAction, markGiftedAction } from "@/app/wishes/actions";
+import {
+  deleteWishAction,
+  markGiftedAction,
+  updateWishAction,
+} from "@/app/wishes/actions";
+import { generateWishImageAction } from "@/app/wishes/ai-actions";
 import {
   DreamStamp,
   NullPill,
@@ -20,7 +25,11 @@ import { Dialog } from "@/components/ui/dialog";
 import { TextField } from "@/components/ui/field";
 import { InfoToast, UndoToast } from "@/components/ui/toast";
 import type { OwnerWish, WishType } from "@/db/access/types";
+import { isCategoryKey } from "@/lib/categories";
 import { formatPrice } from "@/lib/price";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import { downscaleForWish } from "@/lib/wish-image";
+import { WishImagePoller } from "./wish-image-poller";
 
 /**
  * Own wish detail (DESIGN_BRIEF §6.4).
@@ -45,6 +54,12 @@ const TYPE_LABEL_KEY: Record<WishType, string> = {
 const PLACEHOLDER_STRIPES =
   "repeating-linear-gradient(45deg, var(--zebra) 0 10px, color-mix(in srgb, var(--rule) 35%, var(--zebra)) 10px 20px)";
 
+/** Same shimmer as `WishCard`'s `generating` state — duplicated locally
+ *  (like `PLACEHOLDER_STRIPES` above) since `wish-card.tsx` doesn't export
+ *  it and this screen never mounts a `WishCard`. */
+const SHIMMER =
+  "linear-gradient(90deg, var(--zebra) 0%, color-mix(in srgb, var(--rule) 45%, var(--zebra)) 40%, var(--zebra) 80%)";
+
 export function WishDetail({ wish }: WishDetailProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -63,10 +78,60 @@ export function WishDetail({ wish }: WishDetailProps) {
   /** The server call has gone out; never send it twice. */
   const sentRef = useRef(false);
 
+  // Async image lifecycle (Phase 6 §6.2) — same retry/upload/poll pattern as
+  // my-list.tsx's owner cards, sized for the one wish this screen owns.
+  const [imageActionBusy, setImageActionBusy] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageReadyToast, setImageReadyToast] = useState(false);
+  const [imageErrorToast, setImageErrorToast] = useState<
+    "quota" | "other" | null
+  >(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { startUpload } = useUploadThing("wishImage");
+
   const price = formatPrice(wish);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
   /** Optimistic: the wish reads as gone the moment delete is confirmed. */
   const removed = undoOpen || deleting;
+
+  async function handleRetryImage() {
+    setImageActionBusy(true);
+    try {
+      const result = await generateWishImageAction(wishId);
+      if (!result.ok) {
+        setImageErrorToast(result.reason === "quota" ? "quota" : "other");
+      }
+    } finally {
+      setImageActionBusy(false);
+      router.refresh();
+    }
+  }
+
+  function handleUploadImage() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(file: File | undefined) {
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const small = await downscaleForWish(file);
+      const uploaded = await startUpload([small]);
+      const url = uploaded?.[0]?.ufsUrl;
+      if (!url) return;
+      await updateWishAction(wishId, { imageUrl: url });
+    } catch {
+      // Best-effort — the card just stays on whatever the row already says.
+    } finally {
+      setImageUploading(false);
+      router.refresh();
+    }
+  }
+
+  function handleImageSettled(_wishId: string, status: "ready" | "failed") {
+    if (status === "ready") setImageReadyToast(true);
+    router.refresh();
+  }
 
   async function confirmGifted() {
     setSaving(true);
@@ -143,7 +208,60 @@ export function WishDetail({ wish }: WishDetailProps) {
 
       <article className={removed ? "opacity-50" : undefined}>
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-rule-2">
-          {hasImage ? (
+          {/* Keyframes live with whichever component needs them first — see
+              the identical block in wish-card.tsx; same href dedupes it. */}
+          <style href="wishka-wish-card" precedence="default">
+            {
+              "@keyframes wishka-shimmer{0%{background-position:-180px 0}100%{background-position:180px 0}}"
+            }
+          </style>
+
+          {wish.imageStatus === "generating" ? (
+            <div
+              className="flex h-full w-full items-end justify-center pb-3"
+              style={{
+                background: SHIMMER,
+                backgroundSize: "220px 100%",
+                animation: "wishka-shimmer 1.2s linear infinite",
+              }}
+            >
+              <span className="font-mono text-[10px] text-mute-2">
+                {t("wish.imageGenerating")}
+              </span>
+            </div>
+          ) : wish.imageStatus === "failed" ? (
+            <div
+              className="flex h-full w-full flex-col items-center justify-center gap-2 px-4"
+              style={{ background: PLACEHOLDER_STRIPES }}
+            >
+              <span className="font-mono text-[11px] text-mute-2">
+                {t("wish.imageFailed")}
+              </span>
+              {wish.category && (
+                <span className="font-mono text-[10px] tracking-[var(--track-stamp)] text-mute-2 uppercase">
+                  {isCategoryKey(wish.category)
+                    ? t(`wish.category.${wish.category}`)
+                    : wish.category}
+                </span>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  loading={imageActionBusy}
+                  disabled={removed || imageActionBusy}
+                  onClick={() => void handleRetryImage()}
+                >
+                  {t("wish.retry")}
+                </Button>
+                <Button
+                  disabled={removed || imageUploading}
+                  onClick={handleUploadImage}
+                >
+                  {t("wish.uploadPhoto")}
+                </Button>
+              </div>
+            </div>
+          ) : hasImage ? (
             /* eslint-disable-next-line @next/next/no-img-element -- images live
                on our own storage; no next/image loader is configured. */
             <img
@@ -334,6 +452,38 @@ export function WishDetail({ wish }: WishDetailProps) {
         open={failed}
         message={t("common.actionFailed")}
         onDismiss={() => setFailed(false)}
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          void handleFileSelected(file);
+        }}
+      />
+
+      {wish.imageStatus === "generating" && (
+        <WishImagePoller wishIds={[wishId]} onSettled={handleImageSettled} />
+      )}
+
+      <InfoToast
+        open={imageReadyToast}
+        message={t("ai.imageReady")}
+        onDismiss={() => setImageReadyToast(false)}
+      />
+
+      <InfoToast
+        open={imageErrorToast !== null}
+        message={
+          imageErrorToast === "quota"
+            ? t("ai.imageQuotaExhausted")
+            : t("wish.imageFailed")
+        }
+        onDismiss={() => setImageErrorToast(null)}
       />
     </main>
   );

@@ -15,6 +15,7 @@ import {
 } from "@/components/wishes/wish-form";
 import type { OwnerWish } from "@/db/access/types";
 import type { WishInput } from "@/db/access/mutations";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 
 /** `imageKey` stores our CDN URL (not a bare storage key — see
  *  `db/access/mutations.ts`), so it maps straight onto the form's `imageUrl`. */
@@ -37,6 +38,9 @@ function toFormValues(
     category: wish.category,
     notes: wish.notes,
     audience,
+    // Generation is always re-armed per save (Phase 6 §6.2/§6.3) — an
+    // existing wish never carries a stale "generate on save" intent forward.
+    generateImage: false,
   };
 }
 
@@ -74,11 +78,15 @@ export function EditWishForm({
   wish,
   audience = EVERYONE_AUDIENCE,
   candidates,
+  ai,
 }: {
   wish: OwnerWish;
   /** The wish's stored audience, read server-side by the page. */
   audience?: WishAudienceValue;
   candidates: AudienceOptions;
+  /** Server-computed AI availability + daily quota snapshot; undefined hides
+   *  every AI affordance on the form (see `WishForm`'s `ai` prop). */
+  ai?: AiQuotaSnapshot;
 }) {
   const router = useRouter();
   const t = useTranslations("form");
@@ -94,6 +102,7 @@ export function EditWishForm({
       wish.id,
       toWishInput(values),
       changed,
+      { generateImage: values.generateImage },
     );
     if (result.ok) {
       router.push(`/wishes/${wish.id}`);
@@ -104,8 +113,10 @@ export function EditWishForm({
 
   return (
     <WishForm
+      heading={t("editTitle")}
       initial={toFormValues(wish, audience)}
       candidates={candidates}
+      ai={ai}
       submitLabel={t("save")}
       onSubmit={handleSubmit}
       backHref={`/wishes/${wish.id}`}

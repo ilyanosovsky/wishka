@@ -72,6 +72,11 @@
       "nice": "Would be nice",
       "idea": "Just an idea"
     },
+    "priorityCard": {
+      "want": "Want",
+      "nice": "Nice",
+      "idea": "Idea"
+    },
     "imageGenerating": "Painting…",
     "imageFailed": "Couldn't paint it",
     "retry": "Retry",
@@ -295,6 +300,32 @@
     "quotaExceeded": "Parsing limit reached for today — fill in manually",
     "urlInvalid": "The link must start with http(s)://",
     "fromParser": "from the parser"
+  },
+  "ai": {
+    "entryCta": "Describe a wish",
+    "entryHint": "Describe it freely — we'll build the card",
+    "textLabel": "What do you wish for?",
+    "textPlaceholder": "For example: swimming with whales",
+    "draftCta": "Build the card",
+    "drafting": "Building the card…",
+    "draftFailed": "Couldn't build it — try again or fill it in manually",
+    "fromAi": "built from your words",
+    "suggestDescription": "Suggest a description",
+    "suggestPrice": "Suggest a price",
+    "suggesting": "Thinking…",
+    "suggestionLabel": "AI suggestion",
+    "accept": "Accept",
+    "dismiss": "Dismiss",
+    "suggestFailed": "Didn't work — try again",
+    "tryAgain": "Try again",
+    "generateImage": "Generate (AI)",
+    "generateArmed": "We'll generate it after saving",
+    "textQuotaLeft": "{count, plural, =0 {No AI suggestions left today} one {# AI suggestion left today} other {# AI suggestions left today}}",
+    "imageQuotaLeft": "{count, plural, =0 {No image generations left today} one {# image generation left today} other {# image generations left today}}",
+    "textQuotaExhausted": "AI limit reached for today — fill it in manually",
+    "imageQuotaExhausted": "AI limit reached for today — upload your own photo",
+    "imageReady": "The image is ready",
+    "unavailable": "AI is unavailable right now — try again later"
   },
   "publicList": {
     "guestBanner": "You're viewing: {name}",

@@ -9,9 +9,13 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 // behaviour, so stubbing it away is faithful.
 vi.mock("server-only", () => ({}));
 
+import { eq } from "drizzle-orm";
+
 import type { Db } from "../index";
+import { wishes } from "../schema";
 import { createTestDb, createUser, type TestDb } from "../test-support";
 import { getOwnerWish, getOwnerWishes } from "./owner";
+import { finishImageGeneration } from "./wish-image";
 import {
   createWish,
   deleteWish,
@@ -22,6 +26,7 @@ import {
 } from "./mutations";
 
 const OURS = "https://app123.ufs.sh/f/abcdef123456";
+const OURS_TOO = "https://app123.ufs.sh/f/999888777666";
 const FOREIGN = "https://cdn.some-shop.com/images/vase.jpg";
 const MISSING_UUID = "11111111-2222-3333-4444-555555555555";
 
@@ -300,6 +305,113 @@ describe("wish mutations", () => {
 
       const stored = await getOwnerWish(db, ownerId, wish.id);
       expect(stored?.imageKey).toBe(OURS);
+    });
+
+    /**
+     * `image_status` belongs to the generation job (`wish-image.ts`), and the
+     * edit form always resends `imageUrl: wish.imageKey` — null while a job is
+     * running. An edit that does not really change the picture must therefore
+     * touch neither column, or it silently cancels the job (whose terminal
+     * write then no-ops and the drawn picture is discarded) or erases the
+     * retry affordance of a failed one.
+     */
+    describe("image status is job state, not a form field", () => {
+      /** Puts a wish into a status only the job state machine can produce. */
+      async function park(
+        wishId: string,
+        imageStatus: "generating" | "failed",
+        imageKey: string | null = null,
+      ): Promise<void> {
+        await db
+          .update(wishes)
+          .set({ imageStatus, imageKey })
+          .where(eq(wishes.id, wishId));
+      }
+
+      it("leaves a running job alone on a title-only edit", async () => {
+        const wish = await ok(db, ownerId, { title: "Ваза" });
+        await park(wish.id, "generating");
+
+        const result = await updateWish(db, ownerId, wish.id, {
+          title: "Ваза, матовая",
+        });
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        expect(result.wish.title).toBe("Ваза, матовая");
+        expect(result.wish.imageStatus).toBe("generating");
+
+        // And the job that is still drawing can finish onto this very row.
+        expect(await finishImageGeneration(db, wish.id, OURS)).toBe(true);
+        const stored = await getOwnerWish(db, ownerId, wish.id);
+        expect(stored?.imageStatus).toBe("ready");
+        expect(stored?.imageKey).toBe(OURS);
+      });
+
+      it("keeps the failed state, so the card still offers retry", async () => {
+        const wish = await ok(db, ownerId);
+        await park(wish.id, "failed");
+
+        const result = await updateWish(db, ownerId, wish.id, {
+          notes: "самый нужный",
+        });
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        expect(result.wish.imageStatus).toBe("failed");
+      });
+
+      it("treats a resent (or whitespace-padded) stored image as untouched", async () => {
+        const wish = await ok(db, ownerId, { imageUrl: OURS });
+        await park(wish.id, "failed", OURS);
+
+        // Exactly what the edit form submits: the image it was handed.
+        const same = await updateWish(db, ownerId, wish.id, {
+          title: "Та же ваза",
+          imageUrl: OURS,
+        });
+        expect(same.ok).toBe(true);
+        if (!same.ok) return;
+        expect(same.wish.imageStatus).toBe("failed");
+        expect(same.wish.imageKey).toBe(OURS);
+
+        const padded = await updateWish(db, ownerId, wish.id, {
+          imageUrl: `  ${OURS}  `,
+        });
+        expect(padded.ok).toBe(true);
+        if (!padded.ok) return;
+        expect(padded.wish.imageStatus).toBe("failed");
+      });
+
+      it("a genuinely new picture wins, and the late job is discarded", async () => {
+        const wish = await ok(db, ownerId);
+        await park(wish.id, "generating");
+
+        const uploaded = await updateWish(db, ownerId, wish.id, {
+          imageUrl: OURS_TOO,
+        });
+        expect(uploaded.ok).toBe(true);
+        if (!uploaded.ok) return;
+        expect(uploaded.wish.imageKey).toBe(OURS_TOO);
+        expect(uploaded.wish.imageStatus).toBe("ready");
+
+        // The clobber guard: the owner's upload is the newer intent.
+        expect(await finishImageGeneration(db, wish.id, OURS)).toBe(false);
+        const stored = await getOwnerWish(db, ownerId, wish.id);
+        expect(stored?.imageKey).toBe(OURS_TOO);
+        expect(stored?.imageStatus).toBe("ready");
+      });
+
+      it("clearing the picture still lands on none", async () => {
+        const wish = await ok(db, ownerId, { imageUrl: OURS });
+        await park(wish.id, "generating", OURS);
+
+        const result = await updateWish(db, ownerId, wish.id, {
+          imageUrl: null,
+        });
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        expect(result.wish.imageKey).toBeNull();
+        expect(result.wish.imageStatus).toBe("none");
+      });
     });
 
     it("reports a malformed or unknown id as not_found", async () => {

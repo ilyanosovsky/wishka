@@ -11,10 +11,12 @@ import { NextIntlClientProvider } from "next-intl";
 import messages from "../../../messages/ru.json";
 import { AddWishSheet } from "./add-wish-sheet";
 import type { ParseFields, ParseUrlResult } from "@/app/wishes/parse-actions";
+import type { AiQuotaSnapshot } from "@/lib/ai/types";
 
 /**
- * `parseUrlAction` is a server action; this suite mocks it so the sheet's
- * state machine (parse → ok/partial/blocked/duplicate) is tested in isolation
+ * `parseUrlAction`/`draftWishFromTextAction` are server actions; this suite
+ * mocks both so the sheet's state machines (parse → ok/partial/blocked/
+ * duplicate; words → ok/quota/unavailable/failed) are tested in isolation
  * without a DB, network, or session.
  */
 
@@ -30,6 +32,11 @@ vi.mock("@/app/wishes/parse-actions", () => ({
   parseUrlAction: (url: string) => parseUrlAction(url),
 }));
 
+const draftWishFromTextAction = vi.fn();
+vi.mock("@/app/wishes/ai-actions", () => ({
+  draftWishFromTextAction: (text: string) => draftWishFromTextAction(text),
+}));
+
 const emptyFields: ParseFields = {
   title: null,
   description: null,
@@ -39,10 +46,10 @@ const emptyFields: ParseFields = {
   currency: null,
 };
 
-function renderSheet(onClose = vi.fn()) {
+function renderSheet(onClose = vi.fn(), ai?: AiQuotaSnapshot) {
   render(
     <NextIntlClientProvider locale="ru" messages={messages}>
-      <AddWishSheet open onClose={onClose} />
+      <AddWishSheet open onClose={onClose} ai={ai} />
     </NextIntlClientProvider>,
   );
   return { onClose };
@@ -61,6 +68,7 @@ function clickParse() {
 beforeEach(() => {
   push.mockClear();
   parseUrlAction.mockReset();
+  draftWishFromTextAction.mockReset();
   window.sessionStorage.clear();
 });
 
@@ -294,5 +302,140 @@ describe("AddWishSheet — slow parsing", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("AddWishSheet — words entry (AI)", () => {
+  it("orders the three entry options as link -> words -> divider -> manual (§6.3)", () => {
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    const parseIndex = labels.indexOf("Добавить по ссылке");
+    const wordsIndex = labels.indexOf("Добавь словами");
+    const manualIndex = labels.indexOf("Заполнить вручную");
+
+    // "Добавь словами" reads as a peer of the link entry, above the divider
+    // — not a subordinate fourth item under "или" + manual entry.
+    expect(parseIndex).toBeGreaterThanOrEqual(0);
+    expect(wordsIndex).toBeGreaterThan(parseIndex);
+    expect(manualIndex).toBeGreaterThan(wordsIndex);
+  });
+
+  it("hides the 'Добавь словами' entry when ai is undefined", () => {
+    renderSheet();
+    expect(screen.queryByText("Добавь словами")).toBeNull();
+  });
+
+  it("shows the entry and its counter when ai is available", () => {
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    expect(
+      screen.getByText("Осталось 5 AI-подсказок сегодня"),
+    ).toBeInTheDocument();
+  });
+
+  it("tapping back returns to the idle phase", () => {
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    expect(screen.getByLabelText("Что хочется?")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Назад" }));
+    expect(screen.queryByLabelText("Что хочется?")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Добавь словами" }),
+    ).toBeInTheDocument();
+  });
+
+  it("happy path — writes the ai-draft handoff and navigates to ?ai=1", async () => {
+    draftWishFromTextAction.mockResolvedValue({
+      ok: true,
+      value: { title: "Поплавать с китами", type: "experience" },
+      remaining: 4,
+    });
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    fireEvent.change(screen.getByLabelText("Что хочется?"), {
+      target: { value: "поплавать с китами" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Собрать карточку" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/wishes/new?ai=1"));
+    expect(draftWishFromTextAction).toHaveBeenCalledWith("поплавать с китами");
+    expect(
+      JSON.parse(window.sessionStorage.getItem("wishka-ai-draft") ?? "null"),
+    ).toEqual({
+      draft: { title: "Поплавать с китами", type: "experience" },
+    });
+  });
+
+  it("quota — shows the exhausted banner and falls back to the manual form", async () => {
+    draftWishFromTextAction.mockResolvedValue({
+      ok: false,
+      reason: "quota",
+      remaining: 0,
+    });
+    renderSheet(vi.fn(), { text: 1, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    fireEvent.change(screen.getByLabelText("Что хочется?"), {
+      target: { value: "что-нибудь" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Собрать карточку" }));
+
+    expect(
+      await screen.findByText("AI-лимит на сегодня исчерпан — заполни вручную"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Заполнить вручную" }));
+    expect(push).toHaveBeenCalledWith("/wishes/new");
+  });
+
+  it("unavailable — shows the unavailable banner", async () => {
+    draftWishFromTextAction.mockResolvedValue({
+      ok: false,
+      reason: "unavailable",
+    });
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    fireEvent.change(screen.getByLabelText("Что хочется?"), {
+      target: { value: "что-нибудь" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Собрать карточку" }));
+
+    expect(
+      await screen.findByText("AI сейчас недоступен — попробуй позже"),
+    ).toBeInTheDocument();
+  });
+
+  it("error/rejected — shows the draft-failed banner with a retry, and retrying works", async () => {
+    draftWishFromTextAction.mockRejectedValueOnce(new Error("network down"));
+    draftWishFromTextAction.mockResolvedValueOnce({
+      ok: true,
+      value: { title: "Плед" },
+      remaining: 4,
+    });
+    renderSheet(vi.fn(), { text: 5, image: 3 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Добавь словами" }));
+    fireEvent.change(screen.getByLabelText("Что хочется?"), {
+      target: { value: "плед на диван" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Собрать карточку" }));
+
+    expect(
+      await screen.findByText(
+        "Не получилось собрать — попробуй ещё раз или заполни вручную",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Попробовать ещё" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/wishes/new?ai=1"));
+    expect(draftWishFromTextAction).toHaveBeenCalledTimes(2);
   });
 });
