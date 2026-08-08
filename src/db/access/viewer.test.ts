@@ -255,6 +255,14 @@ describe("viewer reads", () => {
       expect(seen?.id).toBe(personWishId);
     });
 
+    it("lets the owner open their own restricted wish (own /w share link)", async () => {
+      // personWishId is restricted to namedFriendId, but the owner must still
+      // be able to open its share link — and never see a reservation.
+      const own = await getVisibleWish(db, personWishId, { userId: ownerId });
+      expect(own?.id).toBe(personWishId);
+      expect(own?.reservationStatus).toBe("free");
+    });
+
     it("treats a missing or malformed id as not found", async () => {
       expect(
         await getVisibleWish(db, "not-a-uuid", { anonymous: true }),

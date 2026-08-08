@@ -54,6 +54,11 @@ export function visibleTo(viewer: Viewer): SQL {
   const userId = viewerUserId(viewer);
   if (!userId) return isPublic;
 
+  // Owners always see their own wishes regardless of visibility — e.g. opening
+  // their own restricted wish via a /w/<id> share link. (Reservation status is
+  // handled separately: owner-viewer paths never join the reservations table.)
+  const isOwnWish = eq(wishes.ownerId, userId);
+
   const restrictedToViewer = sql`exists (
     select 1 from "wish_visibility" wv
     where wv."wish_id" = ${wishes.id}
@@ -74,8 +79,8 @@ export function visibleTo(viewer: Viewer): SQL {
       )
   )`;
 
-  // `or` of two defined conditions is always defined.
-  return or(isPublic, restrictedToViewer) as SQL;
+  // `or` of defined conditions is always defined.
+  return or(isPublic, isOwnWish, restrictedToViewer) as SQL;
 }
 
 /** The visible slice of a list, with no access to reservation rows. */

@@ -25,7 +25,7 @@ The public list shows the owner's public parameters — sizes (object), tastes (
 
 ## Share sheet
 
-`ShareSheet` (bottom sheet) offers a copyable link and the native share sheet when available. For a wish whose visibility is restricted, it first shows a warning ("visible to some, but anyone with the direct link can open it") before revealing the link.
+`ShareSheet` (bottom sheet) offers a copyable link and the native share sheet when available. For a wish whose visibility is restricted, it first shows a note before revealing the link — and the note tells the truth: the `/w/[id]` route enforces visibility, so **even with the direct link only the selected audience can open it** (anyone else gets the invalid-link screen). Sharing a restricted wish is safe; the sheet just sets expectations.
 
 ## App navigation note
 

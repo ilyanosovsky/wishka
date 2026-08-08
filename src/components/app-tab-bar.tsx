@@ -15,6 +15,7 @@ export function AppTabBar() {
   const t = useTranslations("tabs");
   return (
     <TabBar
+      ariaLabel={t("navLabel")}
       items={[
         { key: "list", label: t("list"), icon: List, href: "/" },
         { key: "people", label: t("people"), icon: Users, href: "/people" },

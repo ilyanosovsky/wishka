@@ -95,12 +95,16 @@ export function ParamsEditor({ initial }: ParamsEditorProps) {
   async function handleSave() {
     setSaving(true);
     setSaveError(false);
-    const result = await updatePublicParams({ sizes, tastes, noGift });
-    setSaving(false);
-    if (result.ok) {
-      setSaved(true);
-    } else {
+    try {
+      const result = await updatePublicParams({ sizes, tastes, noGift });
+      if (result.ok) setSaved(true);
+      else setSaveError(true);
+    } catch {
+      // A rejected action (network / server error) must still clear the
+      // loading state, or the button stays disabled forever.
       setSaveError(true);
+    } finally {
+      setSaving(false);
     }
   }
 

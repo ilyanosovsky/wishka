@@ -11,8 +11,9 @@ import { InfoToast } from "@/components/ui/toast";
  * The single "Поделиться" sheet (DESIGN_BRIEF §6.8), shared by a list and by a
  * single wish. It never brokers a reservation — 7a only hands out the link.
  *
- * A restricted wish gets a warning step first: the direct link bypasses
- * visibility, so the owner has to acknowledge that before it is revealed.
+ * A restricted wish gets a note step first — the /w route enforces visibility,
+ * so only the selected audience can open the link; the note just sets that
+ * expectation before the link is revealed.
  */
 
 export type ShareKind = "list" | "wish";
@@ -46,17 +47,24 @@ export function ShareSheet({
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
+  // Starts as the raw prop so server and first client render agree, then
+  // becomes the absolute form after mount — the same string copyLink writes,
+  // so the user never reads a relative path but copies an absolute URL.
+  const [displayUrl, setDisplayUrl] = useState(url);
 
-  // navigator.share is not knowable while rendering on the server; probe after
-  // mount (indirection keeps this out of the effect body, per house style).
+  // navigator.share and window.origin are not knowable while rendering on the
+  // server; probe after mount (indirection keeps this out of the effect body,
+  // per house style).
   useEffect(() => {
-    const detect = () =>
+    const detect = () => {
       setCanNativeShare(
         typeof navigator !== "undefined" &&
           typeof navigator.share === "function",
       );
+      setDisplayUrl(toAbsolute(url));
+    };
     detect();
-  }, []);
+  }, [url]);
 
   // Every close path (scrim, Escape, buttons) funnels through BottomSheet's
   // onClose, so resetting here re-asks a restricted share for its warning on
@@ -109,7 +117,7 @@ export function ShareSheet({
         ) : (
           <div className="flex flex-col gap-2 pb-1">
             <div className="border border-rule-2 bg-zebra px-3 py-2.5 font-mono text-[12px] break-all text-mute">
-              {url}
+              {displayUrl}
             </div>
             <Button variant="primary" onClick={copyLink}>
               {t("copyLink")}

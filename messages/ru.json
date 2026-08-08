@@ -209,7 +209,8 @@
   "tabs": {
     "list": "Список",
     "people": "Люди",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "navLabel": "Основная навигация"
   },
   "parse": {
     "sheetTitle": "Новое желание",
@@ -255,7 +256,7 @@
     "shareList": "Списком",
     "shareWish": "Этим желанием",
     "restrictedWarningTitle": "Это желание видно не всем",
-    "restrictedWarningBody": "Но по прямой ссылке его откроет любой, кому ты её отправишь.",
+    "restrictedWarningBody": "Даже по прямой ссылке его увидят только те, кому оно открыто.",
     "shareAnyway": "Всё равно поделиться"
   },
   "params": {
