@@ -3,7 +3,9 @@
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { isLocale } from "@/i18n/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -62,6 +64,8 @@ const SHIMMER =
 
 export function WishDetail({ wish }: WishDetailProps) {
   const t = useTranslations();
+  const rawLocale = useLocale();
+  const locale = isLocale(rawLocale) ? rawLocale : "en";
   const router = useRouter();
   const wishId = wish.id;
 
@@ -89,7 +93,7 @@ export function WishDetail({ wish }: WishDetailProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { startUpload } = useUploadThing("wishImage");
 
-  const price = formatPrice(wish);
+  const price = formatPrice(wish, locale);
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
   /** Optimistic: the wish reads as gone the moment delete is confirmed. */
   const removed = undoOpen || deleting;

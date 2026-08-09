@@ -113,7 +113,7 @@ export function PartnerBlock({ partner, candidates }: PartnerBlockProps) {
           <p className="text-[12.5px] text-mute">{t("partner.empty")}</p>
           <a
             href="/people"
-            className="text-[12.5px] font-semibold text-accent underline"
+            className="inline-flex min-h-11 w-fit items-center text-[12.5px] font-semibold text-accent underline"
           >
             {t("partner.emptyCta")}
           </a>

@@ -439,3 +439,144 @@ describe("AddWishSheet — words entry (AI)", () => {
     expect(draftWishFromTextAction).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("AddWishSheet — clipboard (§6.3, states audit #14)", () => {
+  function withClipboard(text: string | Error) {
+    const readText = vi.fn(() =>
+      text instanceof Error ? Promise.reject(text) : Promise.resolve(text),
+    );
+    Object.defineProperty(navigator, "clipboard", {
+      value: { readText },
+      configurable: true,
+      writable: true,
+    });
+    return readText;
+  }
+
+  it("fills the field when the clipboard holds a link", async () => {
+    withClipboard("https://shop.example/vase");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Ссылка на товар")).toHaveValue(
+        "https://shop.example/vase",
+      ),
+    );
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+  });
+
+  it("accepts a link pasted without a scheme, like the parser does", async () => {
+    withClipboard("shop.example/vase");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Ссылка на товар")).toHaveValue(
+        "shop.example/vase",
+      ),
+    );
+  });
+
+  /**
+   * A clipboard miss is not a typo: the field is empty and untouched, so the
+   * field-level «Ссылка должна начинаться с http(s)://» would blame the user
+   * for something they never typed. The dedicated notice sits with the button
+   * that caused it and clears on the next interaction.
+   */
+  it("refuses non-link clipboard text with its own notice, not a field error", async () => {
+    withClipboard("напомнить купить вазу");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    expect(
+      await screen.findByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeInTheDocument();
+    const field = screen.getByLabelText("Ссылка на товар");
+    expect(field).toHaveValue("");
+    expect(field).not.toHaveAttribute("aria-invalid");
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+  });
+
+  it("clears the clipboard notice as soon as the user types", async () => {
+    withClipboard("напомнить купить вазу");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+    expect(
+      await screen.findByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Ссылка на товар"), {
+      target: { value: "h" },
+    });
+
+    expect(
+      screen.queryByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeNull();
+  });
+
+  it("clears the clipboard notice when a later paste does hold a link", async () => {
+    const readText = withClipboard("напомнить купить вазу");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+    expect(
+      await screen.findByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeInTheDocument();
+
+    readText.mockResolvedValue("https://shop.example/vase");
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Ссылка на товар")).toHaveValue(
+        "https://shop.example/vase",
+      ),
+    );
+    expect(
+      screen.queryByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeNull();
+  });
+
+  it("says nothing when the clipboard is empty", async () => {
+    withClipboard("   ");
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.readText).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      screen.queryByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeNull();
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+    expect(screen.getByLabelText("Ссылка на товар")).toHaveValue("");
+  });
+
+  it("stays silent when clipboard access is refused", async () => {
+    withClipboard(new Error("denied"));
+    renderSheet();
+
+    fireEvent.click(screen.getByRole("button", { name: "Вставить из буфера" }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.readText).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      screen.queryByText("В буфере нет ссылки — вставьте её в поле"),
+    ).toBeNull();
+    expect(
+      screen.queryByText("Ссылка должна начинаться с http(s)://"),
+    ).toBeNull();
+  });
+});

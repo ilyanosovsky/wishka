@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   suggestDescriptionAction,
   suggestPriceAction,
@@ -106,6 +106,12 @@ export interface WishFormProps {
    *  (§6.3 AI addendum) — shows the `ai.fromAi` meta note, mirroring how
    *  `parsedUrl` shows `parse.fromParser` on the link field. */
   aiDraft?: boolean;
+  /** The signed-in user's base currency, read from their profile by the page
+   *  (§6.3 «сверху базовая и недавние»). It anchors the currency sheet and is
+   *  what an empty price falls back to when the mode switches away from "нет
+   *  цены". Absent only where no caller can supply it — see
+   *  `FALLBACK_BASE_CURRENCY`. */
+  baseCurrency?: string;
 }
 
 const DEFAULT_VALUES: WishFormValues = {
@@ -127,13 +133,25 @@ const DEFAULT_VALUES: WishFormValues = {
 };
 
 /**
- * No profile/base-currency prop reaches this component (out of this file's
- * ownership boundary — see the Phase 4 task split), so the currency sheet's
- * "base currency" anchor is a fixed fallback rather than the signed-in
- * user's actual base currency. Flagged in the Phase 4 report as a deviation;
- * a real base-currency prop can replace this once a caller can supply one.
+ * Only for a caller that has no profile to read from (tests, a future embed).
+ * Both real callers now pass `baseCurrency` from the owner's profile, so the
+ * currency sheet anchors on the user's own base currency (§6.3), not on USD.
  */
 const FALLBACK_BASE_CURRENCY: CurrencyCode = "USD";
+
+/** The photo picker refuses obvious non-starters before the canvas and the
+ *  upload, so §6.3's "слишком большой"/"не картинка" states are reachable
+ *  rather than collapsing into one generic failure. `MAX_UPLOAD_BYTES` mirrors
+ *  the `wishImage` route's own cap (`src/app/api/uploadthing/core.ts`) and is
+ *  checked against the *downscaled* file — the one actually uploaded; the raw
+ *  pick gets a much looser bound, since downscaling is exactly what turns a
+ *  12 MP camera shot into something sendable. */
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const MAX_PICK_BYTES = 32 * 1024 * 1024;
+
+/** Which of §6.3's photo failures to show. `generic` covers everything the
+ *  browser only reports after the fact (network, quota, a corrupt file). */
+type PhotoError = "generic" | "tooLarge" | "notImage";
 
 const LABEL_CLASS =
   "text-[10.5px] font-semibold uppercase tracking-[0.1em] text-mute";
@@ -274,10 +292,11 @@ export function WishForm({
   candidates = EMPTY_AUDIENCE_OPTIONS,
   ai,
   aiDraft = false,
+  baseCurrency = FALLBACK_BASE_CURRENCY,
 }: WishFormProps) {
   const t = useTranslations();
   const router = useRouter();
-  const fileInputId = useId();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const draftStorageKey = draftKey(draftScope);
 
   const [values, setValues] = useState<WishFormValues>(() => ({
@@ -301,7 +320,7 @@ export function WishForm({
   const [priceBlockedAttempt, setPriceBlockedAttempt] = useState(false);
 
   const [imageUploading, setImageUploading] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError] = useState<PhotoError | null>(null);
   const { startUpload } = useUploadThing("wishImage");
 
   // The server-issued `ai` snapshot is a starting point; every suggestion
@@ -405,10 +424,25 @@ export function WishForm({
 
   async function onPhotoPick(file: File | undefined) {
     if (!file) return;
-    setImageError(false);
+    // Cheap client-side checks first: a picked file that can never upload gets
+    // a message naming the actual problem instead of a late generic failure.
+    if (file.type && !file.type.startsWith("image/")) {
+      setImageError("notImage");
+      return;
+    }
+    if (file.size > MAX_PICK_BYTES) {
+      setImageError("tooLarge");
+      return;
+    }
+
+    setImageError(null);
     setImageUploading(true);
     try {
       const small = await downscaleForWish(file);
+      if (small.size > MAX_UPLOAD_BYTES) {
+        setImageError("tooLarge");
+        return;
+      }
       const uploaded = await startUpload([small]);
       const url = uploaded?.[0]?.ufsUrl;
       if (!url) throw new Error("upload failed");
@@ -417,7 +451,7 @@ export function WishForm({
       updateValue({ imageUrl: url, generateImage: false });
     } catch {
       // Upload failure never blocks saving — the wish can be saved without a photo.
-      setImageError(true);
+      setImageError("generic");
     } finally {
       setImageUploading(false);
     }
@@ -428,7 +462,7 @@ export function WishForm({
       priceType: next,
       ...(next === "none" ? { priceMin: null, priceMax: null } : {}),
       ...(next !== "none" && !values.currency
-        ? { currency: FALLBACK_BASE_CURRENCY }
+        ? { currency: baseCurrency }
         : {}),
     });
   }
@@ -511,8 +545,7 @@ export function WishForm({
       priceMax: priceSuggestion.priceMax
         ? trimTrailingZeroCents(priceSuggestion.priceMax)
         : null,
-      currency:
-        priceSuggestion.currency ?? values.currency ?? FALLBACK_BASE_CURRENCY,
+      currency: priceSuggestion.currency ?? values.currency ?? baseCurrency,
     });
     setPriceSuggestion(null);
     setPriceSuggestState("idle");
@@ -651,6 +684,7 @@ export function WishForm({
 
       <Tabs
         fill="ink"
+        ariaLabel={t("form.typeLabel")}
         value={values.type}
         onChange={(v) => updateValue({ type: v as WishFormType })}
         items={[
@@ -748,11 +782,17 @@ export function WishForm({
       <div className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>{t("form.photoLabel")}</span>
         <div className="flex items-start gap-3">
-          <label
-            htmlFor={fileInputId}
+          {/* A real <button> firing the hidden input, like `my-list.tsx` and
+              `wish-detail.tsx` — a <label htmlFor> is not tabbable, so the
+              picker was keyboard-unreachable (Phase 9 a11y audit, finding 3). */}
+          <button
+            type="button"
+            aria-label={t("form.photoLabel")}
+            disabled={imageUploading}
+            onClick={() => fileInputRef.current?.click()}
             className={cx(
               "relative aspect-[4/5] w-24 flex-none cursor-pointer overflow-hidden border border-dashed border-rule-2 bg-zebra",
-              imageUploading && "pointer-events-none opacity-70",
+              imageUploading && "cursor-not-allowed opacity-70",
             )}
           >
             {values.generateImage ? (
@@ -781,9 +821,9 @@ export function WishForm({
                 +
               </span>
             )}
-          </label>
+          </button>
           <input
-            id={fileInputId}
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             className="hidden"
@@ -801,15 +841,22 @@ export function WishForm({
               </span>
             )}
             {!imageUploading && values.imageUrl && (
-              <label
-                htmlFor={fileInputId}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
                 className="inline-flex min-h-11 w-fit cursor-pointer items-center border border-rule-2 bg-paper px-4 text-[13px] font-medium text-ink hover:bg-bg"
               >
                 {t("form.photoReplace")}
-              </label>
+              </button>
             )}
             {imageError && (
-              <p className="text-[11px] text-neg">{t("form.photoError")}</p>
+              <p className="text-[11px] text-neg">
+                {imageError === "tooLarge"
+                  ? t("form.photoTooLarge")
+                  : imageError === "notImage"
+                    ? t("form.photoNotImage")
+                    : t("form.photoError")}
+              </p>
             )}
           </div>
         </div>
@@ -841,6 +888,7 @@ export function WishForm({
         <span className={LABEL_CLASS}>{t("form.priceLabel")}</span>
         <Tabs
           fill="accent"
+          ariaLabel={t("form.priceLabel")}
           value={values.priceType}
           onChange={(v) => onPriceTypeChange(v as WishFormPriceType)}
           items={[
@@ -955,7 +1003,10 @@ export function WishForm({
         </div>
       </div>
 
-      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 border border-dashed border-rule-2 bg-paper px-3 py-2.5">
+      {/* The real control is the sr-only checkbox below — focusable but
+          invisible, so the label carries the focus cue for it (Phase 9 a11y
+          audit, finding 4). */}
+      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 border border-dashed border-rule-2 bg-paper px-3 py-2.5 focus-within:border-accent focus-within:shadow-[inset_0_0_0_1px_var(--accent)]">
         <DreamStamp size="sm" label={t("form.dreamLabel")} />
         <span className="flex-1 text-[11px] leading-[1.4] text-mute">
           {t("form.dreamHint")}
@@ -1059,7 +1110,7 @@ export function WishForm({
         open={currencySheetOpen}
         onClose={() => setCurrencySheetOpen(false)}
         value={values.currency}
-        baseCurrency={FALLBACK_BASE_CURRENCY}
+        baseCurrency={baseCurrency}
         onSelect={(code) => updateValue({ currency: code })}
       />
 

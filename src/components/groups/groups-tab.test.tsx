@@ -127,11 +127,11 @@ describe("GroupsTab", () => {
 
   it("tells an admin so, and a plain member nothing", () => {
     renderTab([group()]);
-    expect(screen.getByText(/Вы админ/)).toBeInTheDocument();
+    expect(screen.getByText(/Админ/)).toBeInTheDocument();
 
     cleanup();
     renderTab([group({ role: "member" })]);
-    expect(screen.queryByText(/Вы админ/)).toBeNull();
+    expect(screen.queryByText(/Админ/)).toBeNull();
     expect(screen.getByText("2 участника")).toBeInTheDocument();
   });
 

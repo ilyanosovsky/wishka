@@ -13,6 +13,24 @@ type CodeError = "wrong" | "expired" | "tooMany" | null;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_SECONDS = 60;
 
+/**
+ * Better Auth's emailOTP error codes (node_modules/better-auth/dist/plugins/
+ * email-otp/error-codes.mjs → `{ code: "OTP_EXPIRED" | "INVALID_OTP" |
+ * "TOO_MANY_ATTEMPTS" }`, surfaced verbatim as `error.code` by the client).
+ * Matched exactly rather than by substring so a renamed code fails loudly into
+ * the generic branch instead of silently half-matching.
+ */
+const OTP_EXPIRED_CODE = "OTP_EXPIRED";
+const OTP_TOO_MANY_CODE = "TOO_MANY_ATTEMPTS";
+
+/**
+ * Mirrors `OTP_ALLOWED_ATTEMPTS` in src/lib/auth.ts (that module is
+ * `server-only`, so the value cannot be imported here). The server evaluates
+ * this many codes before locking the identifier out, so after the first wrong
+ * one there are ALLOWED - 1 tries left.
+ */
+const OTP_ALLOWED_ATTEMPTS = 5;
+
 export function LoginForm({ next = "/" }: { next?: string }) {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -79,13 +97,15 @@ export function LoginForm({ next = "/" }: { next?: string }) {
       return;
     }
     const codeName = error.code ?? "";
-    if (codeName.includes("EXPIRED")) {
+    if (codeName === OTP_EXPIRED_CODE) {
       setCodeError("expired");
-    } else if (codeName.includes("TOO_MANY") || codeName.includes("MAX")) {
+    } else if (codeName === OTP_TOO_MANY_CODE) {
       setCodeError("tooMany");
     } else {
       setCodeError("wrong");
-      setAttemptsLeft((prev) => (prev === null ? 4 : Math.max(prev - 1, 0)));
+      setAttemptsLeft((prev) =>
+        prev === null ? OTP_ALLOWED_ATTEMPTS - 1 : Math.max(prev - 1, 0),
+      );
     }
   }
 
@@ -113,7 +133,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
       <div className="flex flex-col gap-4">
         <button
           onClick={() => setStep("email")}
-          className="self-start text-[12px] text-mute underline-offset-2 hover:underline"
+          className="inline-flex min-h-11 items-center self-start text-[12px] text-mute underline-offset-2 hover:underline"
         >
           ← {t("code.changeEmail")}
         </button>
@@ -125,12 +145,13 @@ export function LoginForm({ next = "/" }: { next?: string }) {
         <OtpInput
           value={code}
           onChange={onCodeChange}
+          digitLabel={(n) => t("code.digitLabel", { n })}
           disabled={locked || verifying}
           invalid={codeError === "wrong"}
         />
 
         {codeError === "wrong" && (
-          <p className="border-l-3 border-neg bg-red-soft py-1.5 pl-3 text-[12px] text-neg">
+          <p className="border-l-3 border-neg bg-[var(--red-soft)] py-1.5 pl-3 text-[12px] text-neg">
             {t("code.wrong", { count: attemptsLeft ?? 0 })}
           </p>
         )}
@@ -140,7 +161,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
           </p>
         )}
         {locked && (
-          <p className="border-l-3 border-neg bg-red-soft py-1.5 pl-3 text-[12px] text-neg">
+          <p className="border-l-3 border-neg bg-[var(--red-soft)] py-1.5 pl-3 text-[12px] text-neg">
             {t("code.tooMany")}
           </p>
         )}
@@ -168,7 +189,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
       </button>
 
       {emailError === "oauthFailed" && (
-        <p className="border-l-3 border-neg bg-red-soft py-1.5 pl-3 text-[12px] text-neg">
+        <p className="border-l-3 border-neg bg-[var(--red-soft)] py-1.5 pl-3 text-[12px] text-neg">
           {t("login.oauthFailed")}
         </p>
       )}
@@ -201,7 +222,7 @@ export function LoginForm({ next = "/" }: { next?: string }) {
         <p className="-mt-2 text-[11px] text-neg">{t("login.invalidEmail")}</p>
       )}
       {emailError === "sendFailed" && (
-        <p className="border-l-3 border-neg bg-red-soft py-1.5 pl-3 text-[12px] text-neg">
+        <p className="border-l-3 border-neg bg-[var(--red-soft)] py-1.5 pl-3 text-[12px] text-neg">
           {t("login.sendFailed")}
         </p>
       )}

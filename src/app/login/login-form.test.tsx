@@ -1,108 +1,120 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import messages from "../../../messages/ru.json";
 import { LoginForm } from "./login-form";
 
-const push = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push, refresh: vi.fn() }),
-}));
+/**
+ * Pins the code step against Better Auth's real emailOTP error codes
+ * (`OTP_EXPIRED` / `INVALID_OTP` / `TOO_MANY_ATTEMPTS`, from
+ * node_modules/better-auth/dist/plugins/email-otp/error-codes.mjs) and the
+ * attempt budget the server enforces (`allowedAttempts: 5`).
+ */
 
-// The auth client's browser SDK is replaced with plain spies so the two
-// post-login destinations — Google's callbackURL and the OTP-verify router
-// push — can be asserted directly.
-const { signInSocial, signInWithOtp, sendVerificationOtp } = vi.hoisted(() => ({
-  signInSocial: vi.fn(),
-  signInWithOtp: vi.fn(),
-  sendVerificationOtp: vi.fn(),
-}));
+const sendVerificationOtp = vi.fn();
+const signInEmailOtp = vi.fn();
 
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
-    signIn: { social: signInSocial, emailOtp: signInWithOtp },
-    emailOtp: { sendVerificationOtp },
+    emailOtp: {
+      sendVerificationOtp: (input: unknown) => sendVerificationOtp(input),
+    },
+    signIn: {
+      emailOtp: (input: unknown) => signInEmailOtp(input),
+      social: vi.fn(),
+    },
   },
 }));
 
-beforeEach(() => {
-  push.mockClear();
-  // Every auth call succeeds by default; a test opts into failure if it needs to.
-  signInSocial.mockReset().mockResolvedValue({ error: null });
-  signInWithOtp.mockReset().mockResolvedValue({ error: null });
-  sendVerificationOtp.mockReset().mockResolvedValue({ error: null });
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
 });
 
-function renderLogin(next?: string) {
-  return render(
+beforeEach(() => {
+  sendVerificationOtp.mockResolvedValue({ data: {}, error: null });
+});
+
+async function reachCodeStep() {
+  render(
     <NextIntlClientProvider locale="ru" messages={messages}>
-      <LoginForm next={next} />
+      <LoginForm />
     </NextIntlClientProvider>,
   );
+  fireEvent.change(screen.getByLabelText("Почта"), {
+    target: { value: "ilya@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Получить код" }));
+  await screen.findByText("Код из письма");
 }
 
-describe("LoginForm — Google OAuth callbackURL", () => {
-  it("targets /welcome directly for the default (root) next", async () => {
-    renderLogin("/");
-    fireEvent.click(screen.getByRole("button", { name: "Войти через Google" }));
-
-    await vi.waitFor(() =>
-      expect(signInSocial).toHaveBeenCalledWith({
-        provider: "google",
-        callbackURL: "/welcome",
-      }),
-    );
+function typeCode(code: string) {
+  // The first box owns the whole value: onChange fires verify at 6 digits.
+  fireEvent.change(screen.getByLabelText("Цифра 1"), {
+    target: { value: code[0] },
   });
-
-  it("threads an encoded next into the callbackURL for a non-root target", async () => {
-    renderLogin("/wishes/1");
-    fireEvent.click(screen.getByRole("button", { name: "Войти через Google" }));
-
-    await vi.waitFor(() =>
-      expect(signInSocial).toHaveBeenCalledWith({
-        provider: "google",
-        callbackURL: "/welcome?next=%2Fwishes%2F1",
-      }),
-    );
-  });
-});
-
-describe("LoginForm — OTP verify redirect", () => {
-  async function driveToCodeStep(next?: string) {
-    renderLogin(next);
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
-      target: { value: "friend@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Получить код" }));
-    // sendVerificationOtp resolving flips the form to the six-box code step.
-    await screen.findByLabelText("Digit 1");
+  const boxes = screen.getAllByLabelText(/^Цифра /);
+  for (let i = 1; i < code.length; i++) {
+    fireEvent.change(boxes[i], { target: { value: code[i] } });
   }
+}
 
-  function enterCode(code: string) {
-    for (let i = 0; i < code.length; i++) {
-      fireEvent.change(screen.getByLabelText(`Digit ${i + 1}`), {
-        target: { value: code[i] },
-      });
-    }
-  }
-
-  it("pushes /welcome with no next for the default (root) target", async () => {
-    await driveToCodeStep("/");
-    enterCode("123456");
-
-    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/welcome"));
-    expect(signInWithOtp).toHaveBeenCalledWith({
-      email: "friend@example.com",
-      otp: "123456",
-    });
+describe("LoginForm — code step", () => {
+  it("labels the six boxes in the active locale, not in English", async () => {
+    await reachCodeStep();
+    expect(screen.getAllByLabelText(/^Цифра /)).toHaveLength(6);
+    expect(screen.getByLabelText("Цифра 6")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Digit 1")).not.toBeInTheDocument();
   });
 
-  it("pushes /welcome?next=<encoded> for a non-root target", async () => {
-    await driveToCodeStep("/wishes/1");
-    enterCode("123456");
+  it("maps OTP_EXPIRED to the «код устарел» state", async () => {
+    signInEmailOtp.mockResolvedValue({ error: { code: "OTP_EXPIRED" } });
+    await reachCodeStep();
+    typeCode("123456");
 
-    await vi.waitFor(() =>
-      expect(push).toHaveBeenCalledWith("/welcome?next=%2Fwishes%2F1"),
-    );
+    expect(
+      await screen.findByText("Код устарел — запроси новый"),
+    ).toBeInTheDocument();
+  });
+
+  it("maps TOO_MANY_ATTEMPTS to the lockout state and disables the boxes", async () => {
+    signInEmailOtp.mockResolvedValue({ error: { code: "TOO_MANY_ATTEMPTS" } });
+    await reachCodeStep();
+    typeCode("123456");
+
+    expect(
+      await screen.findByText(
+        "Слишком много попыток — попробуй позже или измени почту",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Цифра 1")).toBeDisabled();
+  });
+
+  it("seeds the attempt counter from the server's budget of 5", async () => {
+    signInEmailOtp.mockResolvedValue({ error: { code: "INVALID_OTP" } });
+    await reachCodeStep();
+    typeCode("123456");
+
+    // 5 allowed submissions, one spent → 4 left.
+    expect(
+      await screen.findByText("Код не подошёл, осталось 4 попытки"),
+    ).toBeInTheDocument();
+  });
+
+  it("navigates on a correct code", async () => {
+    signInEmailOtp.mockResolvedValue({ error: null });
+    await reachCodeStep();
+    typeCode("123456");
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/welcome"));
   });
 });

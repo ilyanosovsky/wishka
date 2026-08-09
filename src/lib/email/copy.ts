@@ -37,11 +37,11 @@ export function formatChangedFields(
 export const guestBookingConfirmation = {
   subject: {
     ru: "Бронь подтверждена",
-    en: "Your booking is confirmed",
+    en: "Your reservation is confirmed",
   },
   heading: {
     ru: "Бронь подтверждена",
-    en: "Booking confirmed",
+    en: "Reservation confirmed",
   },
   body: (wishTitle: string, locale: Locale): string[] =>
     locale === "ru"
@@ -50,12 +50,12 @@ export const guestBookingConfirmation = {
           "Ссылка ниже открывает управление бронью на любом устройстве — сохраните письмо.",
         ]
       : [
-          `You've reserved the gift "${wishTitle}". The list owner will never see this booking — that's the surprise mode.`,
-          "The link below opens booking management on any device — keep this email.",
+          `You've reserved the gift "${wishTitle}". The list owner will never see this reservation — that's the surprise mode.`,
+          "The link below lets you manage your reservation from any device — keep this email.",
         ],
   cta: {
     ru: "Управлять бронью",
-    en: "Manage booking",
+    en: "Manage reservation",
   },
 };
 
@@ -80,7 +80,7 @@ export const reservedWishChanged = {
         ]
       : [
           `The wish "${wishTitle}" you reserved has changed: ${changedFieldsLabel}.`,
-          "Check the list to see if your booking is still what you expect.",
+          "Check the list to see if your reservation is still what you expect.",
         ],
   cta: {
     ru: "Открыть желание",
@@ -103,7 +103,7 @@ export const reservedWishDeleted = {
           `Желание «${wishTitle}», которое вы забронировали, владелец удалил из списка. Бронь больше не действует.`,
         ]
       : [
-          `The wish "${wishTitle}" you reserved was removed by the owner. The booking no longer applies.`,
+          `The wish "${wishTitle}" you reserved was removed by the owner. The reservation no longer applies.`,
         ],
 };
 
@@ -130,7 +130,7 @@ export const reservedWishHidden = {
         ]
       : [
           `The owner changed who can see the wish "${wishTitle}", so it no longer shows up for you in their list.`,
-          'Your booking is still yours — it has not been cancelled and stays in "My bookings".',
+          'Your reservation is still yours — it has not been cancelled and stays in "My reservations".',
         ],
 };
 
@@ -153,4 +153,42 @@ export const giftGiven = {
           `Your gift is marked as delivered 🎉`,
           `The wish "${wishTitle}" is now closed — thanks for making someone happy!`,
         ],
+};
+
+/**
+ * Better Auth OTP emails (sign-in / email verification / password recovery).
+ * Consumed by `sendVerificationOTP` in src/lib/auth.ts; the locale comes from
+ * the request's next-intl cookie — the login screen the user is looking at is
+ * in that language, so the code email must match. вы-form: the recipient may
+ * be brand new, the account voice (ты) is not established yet.
+ */
+export type AuthCodeType = "sign-in" | "email-verification" | "forget-password";
+
+export const authCode: Record<
+  AuthCodeType,
+  { subject: Record<Locale, string>; intro: Record<Locale, string> }
+> = {
+  "sign-in": {
+    subject: { ru: "Код входа в Wishka", en: "Your Wishka sign-in code" },
+    intro: { ru: "Ваш код входа:", en: "Your sign-in code:" },
+  },
+  "email-verification": {
+    subject: {
+      ru: "Подтвердите почту для Wishka",
+      en: "Confirm your email for Wishka",
+    },
+    intro: { ru: "Ваш код подтверждения:", en: "Your confirmation code:" },
+  },
+  "forget-password": {
+    subject: {
+      ru: "Код восстановления для Wishka",
+      en: "Your Wishka recovery code",
+    },
+    intro: { ru: "Ваш код восстановления:", en: "Your recovery code:" },
+  },
+};
+
+export const authCodeFooter: Record<Locale, string> = {
+  ru: "Код действует 15 минут. Если вы его не запрашивали — просто игнорируйте это письмо.",
+  en: "The code expires in 15 minutes. If you didn't request it, just ignore this email.",
 };

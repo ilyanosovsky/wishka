@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { BottomSheet } from "./bottom-sheet";
 
 describe("BottomSheet", () => {
@@ -39,5 +40,71 @@ describe("BottomSheet", () => {
     expect(document.querySelector('[role="dialog"]')?.className).toContain(
       "translate-y-full",
     );
+  });
+});
+
+describe("BottomSheet focus management", () => {
+  function Harness() {
+    const [open, setOpen] = useState(false);
+    return (
+      <div>
+        <button type="button" onClick={() => setOpen(true)}>
+          Open sheet
+        </button>
+        <BottomSheet
+          open={open}
+          onClose={() => setOpen(false)}
+          title="Who can see"
+          footer={
+            <button type="button" onClick={() => setOpen(false)}>
+              Done
+            </button>
+          }
+        >
+          <button type="button">Everyone</button>
+        </BottomSheet>
+      </div>
+    );
+  }
+
+  function openSheet() {
+    const trigger = screen.getByRole("button", { name: "Open sheet" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    return trigger;
+  }
+
+  it("moves focus into the sheet and inerts the page behind", () => {
+    render(<Harness />);
+    const trigger = openSheet();
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Everyone" }),
+    );
+    expect(trigger).toHaveAttribute("inert");
+  });
+
+  it("cycles Tab inside the sheet", () => {
+    render(<Harness />);
+    openSheet();
+
+    const first = screen.getByRole("button", { name: "Everyone" });
+    const last = screen.getByRole("button", { name: "Done" });
+
+    fireEvent.keyDown(first, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    fireEvent.keyDown(last, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it("returns focus to the trigger on close and releases the page", () => {
+    render(<Harness />);
+    const trigger = openSheet();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(document.activeElement).toBe(trigger);
+    expect(trigger).not.toHaveAttribute("inert");
   });
 });

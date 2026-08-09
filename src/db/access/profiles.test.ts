@@ -136,6 +136,59 @@ describe("profiles", () => {
     });
   });
 
+  /** §6.6 «Тап по нику → смена ника»: the profile-edit action passes ONLY
+   *  `nickname`, so the generated SET list must not touch anything else. */
+  describe("nickname-only rename (profile edit)", () => {
+    it("keeps every other column when only the nickname is written", async () => {
+      const renamer = await createUser(db);
+      const mate = await createUser(db);
+      const groupId = await createGroup(db, renamer, [renamer]);
+      await addGroupMember(db, { groupId, userId: mate, role: "member" });
+
+      await upsertProfile(db, {
+        userId: renamer,
+        nickname: "old-nick",
+        baseCurrency: "GEL",
+        sizes: { clothing: "M", рост: "180" },
+        tastes: ["tea"],
+        noGift: ["socks"],
+      });
+      await setPartner(db, renamer, mate);
+
+      await upsertProfile(db, { userId: renamer, nickname: "new-nick" });
+
+      expect(await getProfile(db, renamer)).toMatchObject({
+        nickname: "new-nick",
+        baseCurrency: "GEL",
+        partnerId: mate,
+        sizes: { clothing: "M", рост: "180" },
+        tastes: ["tea"],
+        noGift: ["socks"],
+      });
+      // The old public URL stops resolving — that is the whole point of the
+      // «Старая ссылка перестанет работать» warning.
+      expect(await getProfileByNickname(db, "old-nick")).toBeNull();
+      expect(await getProfileByNickname(db, "new-nick")).toMatchObject({
+        userId: renamer,
+      });
+    });
+
+    it("refuses a rename onto someone else's nickname and leaves the old one intact", async () => {
+      const holder = await createUser(db);
+      await upsertProfile(db, { userId: holder, nickname: "wanted-nick" });
+      const renamer = await createUser(db);
+      await upsertProfile(db, { userId: renamer, nickname: "keeps-this" });
+
+      await expect(
+        upsertProfile(db, { userId: renamer, nickname: "wanted-nick" }),
+      ).rejects.toBeInstanceOf(NicknameTakenError);
+
+      expect(await getProfile(db, renamer)).toMatchObject({
+        nickname: "keeps-this",
+      });
+    });
+  });
+
   it("never reports an invalid nickname as available", async () => {
     for (const bad of ["ab", "Ilya", "with space", "x".repeat(31)]) {
       expect(await isNicknameAvailable(db, bad)).toBe(false);

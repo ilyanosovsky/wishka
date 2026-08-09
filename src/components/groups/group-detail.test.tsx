@@ -249,12 +249,18 @@ describe("GroupDetail", () => {
   });
 
   it("names the viewer's role in the header", () => {
+    // "Админ" also appears as the member-grid badge, so scope the assertion
+    // to the header meta line ("N участников · Админ").
     renderDetail();
-    expect(screen.getByText(/Вы админ/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/участник/i).closest("p")?.textContent,
+    ).toContain("· Админ");
 
     cleanup();
     renderDetail(detail({ role: "member" }));
-    expect(screen.queryByText(/Вы админ/)).toBeNull();
+    expect(
+      screen.getByText(/участник/i).closest("p")?.textContent,
+    ).not.toContain("· Админ");
   });
 
   it("lets an admin kill a leaked link, after saying what that costs", async () => {

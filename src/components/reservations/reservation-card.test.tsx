@@ -146,6 +146,14 @@ describe("ReservationCard — state matrix", () => {
     expect(screen.getByText("Маша")).toBeInTheDocument();
   });
 
+  it("gives the wish title and owner links a 44px-tall tap target (a11y #11)", () => {
+    renderCard();
+    expect(screen.getByRole("link", { name: "Керамическая ваза" })).toHaveClass(
+      "min-h-11",
+    );
+    expect(screen.getByRole("link", { name: /Маша/ })).toHaveClass("min-h-11");
+  });
+
   it("shows the price when the wish has one", () => {
     renderCard({ priceType: "exact", priceMin: "1400", currency: "USD" });
     expect(screen.getByText("1 400 $")).toBeInTheDocument();

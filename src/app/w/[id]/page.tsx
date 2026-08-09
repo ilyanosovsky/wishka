@@ -1,6 +1,9 @@
 import { ExternalLink } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+
+import { isLocale } from "@/i18n/config";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ReservePanel } from "@/components/reserve/reserve-panel";
@@ -15,7 +18,7 @@ import {
 } from "@/components/ui/badges";
 import { getDb } from "@/db";
 import { countActiveGuestReservations } from "@/db/access/guest-identities";
-import { getProfile } from "@/db/access/profiles";
+import { getPublicIdentityByUserId } from "@/db/access/public-identity";
 import type { ReservationStatus } from "@/db/access/types";
 import { getVisibleWish } from "@/db/access/viewer";
 import { loginHrefWithNext } from "@/lib/next-param";
@@ -44,6 +47,63 @@ const RESERVATION_TO_STATUS: Record<ReservationStatus, WishStatus> = {
   reserved_by_you: "reservedByYou",
 };
 
+/**
+ * Share-card metadata (§6.8). A link preview is rendered by whoever the link
+ * was pasted to — a chat server, a crawler, someone not signed in — so the wish
+ * is resolved as a plain passer-by (`{ anonymous: true }`, exactly what
+ * `resolveViewer` returns with no session and no guest cookie). A restricted
+ * wish therefore falls out as `null` and gets bare brand metadata: the card
+ * cannot say more than the page would.
+ *
+ * Only title, description and the re-hosted image go in — invariant #6 keeps
+ * the URL on our own storage, and nothing derived from a reservation (the
+ * `reservationStatus` this read also carries) may ever appear here: the owner's
+ * own wish links through the same route.
+ *
+ * `robots: index: false` — shared links are for the people they were sent to,
+ * not for search engines (Phase 9 production-readiness audit, finding 1).
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const t = await getTranslations();
+  // `absolute` so the root layout's `%s · Wishka` template does not turn the
+  // fallback — the card a stranger sees on a dead or restricted link — into
+  // "Wishka · Wishka".
+  const generic: Metadata = {
+    title: { absolute: "Wishka" },
+    robots: { index: false, follow: false },
+  };
+
+  const wish = await getVisibleWish(getDb(), id, { anonymous: true });
+  if (!wish) return generic;
+
+  const description = wish.description ?? t("meta.description");
+  const image =
+    wish.imageStatus === "ready" && wish.imageKey ? wish.imageKey : null;
+
+  return {
+    ...generic,
+    title: wish.title,
+    description,
+    openGraph: {
+      type: "website",
+      title: wish.title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: wish.title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
+
 export default async function SharedWishPage({
   params,
 }: {
@@ -66,11 +126,18 @@ export default async function SharedWishPage({
     );
   }
 
-  const ownerProfile = await getProfile(db, wish.ownerId);
-  const ownerName = ownerProfile?.nickname ?? "";
-  const listHref = ownerProfile ? `/u/${ownerProfile.nickname}` : "/";
+  // §6.5/§6.8 name the owner by their display name; the nickname only builds
+  // the link back to their list. «Из списка: {name}» and «Вы смотрите список:
+  // {name}» both need *something*, so a nameless owner (email signup that
+  // skipped onboarding — `getPublicIdentityByUserId` returns null, not "")
+  // falls back to the nickname, which is never empty. Only a wish whose owner
+  // has no profile row at all leaves this blank, and that row cannot exist.
+  const owner = await getPublicIdentityByUserId(db, wish.ownerId);
+  const ownerName = owner ? (owner.name ?? owner.nickname) : "";
+  const listHref = owner ? `/u/${owner.nickname}` : "/";
 
-  const price = formatPrice(wish);
+  const rawLocale = await getLocale();
+  const price = formatPrice(wish, isLocale(rawLocale) ? rawLocale : "en");
   const hasImage = wish.imageStatus === "ready" && Boolean(wish.imageKey);
   const viewerUserId = "userId" in viewer ? viewer.userId : null;
   const isGuest = viewerUserId === null;

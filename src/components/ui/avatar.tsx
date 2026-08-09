@@ -46,10 +46,15 @@ export function Avatar({
       />
     );
   }
+  // A nameless initial tile has nothing meaningful to announce (and a literal
+  // English fallback would violate invariant #7) — hide it from the a11y tree
+  // and let the adjacent visible name carry the information.
+  const label = alt ?? name;
   return (
     <span
-      role="img"
-      aria-label={alt ?? name ?? "avatar"}
+      role={label ? "img" : undefined}
+      aria-label={label ?? undefined}
+      aria-hidden={label ? undefined : true}
       className={cx(
         "flex flex-none items-center justify-center rounded-round bg-ink font-serif text-paper",
         SIZE_CLASS[size],

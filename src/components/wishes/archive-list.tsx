@@ -91,7 +91,7 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
         <Link
           href="/"
           aria-label={t("common.back")}
-          className="flex h-10 w-10 flex-none items-center justify-center border border-rule-2 bg-paper"
+          className="flex h-11 w-11 flex-none items-center justify-center border border-rule-2 bg-paper"
         >
           <ChevronLeft aria-hidden size={16} strokeWidth={2.2} />
         </Link>
@@ -102,9 +102,14 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
           >
             {t("archive.title")}
           </h1>
-          <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
-            {t("archive.countLabel", { count: wishes.length })}
-          </p>
+          {/* The `=0 {}` ICU branch renders an empty string, not nothing — an
+              unconditional <p> would still occupy its `mt-0.5` on the empty
+              archive screen. */}
+          {wishes.length > 0 && (
+            <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
+              {t("archive.countLabel", { count: wishes.length })}
+            </p>
+          )}
         </div>
       </header>
 

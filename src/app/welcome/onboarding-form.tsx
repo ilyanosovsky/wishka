@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { CURRENCIES } from "@/lib/currencies";
 import { downscaleToSquare } from "@/lib/image";
@@ -14,6 +14,14 @@ import {
 } from "./actions";
 
 type NicknameState = NicknameCheck | "checking" | "idle";
+
+/** The public-link prefix shown in front of the nickname field. Built from the
+ *  deployment's own origin — a preview build must not promise `wishka.app`.
+ *  With the variable unset the prefix degrades to a bare path rather than
+ *  naming a host this deployment isn't. */
+const PROFILE_URL_PREFIX = `${(process.env.NEXT_PUBLIC_APP_URL ?? "")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/+$/, "")}/u/`;
 
 export function OnboardingForm({
   defaultName,
@@ -42,6 +50,7 @@ export function OnboardingForm({
   const [skipping, startSkip] = useTransition();
 
   const { startUpload } = useUploadThing("avatar");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const nicknameValue = nickname.trim().toLowerCase();
   const nicknameState: NicknameState = !nicknameValue
@@ -100,8 +109,15 @@ export function OnboardingForm({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Avatar */}
-      <label className="flex cursor-pointer items-center gap-4">
+      {/* Avatar — a real <button> firing the hidden input (a <label> is not
+          tabbable, so the picker was keyboard-unreachable: Phase 9 a11y audit,
+          finding 3). Same pattern as the wish form's photo picker. */}
+      <button
+        type="button"
+        disabled={uploadingAvatar}
+        onClick={() => fileInputRef.current?.click()}
+        className="flex cursor-pointer items-center gap-4 text-left disabled:cursor-not-allowed"
+      >
         {imageUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element -- avatar preview from our CDN, unoptimized by design */
           <img
@@ -120,14 +136,19 @@ export function OnboardingForm({
             <span className="block text-neg">{t("avatarError")}</span>
           )}
         </span>
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          disabled={uploadingAvatar}
-          onChange={(e) => void onAvatarPick(e.target.files?.[0])}
-        />
-      </label>
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        disabled={uploadingAvatar}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          void onAvatarPick(file);
+        }}
+      />
 
       {/* Name */}
       <label className="flex flex-col gap-1.5">
@@ -147,7 +168,7 @@ export function OnboardingForm({
           {t("nickname")}
         </span>
         <div className="flex min-h-11 items-center border border-rule-2 bg-paper px-3 font-mono text-[14px] focus-within:border-accent focus-within:shadow-[inset_0_0_0_1px_var(--accent)]">
-          <span className="text-mute-2">wishka.app/u/</span>
+          <span className="text-mute-2">{PROFILE_URL_PREFIX}</span>
           <input
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
@@ -199,7 +220,8 @@ export function OnboardingForm({
       <button
         onClick={() => startSkip(() => skipOnboarding(next))}
         disabled={skipping}
-        className="cursor-pointer self-center text-[12px] text-mute underline-offset-2 hover:underline"
+        /* min-h-11: a bare text control still needs a 44px target (§3.1). */
+        className="inline-flex min-h-11 cursor-pointer items-center justify-center self-center px-3 text-[12px] text-mute underline-offset-2 hover:underline"
       >
         {t("skip")}
       </button>

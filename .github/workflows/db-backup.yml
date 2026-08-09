@@ -1,0 +1,88 @@
+name: DB backup
+
+# Phase 9 prod-readiness audit: Railway Postgres has no backups on the Hobby
+# tier (IMPLEMENTATION_PLAN.md, Phase 0). This is the pg_dump-cron mitigation
+# the plan calls for.
+#
+# SECURITY — this repo is PUBLIC. A raw pg_dump holds user emails, wishes and
+# reservations, so the artifact this job produces is never allowed to be
+# plaintext: the dump is piped straight through `age` (asymmetric encryption)
+# before it ever touches disk or `actions/upload-artifact`, using only the
+# *public* key (`AGE_PUBLIC_KEY`, a repo variable — safe to be visible).
+# Nothing here can decrypt its own output; only whoever holds the matching
+# private key (kept outside the repo — see docs/wiki/Deployment.md) can
+# restore. `DATABASE_URL` is read from a secret and is never echoed, printed,
+# or included in an artifact.
+#
+# Inert by default: the job only runs once `vars.BACKUP_ENABLED` is set to
+# "true" (see docs/wiki/Deployment.md's backup setup section), so adding this
+# file does not by itself require any secret to exist.
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # daily, 03:17 UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    name: backup
+    runs-on: ubuntu-latest
+    if: vars.BACKUP_ENABLED == 'true'
+    steps:
+      # `ubuntu-latest`'s stock `postgresql-client` trails the server (24.04
+      # ships 16). A client older than the server makes pg_dump abort with
+      # "server version …; pg_dump version …", so the major is pinned here
+      # against PGDG rather than left to the image. Bump `PG_MAJOR` when
+      # Railway's server major moves — a mismatch must break loudly, once,
+      # instead of quietly producing nothing every night.
+      - name: Install pg_dump (pinned) and age
+        shell: bash
+        env:
+          PG_MAJOR: "17"
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y "postgresql-client-${PG_MAJOR}" age
+          pg_dump --version
+
+      # `shell: bash` is load-bearing, not cosmetic: the *default* shell is
+      # `bash -e {0}` — errexit WITHOUT pipefail — so a failing pg_dump would
+      # hand `age` an empty stream, `age` would encrypt it and exit 0, and the
+      # job would go green while uploading a backup of nothing. `shell: bash`
+      # gets `-eo pipefail`; the explicit `set -euo pipefail` keeps that true
+      # even if the runner's default ever changes.
+      #
+      # No `| gzip`: `--format=custom` is already zlib-compressed, and the
+      # extra stage only made the restore recipe longer (docs/wiki/Deployment.md).
+      - name: Dump and encrypt
+        shell: bash
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AGE_PUBLIC_KEY: ${{ vars.AGE_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges \
+            | age -r "$AGE_PUBLIC_KEY" -o dump.age
+
+          # Belt and braces for the failure mode above: even a schema-only
+          # dump of this database is tens of kilobytes, so anything under
+          # 10 kB is an empty pipe wearing a valid age envelope. Fail here
+          # rather than retain a decoy artifact for 90 days.
+          size=$(stat -c%s dump.age 2>/dev/null || stat -f%z dump.age)
+          echo "dump.age: ${size} bytes"
+          if [ "$size" -lt 10000 ]; then
+            echo "::error::dump.age is only ${size} bytes — the dump is empty or truncated, refusing to upload" >&2
+            exit 1
+          fi
+
+      - name: Upload encrypted dump
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: dump.age
+          retention-days: 90

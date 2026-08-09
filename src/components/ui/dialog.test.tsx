@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { Dialog } from "./dialog";
 import { InfoToast, UndoToast } from "./toast";
 
@@ -10,20 +11,20 @@ describe("Dialog", () => {
     render(
       <Dialog
         open
-        title="Удалить желание?"
-        description="«Керамическая ваза» исчезнет из списка."
+        title="Delete this wish?"
+        description='"Ceramic vase" will disappear from the list.'
         onClose={onCancel}
         actions={[
-          { label: "Отмена", onClick: onCancel, tone: "neutral" },
-          { label: "Удалить", onClick: onDelete, tone: "destructive" },
+          { label: "Cancel", onClick: onCancel, tone: "neutral" },
+          { label: "Delete", onClick: onDelete, tone: "destructive" },
         ]}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Удалить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onDelete).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
@@ -31,11 +32,11 @@ describe("Dialog", () => {
     render(
       <Dialog
         open
-        title="Удалить желание?"
+        title="Delete this wish?"
         onClose={vi.fn()}
         actions={[
-          { label: "Удалить", onClick: vi.fn(), tone: "destructive" },
-          { label: "Отмена", onClick: vi.fn(), tone: "neutral" },
+          { label: "Delete", onClick: vi.fn(), tone: "destructive" },
+          { label: "Cancel", onClick: vi.fn(), tone: "neutral" },
         ]}
       />,
     );
@@ -43,7 +44,7 @@ describe("Dialog", () => {
     const labels = screen
       .getAllByRole("button")
       .map((button) => button.textContent);
-    expect(labels).toEqual(["Отмена", "Удалить"]);
+    expect(labels).toEqual(["Cancel", "Delete"]);
   });
 
   it("closes on a scrim tap and renders nothing when closed", () => {
@@ -51,9 +52,9 @@ describe("Dialog", () => {
     const { rerender } = render(
       <Dialog
         open
-        title="Сохранить черновик?"
+        title="Save the draft?"
         onClose={onClose}
-        actions={[{ label: "Сохранить", onClick: vi.fn(), tone: "accent" }]}
+        actions={[{ label: "Save", onClick: vi.fn(), tone: "accent" }]}
       />,
     );
 
@@ -63,9 +64,9 @@ describe("Dialog", () => {
     rerender(
       <Dialog
         open={false}
-        title="Сохранить черновик?"
+        title="Save the draft?"
         onClose={onClose}
-        actions={[{ label: "Сохранить", onClick: vi.fn(), tone: "accent" }]}
+        actions={[{ label: "Save", onClick: vi.fn(), tone: "accent" }]}
       />,
     );
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -83,8 +84,8 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
@@ -104,18 +105,74 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={onAction}
         onDismiss={onDismiss}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Отменить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
     act(() => void vi.advanceTimersByTime(10000));
 
     expect(onAction).toHaveBeenCalledTimes(1);
     expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it("holds the countdown while the bar is hovered, then finishes it", () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    render(
+      <UndoToast
+        open
+        message="Reservation cancelled"
+        actionLabel="Undo"
+        onAction={vi.fn()}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    const bar = screen.getByRole("status");
+    act(() => void vi.advanceTimersByTime(2000));
+    fireEvent.mouseEnter(bar);
+
+    // Hovering is the user reading the toast — 5s of it must not run out.
+    act(() => void vi.advanceTimersByTime(10000));
+    expect(onDismiss).not.toHaveBeenCalled();
+    // The drain bar is the timer made visible; it has to stop with it.
+    expect(screen.getByTestId("toast-progress")).toHaveStyle({
+      animationPlayState: "paused",
+    });
+
+    fireEvent.mouseLeave(bar);
+    act(() => void vi.advanceTimersByTime(2999));
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    act(() => void vi.advanceTimersByTime(1));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("holds the countdown while the Undo button has focus", () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    render(
+      <UndoToast
+        open
+        message="Reservation cancelled"
+        actionLabel="Undo"
+        onAction={vi.fn()}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    const undo = screen.getByRole("button", { name: "Undo" });
+    fireEvent.focusIn(undo);
+    act(() => void vi.advanceTimersByTime(10000));
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    fireEvent.focusOut(undo);
+    act(() => void vi.advanceTimersByTime(5000));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it("stays quiet while closed", () => {
@@ -124,8 +181,8 @@ describe("UndoToast", () => {
     render(
       <UndoToast
         open={false}
-        message="Бронь снята"
-        actionLabel="Отменить"
+        message="Reservation cancelled"
+        actionLabel="Undo"
         onAction={vi.fn()}
         onDismiss={onDismiss}
       />,
@@ -133,7 +190,7 @@ describe("UndoToast", () => {
 
     act(() => void vi.advanceTimersByTime(10000));
     expect(onDismiss).not.toHaveBeenCalled();
-    expect(screen.queryByText("Бронь снята")).toBeNull();
+    expect(screen.queryByText("Reservation cancelled")).toBeNull();
   });
 });
 
@@ -149,15 +206,123 @@ describe("InfoToast", () => {
     render(
       <InfoToast
         open
-        message="Желание добавлено"
-        actionLabel="Открыть"
+        message="Wish added"
+        actionLabel="Open dialog"
         onAction={onAction}
         onDismiss={onDismiss}
       />,
     );
 
-    expect(screen.getByText("Желание добавлено")).toBeInTheDocument();
+    expect(screen.getByText("Wish added")).toBeInTheDocument();
     act(() => void vi.advanceTimersByTime(3000));
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Dialog focus management", () => {
+  function Harness() {
+    const [open, setOpen] = useState(false);
+    return (
+      <div>
+        <button type="button" onClick={() => setOpen(true)}>
+          Open dialog
+        </button>
+        <p>Page behind the dialog</p>
+        <Dialog
+          open={open}
+          title="Delete this wish?"
+          onClose={() => setOpen(false)}
+          actions={[
+            { label: "Cancel", onClick: () => setOpen(false), tone: "neutral" },
+            {
+              label: "Delete",
+              onClick: () => setOpen(false),
+              tone: "destructive",
+            },
+          ]}
+        />
+      </div>
+    );
+  }
+
+  function openDialog() {
+    const trigger = screen.getByRole("button", { name: "Open dialog" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    return trigger;
+  }
+
+  it("moves focus into the panel on open", () => {
+    render(<Harness />);
+    openDialog();
+
+    const panel = screen.getByRole("dialog");
+    expect(panel.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Cancel" }),
+    );
+  });
+
+  it("makes the page behind inert while open", () => {
+    render(<Harness />);
+    const trigger = openDialog();
+
+    expect(trigger).toHaveAttribute("inert");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(trigger).not.toHaveAttribute("inert");
+  });
+
+  it("cycles Tab inside the panel in both directions", () => {
+    render(<Harness />);
+    openDialog();
+
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const remove = screen.getByRole("button", { name: "Delete" });
+
+    remove.focus();
+    fireEvent.keyDown(remove, { key: "Tab" });
+    expect(document.activeElement).toBe(cancel);
+
+    fireEvent.keyDown(cancel, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(remove);
+  });
+
+  it("returns focus to whatever opened it", () => {
+    render(<Harness />);
+    const trigger = openDialog();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+});
+
+describe("Dialog error region", () => {
+  it("renders a passed error as a role=alert line", () => {
+    render(
+      <Dialog
+        open
+        title="Delete this wish?"
+        error="Something went wrong — try again"
+        onClose={() => {}}
+        actions={[{ label: "Cancel", onClick: () => {}, tone: "neutral" }]}
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Something went wrong — try again",
+    );
+  });
+
+  it("renders no alert region without an error", () => {
+    render(
+      <Dialog
+        open
+        title="Delete this wish?"
+        onClose={() => {}}
+        actions={[{ label: "Cancel", onClick: () => {}, tone: "neutral" }]}
+      />,
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

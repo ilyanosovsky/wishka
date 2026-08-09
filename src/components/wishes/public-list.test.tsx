@@ -128,13 +128,55 @@ describe("PublicList — what matters block", () => {
 describe("PublicList — empty state", () => {
   it("shows the owner-empty message with a hint for a logged-in viewer", () => {
     renderPublicList({ wishes: [], isGuest: false });
-    expect(screen.getByText("У ilya пока нет желаний")).toBeInTheDocument();
-    expect(screen.getByText(/Загляни в «Что важно знать»/)).toBeInTheDocument();
+    expect(screen.getByText("Список ilya: пока пусто")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Загляните в «Что важно знать»/),
+    ).toBeInTheDocument();
   });
 
   it("drops the friend hint for a guest", () => {
     renderPublicList({ wishes: [], isGuest: true });
-    expect(screen.getByText("У ilya пока нет желаний")).toBeInTheDocument();
-    expect(screen.queryByText(/Загляни в «Что важно знать»/)).toBeNull();
+    expect(screen.getByText("Список ilya: пока пусто")).toBeInTheDocument();
+    expect(screen.queryByText(/Загляните в «Что важно знать»/)).toBeNull();
+  });
+});
+
+describe("PublicList — owner identity (§6.5, states audit #1)", () => {
+  it("shows the display name, never the nickname, in header and banner", () => {
+    renderPublicList({
+      name: "Маша",
+      nickname: "ilya-nosovsky",
+      isGuest: true,
+    });
+
+    expect(screen.getByRole("heading", { name: "Маша" })).toBeInTheDocument();
+    expect(screen.getByText("Вы смотрите список: Маша")).toBeInTheDocument();
+    // The nickname survives only where it belongs: inside the share URL.
+    expect(screen.queryByText("ilya-nosovsky")).toBeNull();
+    expect(screen.getByText(/\/u\/ilya-nosovsky$/)).toBeInTheDocument();
+  });
+
+  it("renders the owner's avatar image when they have one", () => {
+    const { container } = renderPublicList({
+      name: "Маша",
+      image: "https://app123.ufs.sh/f/avatar-masha",
+    });
+
+    expect(
+      container.querySelector(
+        'img[src="https://app123.ufs.sh/f/avatar-masha"]',
+      ),
+    ).not.toBeNull();
+  });
+
+  it("falls back to a decorative initial tile when there is no avatar", () => {
+    renderPublicList({ name: "Маша", image: null });
+
+    // The header avatar is deliberately decorative (alt="") — the adjacent
+    // <h1> announces the name, so the tile must NOT be a named img.
+    expect(screen.queryByRole("img", { name: "Маша" })).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Маша" }),
+    ).toBeInTheDocument();
   });
 });

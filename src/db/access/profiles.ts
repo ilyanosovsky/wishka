@@ -24,7 +24,14 @@ export class NicknameTakenError extends Error {
 
 export type ProfileInput = {
   userId: string;
-  nickname: string;
+  /**
+   * Required to *create* a profile (onboarding). Omit it to update an existing
+   * one: the generated SET list then never mentions `nickname`, so an action
+   * that owns a different column — base currency, public params — cannot echo
+   * a stale nickname back over a concurrent rename, and cannot fail on a
+   * legacy row whose stored nickname no longer matches `NICKNAME_RE`.
+   */
+  nickname?: string;
   baseCurrency?: string;
   partnerId?: string | null;
   sizes?: Record<string, string>;
@@ -70,16 +77,26 @@ export async function getProfileByNickname(
   return rows[0] ?? null;
 }
 
+/** Thrown when a nickname-less write finds no profile row to update — the
+ *  caller asked for an update, and there was nothing to update. */
+export class ProfileNotFoundError extends Error {
+  constructor(userId: string) {
+    super(`No profile for user: ${userId}`);
+    this.name = "ProfileNotFoundError";
+  }
+}
+
 export async function upsertProfile(
   db: Db,
   input: ProfileInput,
 ): Promise<Profile> {
-  if (!isValidNickname(input.nickname)) {
-    throw new Error(`Invalid nickname: ${input.nickname}`);
+  const { nickname } = input;
+  if (nickname !== undefined && !isValidNickname(nickname)) {
+    throw new Error(`Invalid nickname: ${nickname}`);
   }
 
   const values = {
-    nickname: input.nickname,
+    ...(nickname !== undefined ? { nickname } : {}),
     ...(input.baseCurrency !== undefined
       ? { baseCurrency: input.baseCurrency }
       : {}),
@@ -90,9 +107,22 @@ export async function upsertProfile(
   };
 
   try {
+    // No nickname means "update what is already there": `nickname` is NOT NULL,
+    // so there is nothing to insert, and a plain UPDATE keeps the SET list
+    // exactly as narrow as the caller made it.
+    if (nickname === undefined) {
+      const [updated] = await db
+        .update(profiles)
+        .set({ ...values, updatedAt: new Date() })
+        .where(eq(profiles.userId, input.userId))
+        .returning();
+      if (!updated) throw new ProfileNotFoundError(input.userId);
+      return updated;
+    }
+
     const [row] = await db
       .insert(profiles)
-      .values({ userId: input.userId, ...values })
+      .values({ userId: input.userId, ...values, nickname })
       .onConflictDoUpdate({
         target: profiles.userId,
         set: { ...values, updatedAt: new Date() },
@@ -101,9 +131,10 @@ export async function upsertProfile(
     return row;
   } catch (error) {
     // The row's own primary key is handled by ON CONFLICT, so the only unique
-    // constraints left to break are the two on `nickname`.
-    if (isUniqueViolation(error)) {
-      throw new NicknameTakenError(input.nickname);
+    // constraints left to break are the two on `nickname` — which a write that
+    // does not touch `nickname` cannot break at all.
+    if (nickname !== undefined && isUniqueViolation(error)) {
+      throw new NicknameTakenError(nickname);
     }
     throw error;
   }

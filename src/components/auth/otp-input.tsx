@@ -2,15 +2,21 @@
 
 import { useRef } from "react";
 
-/** Six mono boxes, auto-advance, paste-friendly — Paper Ledger OTP field. */
+/** Six mono boxes, auto-advance, paste-friendly — Paper Ledger OTP field.
+ *  `digitLabel` is required, not defaulted: this kit has no i18n of its own,
+ *  and a hardcoded English fallback is exactly how the boxes ended up
+ *  announcing "Digit 1" to Russian users (invariant #7). */
 export function OtpInput({
   value,
   onChange,
+  digitLabel,
   disabled = false,
   invalid = false,
 }: {
   value: string;
   onChange: (code: string) => void;
+  /** Accessible name for the nth box, 1-based. */
+  digitLabel: (n: number) => string;
   disabled?: boolean;
   invalid?: boolean;
 }) {
@@ -58,7 +64,7 @@ export function OtpInput({
           pattern="[0-9]*"
           maxLength={1}
           autoComplete={i === 0 ? "one-time-code" : "off"}
-          aria-label={`Digit ${i + 1}`}
+          aria-label={digitLabel(i + 1)}
           disabled={disabled}
           value={value[i] ?? ""}
           onChange={(e) => setDigit(i, e.target.value.replace(/\D/g, ""))}

@@ -65,7 +65,7 @@ describe("GuestFormSheet — validation", () => {
     submit();
 
     expect(
-      screen.getByText("Подскажи имя — так мы запомним бронь"),
+      screen.getByText("Подскажите имя — так мы запомним бронь"),
     ).toBeInTheDocument();
     expect(reserveAsGuestAction).not.toHaveBeenCalled();
   });
@@ -77,7 +77,7 @@ describe("GuestFormSheet — validation", () => {
     submit();
 
     expect(
-      screen.getByText("Подскажи имя — так мы запомним бронь"),
+      screen.getByText("Подскажите имя — так мы запомним бронь"),
     ).toBeInTheDocument();
     expect(reserveAsGuestAction).not.toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe("GuestFormSheet — validation", () => {
     submit();
 
     expect(
-      await screen.findByText("Подскажи имя — так мы запомним бронь"),
+      await screen.findByText("Подскажите имя — так мы запомним бронь"),
     ).toBeInTheDocument();
   });
 });
@@ -144,7 +144,7 @@ describe("GuestFormSheet — success", () => {
     // No email yet → the prompt is the whole point of this state.
     expect(
       screen.getByText(
-        "Оставь почту — пришлём ссылку, чтобы управлять бронью с любого устройства",
+        "Оставьте почту — пришлём ссылку, чтобы управлять бронью с любого устройства",
       ),
     ).toBeInTheDocument();
 
@@ -167,7 +167,7 @@ describe("GuestFormSheet — success", () => {
     });
     expect(
       screen.queryByText(
-        "Оставь почту — пришлём ссылку, чтобы управлять бронью с любого устройства",
+        "Оставьте почту — пришлём ссылку, чтобы управлять бронью с любого устройства",
       ),
     ).toBeNull();
   });

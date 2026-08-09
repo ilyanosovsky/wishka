@@ -53,8 +53,8 @@ describe("reservation email senders", () => {
       manageUrl: "https://wishka.app/g/tok123",
     });
     const call = sendMock.mock.calls[0][0];
-    expect(call.subject).toBe("Your booking is confirmed");
-    expect(call.html).toContain("Manage booking");
+    expect(call.subject).toBe("Your reservation is confirmed");
+    expect(call.html).toContain("Manage reservation");
     expect(call.html).toContain("https://wishka.app/g/tok123");
   });
 
@@ -110,7 +110,7 @@ describe("reservation email senders", () => {
     });
     const call = sendMock.mock.calls[0][0];
     expect(call.subject).toBe("A wish you reserved is no longer visible");
-    expect(call.html).toContain("My bookings");
+    expect(call.html).toContain("My reservations");
     expect(call.html).not.toContain('href="https://');
   });
 

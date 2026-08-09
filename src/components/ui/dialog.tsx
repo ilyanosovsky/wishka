@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
+
+import { useModalFocus } from "./use-modal-focus";
 
 export type DialogTone = "neutral" | "accent" | "destructive";
 
@@ -14,6 +16,10 @@ export type DialogProps = {
   open: boolean;
   title: string;
   description?: string;
+  /** Inline failure line, announced via `role="alert"`. For a confirmed action
+   *  that did not go through: the dialog stays open and says so, instead of
+   *  closing as if it had worked (see `auth/sign-out-button.tsx`). */
+  error?: string;
   /** One or two actions — the footer is a two-column split, never more. */
   actions: readonly [DialogAction] | readonly [DialogAction, DialogAction];
   onClose: () => void;
@@ -39,11 +45,16 @@ export function Dialog({
   open,
   title,
   description,
+  error,
   actions,
   onClose,
 }: DialogProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useModalFocus({ open, panelRef, rootRef });
 
   useEffect(() => {
     if (!open) return;
@@ -73,7 +84,10 @@ export function Dialog({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
+    <div
+      ref={rootRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-5"
+    >
       <div
         data-testid="dialog-scrim"
         aria-hidden
@@ -81,10 +95,14 @@ export function Dialog({
         className="absolute inset-0 bg-[var(--scrim)]"
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        /* -1: the panel itself takes focus on open when it has no focusable
+           child, and stays out of the tab sequence otherwise. */
+        tabIndex={-1}
         className="relative w-[300px] max-w-full border border-rule-2 bg-paper shadow-[var(--shadow-dialog)]"
       >
         <div
@@ -99,6 +117,14 @@ export function Dialog({
             className="px-[18px] pt-1 pb-3.5 text-[12.5px] leading-[1.5] text-mute"
           >
             {description}
+          </div>
+        )}
+        {error && (
+          <div
+            role="alert"
+            className="px-[18px] pt-1 pb-3.5 text-[12.5px] leading-[1.5] text-neg"
+          >
+            {error}
           </div>
         )}
         <div className="flex border-t border-rule">

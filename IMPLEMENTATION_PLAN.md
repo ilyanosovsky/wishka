@@ -16,8 +16,8 @@
 | 5 | Add by URL: parsing pipeline + image re-hosting | PR #6 | ✅ done |
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ✅ done |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
-| 8 | Groups, partner, visibility, view-as | 8a this branch · 8b next | 🔵 |
-| 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ⬜ |
+| 8 | Groups, partner, visibility, view-as | 8a PR #9 · 8b PR #10 | ✅ |
+| 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ✅ |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
 
@@ -82,7 +82,7 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 **Goal:** paste a link → card assembles; failure is a calm, first-class path.
 
 - ✅ Parsing pipeline (`src/lib/parse/`, via `parseUrlAction`): **L0** fetch + open-graph-scraper (OG+JSON-LD, real UA, 8s timeout, challenge-page detection) → **L1** LLM extraction over cleaned HTML (`OPENAI_MODEL_TEXT`, structured outputs) → **L2** Jina Reader (`r.jina.ai`) → **L3** Firecrawl (free 1000/mo) → give up gracefully. Stop-list (Amazon-class) → manual immediately. Cache results in `parsed_url_cache` (one parse per URL globally).
-- ✅ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); `next/image` remotePatterns = our storage host only.
+- ✅ **Image re-hosting:** server-side fetch, content-type/size validation, store copy via `lib/storage/` adapter (UploadThing UTApi; swappable to Railway Buckets); images render via plain `<img>` from our storage host only (no `next/image`, so no `remotePatterns` entry exists at all — a stronger form of invariant #6).
 - ✅ Add-by-URL UI: clipboard suggestion, parsing states (fast <3s / slow >5s with escape hatch / partial with highlights / failed calm / stop-list / duplicate detection).
 - ✅ Tests: pipeline layering + fail detection on fixture HTML (Shopify-like OK, challenge pages, empty shells); no live network in CI.
 - **Wiki:** `Parsing-Pipeline.md`. **Model:** Opus (pipeline), Sonnet (UI states).
@@ -139,13 +139,13 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ⬜ **Deliberate, not a gap:** `/access-denied` stays unwired. There is no leak-free trigger for it — a signed-in non-member opening a restricted `/w/<id>` has to get the *same* invalid-link screen as a bad id, or the screen would itself confirm the wish exists to someone it's hidden from. Revisit only if a genuinely leak-free signal for "you lost access" surfaces.
 - **Wiki:** ✅ `Groups-and-Visibility.md` — "Who can see a wish" section added, grounded in the shipped code. **Model:** Opus (visibility+lifecycle integration), Sonnet (profile UI, docs).
 
-## Phase 9 — Polish & launch (next PR)
+## Phase 9 — Polish & launch
 
-- ⬜ EN localization pass on all screens (long-string stress test, plurals); dark-theme audit of every screen; a11y sweep (44px targets, AA contrast, focus states).
-- ⬜ Empty/error state sweep vs DESIGN_BRIEF §6 checklist; email templates final pass.
-- ⬜ Production config: Vercel env vars, Railway Postgres backups verified, Google OAuth prod redirect URIs, Resend domain, UploadThing prod app; deploy checklist in wiki.
-- ⬜ README: screenshots, live demo link; `CONTRIBUTING.md` if community shows up.
-- **Wiki:** `Deployment.md`. **Model:** Sonnet sweeps, Opus for anything structural that surfaces.
+- ✅ Six-way audit (i18n, EN copy, dark/contrast, a11y, states-vs-brief, prod-readiness) + fixes. EN pass: reserve/reservation terminology unified, calques rewritten, dead keys pruned; RU: guest flows on вы, case-safe name strings. Dark/contrast: every applicable text and UI-component token pair reaches WCAG AA in both themes (documented hairline/focus-ring exceptions live under "Accepted deviations"), pinned by `src/styles/tokens-contrast.test.ts`; `color-scheme` declared; non-token color utilities fail the build. A11y: modal focus trap/restore + inert, `--focus-ring` + global `:focus-visible`, roving arrow keys on tabs and radiogroups, 44px targets, aria-invalid/alert semantics, keyboard-reachable file pickers, undo-toast pauses on hover/focus, localized OTP digit labels.
+- ✅ States-vs-brief sweep (full §6 matrix in the Phase 9 audit): public pages show display name + avatar (new `public-identity` read), profile editing added (avatar/name/nickname with live check + old-link warning/base currency), sign-out confirmation, custom size params, offline banner global, edit-not-found CTA, clipboard paste validates URLs, photo errors split (too large / not an image). OTP emails localized through the shared ledger template.
+- ✅ Production config: robots.ts + per-page noindex on share routes, security headers + CSP, localized root 404, Paper Ledger favicon, title template + localized meta description + OG/twitter gated by anonymous visibility, `db-backup.yml` (age-encrypted pg_dump artifact, inert until `BACKUP_ENABLED`; setup in wiki `Deployment.md`).
+- ✅ README refreshed (badges, wiki pointers, honest demo/screenshot placeholders). ⬜ Post-deploy (user actions): Vercel import + envs, Google OAuth prod redirect, Resend domain, UploadThing prod app, backup secrets (`DATABASE_URL`, `AGE_PUBLIC_KEY`, `BACKUP_ENABLED`), then screenshots + live demo link in README. `CONTRIBUTING.md` deferred until community shows up.
+- **Wiki:** ✅ `Deployment.md`. **Model:** Fable orchestration; Opus kit/auth/forms fixers + audits, Sonnet shell/prod.
 
 ---
 
@@ -160,6 +160,20 @@ From mockup analysis (design/ vs DESIGN_BRIEF.md):
 5. **Wish-card state matrix scattered across screens** → consolidated as the Phase 3 component playground.
 6. **FAB drawn only in Directions (square, 2px border)** → implemented per turn-3 mocks.
 7. `design/uploads/patterns.html` is reference material from the donor design system (finance cabinet) — component recipes only, its product content is irrelevant to Wishka.
+
+### Accepted deviations (recorded by the Phase 9 audit)
+
+- **Hairline borders stay hairline.** `--rule-2` (and the red/green rule families) sit near 1.5:1 against paper — below WCAG 1.4.11's 3 : 1 for component boundaries. This is the Paper Ledger aesthetic; the focused state carries a full-contrast `--accent` border, and darkening every resting border to 3 : 1 would erase the look. Accepted.
+- **Public parameters save with an explicit button**, not §6.6's autosave-with-toast — deliberate Phase 7a simplification, kept.
+- **Clipboard is a button, not a conditional suggestion block** (§6.3): proactively reading the clipboard triggers a browser permission prompt, so the app asks only on tap. The pasted text is validated as a URL (Phase 9).
+- **Duplicate state shows the existing wish's title, not a full card preview** (§6.3) — the parse-cache payload stays minimal for MVP.
+- **The grey hierarchy inverted against the design file.** The design pair (`--mute` lighter than `--mute-2`'s AA floor) cannot survive contrast: the lightest AA-legal grey on this paper *is* the mute-2 tier, so shipped `--mute` steps darker; the two greys now sit ~1.15:1 apart — effectively one tier, the price of AA on this paper (mirrored in dark).
+- **`--null-rule` stops at ≈2.3:1, not 3:1** — NullPill and the warning banner are non-interactive, so WCAG 1.4.11 does not bind them, and 3:1 would read as a second ink line. Pinned in `tokens-contrast.test.ts`'s hairline block.
+- **The focus ring cannot reach 3:1 on `--accent`-filled controls** (mathematically no colour clears paper+ink+accent at once; brute-forced max 2.59). It is optimised for bg/paper/zebra/ink surfaces; `outline-offset: 2px` draws it on the parent surface anyway.
+- **Freed nicknames are immediately claimable.** A rename releases `/u/<old>` for the next taker; the warning copy promises the link stops working, which stays true — a tombstone/cool-off is a v2 nicety, not a launch gate.
+- **DreamStamp/lock badges sit at 92% paper opacity** — AA legibility over any photo beats the 72% overprint look; revisit visually if the stamp reads too solid.
+- **Modal backgrounds get `inert` only, not `aria-hidden` too** — `inert` alone removes the subtree from the tree in every shipping browser, and doubling with `aria-hidden` breaks testing-library queries.
+- **Light-theme `--mute`, `--mute-2` and the NULL family deviate from `design/uploads/tokens.css`**: the design values fail WCAG AA (4.32:1 / 2.61:1 / 3.66:1); Phase 9 darkens them minimally to pass. The source-of-truth file in `design/` is unchanged — the shipped `src/styles/tokens.css` is the accessible variant.
 
 ## v2 backlog (not planned yet)
 

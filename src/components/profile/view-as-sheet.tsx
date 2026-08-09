@@ -3,11 +3,12 @@
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState, type ReactNode } from "react";
+import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { GroupMark } from "@/components/groups/group-mark";
 import { Avatar } from "@/components/ui/avatar";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { useRovingRadio } from "@/components/ui/use-roving-radio";
 import type { AudienceOptions } from "@/components/wishes/visibility-sheet";
 
 /**
@@ -65,6 +66,29 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
     (lens === "group" && groupId !== null) ||
     (lens === "person" && userId !== null);
 
+  // Arrow keys + one tab stop per radiogroup (a11y): the lens strip and both
+  // pickers are radio groups, so they have to behave like radio groups.
+  const offeredLenses: Lens[] = [
+    "guest",
+    ...(groupLensOffered ? (["group"] as const) : []),
+    ...(personLensOffered ? (["person"] as const) : []),
+  ];
+  const lensRoving = useRovingRadio<Lens>({
+    values: offeredLenses,
+    value: lens,
+    onChange: setLens,
+  });
+  const groupRoving = useRovingRadio<string>({
+    values: candidates.groups.map((group) => group.id),
+    value: groupId,
+    onChange: setGroupId,
+  });
+  const personRoving = useRovingRadio<string>({
+    values: candidates.people.map((person) => person.userId),
+    value: userId,
+    onChange: setUserId,
+  });
+
   function openPreview() {
     if (!ready) return;
     const as =
@@ -82,7 +106,7 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-fit cursor-pointer text-left text-[12px] font-medium text-accent underline"
+        className="inline-flex min-h-11 w-fit cursor-pointer items-center text-left text-[12px] font-medium text-accent underline"
       >
         {t("viewAs.cta")}
       </button>
@@ -111,17 +135,25 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
         }
       >
         <div className="flex flex-col gap-2 pb-1">
-          <div role="radiogroup" aria-label={t("viewAs.title")}>
+          <div
+            role="radiogroup"
+            aria-label={t("viewAs.title")}
+            onKeyDown={lensRoving.onKeyDown}
+          >
             <LensRow
               label={t("viewAs.guest")}
               active={lens === "guest"}
               onClick={() => setLens("guest")}
+              tabIndex={lensRoving.tabIndex("guest")}
+              itemRef={lensRoving.itemRef("guest")}
             />
             {groupLensOffered && (
               <LensRow
                 label={t("viewAs.groupLens")}
                 active={lens === "group"}
                 onClick={() => setLens("group")}
+                tabIndex={lensRoving.tabIndex("group")}
+                itemRef={lensRoving.itemRef("group")}
               />
             )}
             {personLensOffered && (
@@ -129,18 +161,25 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
                 label={t("viewAs.personLens")}
                 active={lens === "person"}
                 onClick={() => setLens("person")}
+                tabIndex={lensRoving.tabIndex("person")}
+                itemRef={lensRoving.itemRef("person")}
               />
             )}
           </div>
 
           {lens === "group" && (
-            <Picker label={t("viewAs.pickGroup")}>
+            <Picker
+              label={t("viewAs.pickGroup")}
+              onKeyDown={groupRoving.onKeyDown}
+            >
               {candidates.groups.map((group) => (
                 <PickRow
                   key={group.id}
                   label={group.name}
                   selected={groupId === group.id}
                   onClick={() => setGroupId(group.id)}
+                  tabIndex={groupRoving.tabIndex(group.id)}
+                  itemRef={groupRoving.itemRef(group.id)}
                   mark={
                     <GroupMark
                       name={group.name}
@@ -154,13 +193,18 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
           )}
 
           {lens === "person" && (
-            <Picker label={t("viewAs.pickPerson")}>
+            <Picker
+              label={t("viewAs.pickPerson")}
+              onKeyDown={personRoving.onKeyDown}
+            >
               {candidates.people.map((person) => (
                 <PickRow
                   key={person.userId}
                   label={person.name}
                   selected={userId === person.userId}
                   onClick={() => setUserId(person.userId)}
+                  tabIndex={personRoving.tabIndex(person.userId)}
+                  itemRef={personRoving.itemRef(person.userId)}
                   mark={
                     <Avatar size="md" name={person.name} src={person.image} />
                   }
@@ -178,7 +222,15 @@ export function ViewAsSheet({ nickname, candidates }: ViewAsSheetProps) {
   );
 }
 
-function Picker({ label, children }: { label: string; children: ReactNode }) {
+function Picker({
+  label,
+  onKeyDown,
+  children,
+}: {
+  label: string;
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+  children: ReactNode;
+}) {
   return (
     <div className="flex flex-col">
       <span className="pt-2 pb-1 font-mono text-[9.5px] font-semibold tracking-[0.1em] text-mute-2 uppercase">
@@ -187,6 +239,7 @@ function Picker({ label, children }: { label: string; children: ReactNode }) {
       <div
         role="radiogroup"
         aria-label={label}
+        onKeyDown={onKeyDown}
         className="flex max-h-[40vh] flex-col overflow-y-auto"
       >
         {children}
@@ -199,10 +252,14 @@ function LensRow({
   label,
   active,
   onClick,
+  tabIndex,
+  itemRef,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  tabIndex: 0 | -1;
+  itemRef: (node: HTMLElement | null) => void;
 }) {
   return (
     <button
@@ -210,6 +267,8 @@ function LensRow({
       role="radio"
       aria-checked={active}
       onClick={onClick}
+      ref={itemRef}
+      tabIndex={tabIndex}
       className={cx(
         "flex min-h-11 w-full cursor-pointer items-center gap-2.5 border-t border-rule text-[13px] first:border-t-0",
         active && "font-semibold",
@@ -232,11 +291,15 @@ function PickRow({
   label,
   selected,
   onClick,
+  tabIndex,
+  itemRef,
   mark,
 }: {
   label: string;
   selected: boolean;
   onClick: () => void;
+  tabIndex: 0 | -1;
+  itemRef: (node: HTMLElement | null) => void;
   mark: ReactNode;
 }) {
   return (
@@ -245,6 +308,8 @@ function PickRow({
       role="radio"
       aria-checked={selected}
       onClick={onClick}
+      ref={itemRef}
+      tabIndex={tabIndex}
       className={cx(
         "flex min-h-11 w-full cursor-pointer items-center gap-2.5 border-t border-rule py-1.5 text-[13px] first:border-t-0",
         selected && "font-semibold",

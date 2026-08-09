@@ -5,6 +5,17 @@
    bg-paper, text-ink, border-rule, font-serif resolve to live CSS vars
    (theme switching keeps working because values stay var() references). */
 @theme inline {
+  /* Token classes only. Dropping Tailwind's stock palette means a colour that
+     is not in the ledger (`bg-red-500`, `text-slate-700`) compiles to nothing
+     and the class visibly does nothing — a theme-breaking colour can no longer
+     hide in a diff. The three keywords below are not palette entries; they are
+     re-declared because `border-x-transparent` (badges.tsx), `bg-transparent`
+     and `border-current` (button.tsx) rely on them. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentcolor;
+  --color-inherit: inherit;
+
   --color-bg: var(--bg);
   --color-paper: var(--paper);
   --color-zebra: var(--zebra);
@@ -49,6 +60,23 @@ body {
 ::selection {
   background: var(--accent-soft);
   color: var(--accent-ink);
+}
+
+/* The app's focus indicator for everything that is not a text entry, drawn
+   outside the box so it survives the ink-filled controls — active tab, TabBar,
+   Fab, toast bar — that would otherwise swallow it. Components must not spend
+   `outline` on a resting or selected state; use a border or an inset ring
+   there (see groups/group-appearance-fields.tsx).
+
+   Scoped away from text entries on purpose: per spec, inputs/textareas match
+   `:focus-visible` on a plain mouse click or touch tap too, not only via the
+   keyboard — so the unscoped rule painted this ring *on top of* the field's
+   own accent border + inset ring (ui/field.tsx) and every tap on the Paper
+   Ledger's deliberately quiet forms produced a triple halo. Fields keep their
+   own indicator; it is the single one they need, in every input modality. */
+:focus-visible:not(input):not(textarea):not(select):not([contenteditable]) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* Skeleton shimmer (src/components/ui/skeleton.tsx) — appended per that

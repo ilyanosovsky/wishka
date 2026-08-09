@@ -109,4 +109,25 @@ describe("ViewAsSheet", () => {
       "true",
     );
   });
+  it("is one tab stop and moves the lens with the arrow keys (roving radio)", () => {
+    renderSheet();
+
+    const guest = screen.getByRole("radio", { name: "Гость" });
+    const group = screen.getByRole("radio", { name: "Участник группы" });
+    const person = screen.getByRole("radio", { name: "Конкретный человек" });
+
+    expect(guest).toHaveAttribute("tabindex", "0");
+    expect(group).toHaveAttribute("tabindex", "-1");
+    expect(person).toHaveAttribute("tabindex", "-1");
+
+    fireEvent.keyDown(guest, { key: "ArrowDown" });
+    expect(group).toHaveAttribute("aria-checked", "true");
+    expect(group).toHaveAttribute("tabindex", "0");
+    expect(guest).toHaveAttribute("tabindex", "-1");
+
+    // Wraps backwards past the first option.
+    fireEvent.keyDown(group, { key: "ArrowUp" });
+    fireEvent.keyDown(guest, { key: "ArrowLeft" });
+    expect(person).toHaveAttribute("aria-checked", "true");
+  });
 });

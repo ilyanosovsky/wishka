@@ -4,24 +4,78 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
-import { Resend } from "resend";
+import { cookies } from "next/headers";
+import { getLocale } from "next-intl/server";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
+import {
+  DEFAULT_LOCALE,
+  isLocale,
+  LOCALE_COOKIE,
+  type Locale,
+} from "@/i18n/config";
+import { getFromAddress, getResend } from "@/lib/email/client";
+import { authCode, authCodeFooter, type AuthCodeType } from "@/lib/email/copy";
+import { renderLedgerEmail } from "@/lib/email/template";
 
-const OTP_SUBJECTS: Record<string, { subject: string; intro: string }> = {
-  "sign-in": {
-    subject: "Your Wishka sign-in code",
-    intro: "Your sign-in code:",
-  },
-  "email-verification": {
-    subject: "Confirm your email for Wishka",
-    intro: "Your confirmation code:",
-  },
-  "forget-password": {
-    subject: "Your Wishka recovery code",
-    intro: "Your recovery code:",
-  },
-};
+/**
+ * Five wrong codes are evaluated before the identifier locks out; the sixth
+ * submit answers TOO_MANY_ATTEMPTS. The login screen mirrors this number to
+ * keep «осталось N попыток» truthful — see `src/app/login/login-form.tsx`.
+ */
+export const OTP_ALLOWED_ATTEMPTS = 5;
+
+/**
+ * The code email must arrive in the language of the login screen the user is
+ * looking at. `sendVerificationOTP` runs inside that request, so next-intl's
+ * request config resolves normally; the cookie read is a belt-and-braces
+ * fallback for any future caller that is not request-scoped, because losing
+ * the sign-in email over a locale lookup would be absurd.
+ */
+async function resolveEmailLocale(): Promise<Locale> {
+  try {
+    const locale = await getLocale();
+    if (isLocale(locale)) return locale;
+  } catch {
+    // No next-intl request context — fall through to the raw cookie.
+  }
+  try {
+    const cookieValue = (await cookies()).get(LOCALE_COOKIE)?.value;
+    if (isLocale(cookieValue)) return cookieValue;
+  } catch {
+    // No request context at all.
+  }
+  return DEFAULT_LOCALE;
+}
+
+/** `Object.hasOwn`, not `in`: `"constructor" in authCode` is true, so `in`
+ *  would hand back a prototype member and make `copy.subject[locale]` throw
+ *  inside `sendVerificationOTP` — blocking the sign-in email entirely, which is
+ *  the opposite of what this fallback exists for. */
+function authCodeType(type: string): AuthCodeType {
+  return Object.hasOwn(authCode, type) ? (type as AuthCodeType) : "sign-in";
+}
+
+/**
+ * Subject + body for an OTP email, in the same Paper Ledger shell as every
+ * other transactional email (src/lib/email/reservation-emails.ts). The code
+ * sits alone on its own line so it is easy to read and to copy on a phone.
+ * Pure — exported so the copy can be tested without booting Better Auth.
+ */
+export function buildOtpEmail(
+  type: string,
+  otp: string,
+  locale: Locale,
+): { subject: string; html: string; text: string } {
+  const copy = authCode[authCodeType(type)];
+  const { html, text } = renderLedgerEmail({
+    locale,
+    heading: copy.subject[locale],
+    bodyLines: [copy.intro[locale], otp],
+    footnote: authCodeFooter[locale],
+  });
+  return { subject: copy.subject[locale], html, text };
+}
 
 /** Misconfiguration must fail at boot, not at first login. */
 function assertAuthEnv() {
@@ -39,7 +93,6 @@ function assertAuthEnv() {
 
 function createAuth() {
   assertAuthEnv();
-  const resend = new Resend(process.env.RESEND_API_KEY);
 
   return betterAuth({
     baseURL: process.env.NEXT_PUBLIC_APP_URL,
@@ -67,16 +120,17 @@ function createAuth() {
       emailOTP({
         otpLength: 6,
         expiresIn: 60 * 15, // 15 min, matches the UI copy in DESIGN_BRIEF §6.1
-        allowedAttempts: 5,
+        allowedAttempts: OTP_ALLOWED_ATTEMPTS,
         storeOTP: "hashed", // the code IS the credential — never store plaintext
         async sendVerificationOTP({ email, otp, type }) {
-          const { subject, intro } =
-            OTP_SUBJECTS[type] ?? OTP_SUBJECTS["sign-in"];
-          const { error } = await resend.emails.send({
-            from: process.env.EMAIL_FROM ?? "Wishka <onboarding@resend.dev>",
+          const locale = await resolveEmailLocale();
+          const { subject, html, text } = buildOtpEmail(type, otp, locale);
+          const { error } = await getResend().emails.send({
+            from: getFromAddress(),
             to: email,
             subject,
-            text: `${intro} ${otp}\n\nThe code expires in 15 minutes. If you didn't request it, just ignore this email.`,
+            html,
+            text,
           });
           // Resend returns errors instead of throwing; surface them so the
           // failure reaches the logger instead of silently "succeeding".

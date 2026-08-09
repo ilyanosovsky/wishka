@@ -3,13 +3,12 @@
     "title": "Wishka",
     "tagline": "A wishlist you'll love to share"
   },
+  "meta": {
+    "description": "A wishlist you'll love to share: paste a link and the card builds itself, while friends reserve gifts without you ever seeing it."
+  },
   "home": {
-    "status": "UNDER CONSTRUCTION",
-    "underConstruction": "The wishlist service will live here soon. For now — a Paper Ledger design-system smoke test.",
     "wishesCount": "{count, plural, one {# wish} other {# wishes}}",
-    "signIn": "Sign in",
-    "signOut": "Sign out",
-    "greeting": "Hi, {name}! Your wishlist arrives here in Phase 4."
+    "signOut": "Sign out"
   },
   "auth": {
     "login": {
@@ -30,7 +29,8 @@
       "expired": "The code expired — request a new one",
       "tooMany": "Too many attempts — try again later or change the email",
       "resend": "Send a new code",
-      "resendIn": "Resend available in {seconds}s"
+      "resendIn": "Resend available in {seconds}s",
+      "digitLabel": "Digit {n}"
     },
     "onboarding": {
       "title": "Almost there",
@@ -41,10 +41,10 @@
       "name": "Name",
       "nickname": "Nickname",
       "nicknameTaken": "Taken — try another one",
-      "nicknameInvalid": "Only lowercase letters, digits and dashes, 3+ characters",
+      "nicknameInvalid": "Lowercase letters, digits and dashes, 3–30 characters",
       "currency": "Base currency",
       "currencyHint": "Pre-filled for new wishes; each wish can use its own",
-      "done": "Done — to my list",
+      "done": "Done — go to my list",
       "saving": "Saving…",
       "skip": "Skip — I'll fill it in later"
     }
@@ -100,9 +100,9 @@
   "common": {
     "cancel": "Cancel",
     "delete": "Delete",
+    "removeItem": "Remove {name}",
     "save": "Save",
     "undo": "Undo",
-    "close": "Close",
     "back": "Back",
     "actionFailed": "Something went wrong — try again"
   },
@@ -118,7 +118,7 @@
     "sortPrice": "By price",
     "viewCards": "Cards",
     "viewLedger": "Ledger",
-    "emptyTitle": "The first entry is yours",
+    "emptyTitle": "The first entry is up to you",
     "emptyBody": "Paste a link to something you want, or fill the card in by hand.",
     "emptyCta": "Add a wish",
     "filteredEmpty": "Nothing matches these filters",
@@ -137,8 +137,9 @@
     "typeExperience": "Experience",
     "typeService": "Service",
     "typeCertificate": "Gift card",
+    "typeLabel": "Type",
     "nameLabel": "Name",
-    "nameRequired": "A name is required",
+    "nameRequired": "Give it a name first",
     "linkLabel": "Link",
     "photoLabel": "Photo",
     "photoUploading": "Preparing the photo…",
@@ -150,7 +151,7 @@
     "priceNone": "No price",
     "priceFrom": "from",
     "priceTo": "to",
-    "priceInvalid": "Check the price: 'from' can't exceed 'to'",
+    "priceInvalid": "Check the price: “from” can't exceed “to”",
     "currencyLabel": "Currency",
     "currencySearch": "Search currencies",
     "currencyRecent": "Base and recent",
@@ -162,7 +163,6 @@
     "notesLabel": "Notes",
     "notesPlaceholder": "Size, color, \"get the black one\"…",
     "visibilityLabel": "Who can see",
-    "visibilityEveryone": "Everyone",
     "submit": "Add to the list",
     "save": "Save",
     "saving": "Saving…",
@@ -171,11 +171,12 @@
     "draftTitle": "Save the draft?",
     "draftDiscard": "Discard",
     "draftKeep": "Save",
-    "typeLabel": "Type",
     "errorGeneric": "Couldn't save — try again",
     "priceMissing": "Enter a price",
     "linkInvalid": "The link must start with http(s)://",
-    "descriptionLabel": "Description"
+    "descriptionLabel": "Description",
+    "photoTooLarge": "That file is too large",
+    "photoNotImage": "That's not an image"
   },
   "detail": {
     "openInStore": "Open in store",
@@ -185,7 +186,7 @@
     "giftedTitle": "Already gifted?",
     "giftedWho": "Who gifted it (optional)",
     "giftedHint": "Type it yourself — we never suggest from reservations",
-    "giftedConfirm": "To archive",
+    "giftedConfirm": "Move to archive",
     "deleteTitle": "Delete this wish?",
     "deleteDesc": "You can bring it back within 5 seconds.",
     "deletedToast": "Wish deleted",
@@ -193,9 +194,9 @@
   },
   "archive": {
     "title": "Archive",
-    "countLabel": "{count, plural, one {# gift} other {# gifts}} · not counted in the list",
+    "countLabel": "{count, plural, =0 {} one {# gift · not counted in the list} other {# gifts · not counted in the list}}",
     "empty": "Gifts you've already received will live here",
-    "restore": "Back to the list",
+    "restore": "Restore to my list",
     "deleteForever": "Delete forever",
     "confirmTitle": "Delete forever?",
     "confirmDesc": "This cannot be undone."
@@ -203,10 +204,10 @@
   "people": {
     "title": "People",
     "groupsTab": "Groups",
-    "reservationsTab": "My bookings"
+    "reservationsTab": "My reservations"
   },
   "groups": {
-    "emptyTitle": "Groups — your favorite people's lists in one place",
+    "emptyTitle": "Groups — the lists of the people close to you, in one place",
     "emptyBody": "Create a group and invite the people close to you — their lists will live here.",
     "create": "Create a group",
     "haveInvite": "I have an invite",
@@ -214,7 +215,7 @@
     "createTitle": "New group",
     "nameLabel": "Name",
     "namePlaceholder": "Family",
-    "nameRequired": "A name is required",
+    "nameRequired": "Give it a name first",
     "emojiLabel": "Emoji",
     "colorLabel": "Color",
     "createCta": "Create",
@@ -232,7 +233,7 @@
     "revokeTitle": "Revoke the invite link?",
     "revokeBody": "The old link stops working. You can create a new one any time.",
     "revokedToast": "Link revoked",
-    "youAdmin": "You're an admin",
+    "youAdmin": "Admin",
     "rename": "Rename",
     "renameTitle": "Rename the group",
     "appearance": "Emoji and color",
@@ -273,7 +274,14 @@
     "title": "Profile",
     "settings": "Settings",
     "copyLink": "Copy",
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "signOutTitle": "Sign out?",
+    "signOutBody": "Wish drafts on this device will be removed",
+    "nameLabel": "Name",
+    "avatarChange": "Change photo",
+    "nicknameSheetTitle": "Change nickname",
+    "nicknameWarning": "The old link will stop working",
+    "currencyLabel": "Base currency"
   },
   "tabs": {
     "list": "My list",
@@ -286,6 +294,7 @@
     "urlLabel": "Product link",
     "urlPlaceholder": "https://…",
     "pasteClipboard": "Paste from clipboard",
+    "clipboardNoLink": "No link in the clipboard — paste one into the field",
     "parseCta": "Add from link",
     "orManual": "or",
     "manualCta": "Fill in manually",
@@ -333,13 +342,14 @@
     "whatMatters": "Good to know",
     "sizes": "Sizes",
     "tastes": "Tastes",
-    "noGift": "Please don't gift",
+    "noGift": "Please don't gift these",
     "filterAll": "All",
     "filterFree": "Available only",
-    "emptyOwner": "{name} has no wishes yet",
+    "filterLabel": "Filter",
+    "emptyOwner": "{name}'s list is empty so far",
     "emptyOwnerHint": "Check \"Good to know\" — there are gift hints there.",
     "allReserved": "All taken 🎉",
-    "backToList": "See {name}'s full list →",
+    "backToList": "See {name}'s whole list →",
     "fromList": "From: {name}"
   },
   "share": {
@@ -347,9 +357,6 @@
     "copyLink": "Copy link",
     "copied": "Link copied",
     "shareVia": "Share…",
-    "qr": "Show QR",
-    "shareList": "The list",
-    "shareWish": "This wish",
     "restrictedWarningTitle": "This wish isn't visible to everyone",
     "restrictedWarningBody": "Even with the direct link, only the people it's shared with can open it.",
     "shareAnyway": "Share anyway"
@@ -367,10 +374,11 @@
     "addNoGift": "Add",
     "tastePlaceholder": "e.g. love tea, board games",
     "empty": "empty",
-    "fillHint": "Fill this in so people can gift you better",
-    "publicNote": "Your profile is open by link — anyone you send it to can see it",
+    "fillHint": "Fill this in so people can pick better gifts for you",
+    "publicNote": "Anyone with the link can see your profile — it's public to whoever you send it to",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "customName": "Custom parameter"
   },
   "reserve": {
     "cta": "Reserve it",
@@ -378,38 +386,38 @@
     "confirmBody": "We won't tell anyone 😉 The owner will never know the gift is taken.",
     "confirmCta": "Reserve",
     "reservedToast": "Reserved for you",
-    "unreserveCta": "Release booking",
-    "unreserveTitle": "Release this booking?",
+    "unreserveCta": "Cancel reservation",
+    "unreserveTitle": "Cancel this reservation?",
     "unreserveBody": "The wish will become available to others again.",
-    "unreservedToast": "Booking released",
+    "unreservedToast": "Reservation cancelled",
     "conflictTitle": "Oh no, someone just took it",
     "conflictBody": "Someone got there first — see what's still available.",
     "conflictCta": "See what's available",
     "goneTitle": "The owner deleted this wish",
     "goneCta": "Back to the list",
     "reservedElseHint": "See what else is available",
-    "otherDeviceHint": "Was it you who booked it? Open the link from your email to pick it up on this device.",
-    "guestFormTitle": "How should we note you down?",
+    "otherDeviceHint": "Was it you who reserved it? Open the link from your email to pick it up on this device.",
+    "guestFormTitle": "What should we call you?",
     "guestNameLabel": "Name",
-    "guestNameRequired": "Tell us your name — that's how we'll remember the booking",
+    "guestNameRequired": "Tell us your name — that's how we'll remember the reservation",
     "guestEmailLabel": "Email (optional)",
-    "guestEmailHint": "We'll send a confirmation and a link to manage the booking",
+    "guestEmailHint": "We'll send a confirmation and a link to manage the reservation",
     "guestEmailInvalid": "Looks like a typo in the address",
     "guestSubmit": "Reserve",
     "successTitle": "Done! We'll remember you on this device",
-    "successBody": "The owner won't know a thing — bookings are visible only to the list's guests.",
-    "successEmailPrompt": "Leave your email — we'll send a link to manage the booking from any device",
+    "successBody": "The owner won't know a thing — reservations are visible only to the list's guests.",
+    "successEmailPrompt": "Leave your email — we'll send a link to manage the reservation from any device",
     "successEmailLabel": "Email",
     "successEmailSave": "Save email",
     "successEmailSaved": "Done — the email is on its way",
     "successDone": "Got it",
-    "switchTitle": "Open bookings from this link?",
-    "switchBody": "This device already holds another guest's bookings. Switching makes those unreachable here — you'll only be able to get them back via the link in your own email.",
+    "switchTitle": "Open reservations from this link?",
+    "switchBody": "This device already holds another guest's reservations. Switching makes those unreachable here — you'll only be able to get them back via the link in your own email.",
     "switchConfirm": "Switch",
     "switchKeep": "Keep current"
   },
   "myReservations": {
-    "title": "My bookings",
+    "title": "My reservations",
     "empty": "Gifts you reserve will show up here.",
     "emailsNote": "We email you about owner changes",
     "stateChanged": "The owner edited this wish",
@@ -420,13 +428,13 @@
     "stateDeleted": "The owner deleted this wish",
     "stateGiven": "Gift delivered",
     "wasTitled": "Was: {title}",
-    "unreserve": "Release booking",
+    "unreserve": "Cancel reservation",
     "dismiss": "Remove",
     "recentTitle": "Recently viewed lists",
-    "mergeFound": "{count, plural, one {Found # guest booking of yours — move it to your account?} other {Found # guest bookings of yours — move them to your account?}}",
+    "mergeFound": "{count, plural, one {Found # guest reservation of yours — move it to your account?} other {Found # guest reservations of yours — move them to your account?}}",
     "mergeCta": "Move them",
     "mergeLater": "Not now",
-    "mergedToast": "Bookings moved to your account"
+    "mergedToast": "Reservations moved to your account"
   },
   "visibility": {
     "title": "Who can see it",
@@ -442,7 +450,7 @@
     "emptyAudience": "Pick at least one — otherwise only you will see this wish",
     "summaryEveryone": "Everyone",
     "summaryRestricted": "{count, plural, one {# recipient} other {# recipients}}",
-    "narrowNote": "If narrowing this takes the wish away from someone who reserved it, their booking stays theirs and we email them.",
+    "narrowNote": "If narrowing this takes the wish away from someone who reserved it, their reservation stays theirs and we email them.",
     "done": "Done"
   },
   "partner": {
@@ -458,12 +466,11 @@
   "viewAs": {
     "cta": "See how others see it",
     "title": "How others see it",
-    "guest": "A guest",
-    "groupLens": "A group member",
-    "personLens": "A specific person",
+    "guest": "Guest",
+    "groupLens": "Group member",
+    "personLens": "Specific person",
     "pickGroup": "Pick a group",
     "pickPerson": "Pick a person",
-    "banner": "Preview",
     "bannerGuest": "Preview: as a guest sees it",
     "bannerGroup": "Preview: a member of \"{name}\"",
     "bannerPerson": "Preview: {name}",
@@ -474,7 +481,7 @@
   "account": {
     "delete": "Delete account",
     "deleteTitle": "Delete your account?",
-    "deleteBody": "Your list, archive and profile will be deleted. Groups you administer pass to their other members — and disappear with you if you're the only one left. Bookings you made on other people's lists are released, and bookings other people made on your wishes disappear along with your list. This cannot be undone.",
+    "deleteBody": "Your list, archive and profile will be deleted. Groups you administer pass to their other members — and disappear with you if you're the only one left. Reservations you made on other people's lists are released, and reservations other people made on your wishes disappear along with your list. This cannot be undone.",
     "deleteConfirm": "Delete forever",
     "deleting": "Deleting…",
     "deleteFailed": "Couldn't delete — please try again"
@@ -486,7 +493,9 @@
     "noAccessCta": "Home",
     "sessionExpiredTitle": "Your session expired",
     "sessionExpiredCta": "Sign in again",
-    "expiredInviteTitle": "This invitation has expired",
-    "expiredInviteCta": "Ask for a new link"
+    "expiredInviteTitle": "This invite has expired",
+    "expiredInviteCta": "Ask for a new link",
+    "notFoundTitle": "There's no such page",
+    "notFoundCta": "Go home"
   }
 }

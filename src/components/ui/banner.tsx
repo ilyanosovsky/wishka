@@ -33,6 +33,10 @@ export function AlertBanner({
 }: AlertBannerProps) {
   return (
     <div
+      /* A tone="error" banner is the app's only channel for "your save
+         failed" — role="alert" makes it interrupt; everything else is a
+         polite status update (WCAG 4.1.3). */
+      role={tone === "error" ? "alert" : "status"}
       className={cx(
         "flex items-center gap-3 border-l-[3px] py-1.5 pr-3 pl-3 text-[12px]",
         TONE_CLASS[tone],
@@ -44,7 +48,7 @@ export function AlertBanner({
         (actionHref ? (
           <a
             href={actionHref}
-            className="flex-none font-semibold underline-offset-2 hover:underline"
+            className="inline-flex min-h-11 flex-none items-center px-1 font-semibold underline-offset-2 hover:underline"
           >
             {actionLabel}
           </a>
@@ -52,7 +56,7 @@ export function AlertBanner({
           <button
             type="button"
             onClick={onAction}
-            className="flex-none font-semibold underline-offset-2 hover:underline"
+            className="inline-flex min-h-11 flex-none cursor-pointer items-center px-1 font-semibold underline-offset-2 hover:underline"
           >
             {actionLabel}
           </button>
