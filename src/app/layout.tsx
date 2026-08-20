@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Literata, Newsreader } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { OfflineBanner } from "@/components/offline-banner";
+import { getBrandSocialMetadata, getMetadataBase } from "@/lib/metadata";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -32,9 +33,13 @@ const jetbrainsMono = JetBrains_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
+  const description = t("meta.description");
   return {
+    metadataBase: getMetadataBase(),
     title: { default: "Wishka", template: "%s · Wishka" },
-    description: t("meta.description"),
+    description,
+    applicationName: "Wishka",
+    ...getBrandSocialMetadata(description),
   };
 }
 

@@ -86,6 +86,7 @@ Run through these against the production URL before calling a deploy done:
 - [ ] **Add a wish by URL** — paste a real product link, confirm the card assembles (image, title, price).
 - [ ] **AI assists are visible** — add-by-words entry point and the description/price suggestion cards appear on the wish form (quota permitting).
 - [ ] **Share link** — copy a list link from the share sheet, open it in a private/incognito window, confirm the public list renders.
+- [ ] **Messenger preview** — paste the root URL, a public list URL, and a public wish URL into a test chat; confirm each renders a large image, title, and description (use a one-off query string if that messenger cached an older card).
 - [ ] **Reserve as a guest** — from that incognito window, reserve a wish without signing in; confirm the owner's own view of that wish shows no trace of the reservation (product invariant #1).
 - [ ] **Emails arrive** — the guest booking confirmation and a wish-changed notice (edit the reserved wish's title as the owner) both land in the recipient's inbox.
 

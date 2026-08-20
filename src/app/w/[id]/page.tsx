@@ -21,6 +21,7 @@ import { countActiveGuestReservations } from "@/db/access/guest-identities";
 import { getPublicIdentityByUserId } from "@/db/access/public-identity";
 import type { ReservationStatus } from "@/db/access/types";
 import { getVisibleWish } from "@/db/access/viewer";
+import { getBrandSocialMetadata, getSocialPreview } from "@/lib/metadata";
 import { loginHrefWithNext } from "@/lib/next-param";
 import { formatPrice } from "@/lib/price";
 import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
@@ -55,10 +56,11 @@ const RESERVATION_TO_STATUS: Record<ReservationStatus, WishStatus> = {
  * wish therefore falls out as `null` and gets bare brand metadata: the card
  * cannot say more than the page would.
  *
- * Only title, description and the re-hosted image go in — invariant #6 keeps
- * the URL on our own storage, and nothing derived from a reservation (the
- * `reservationStatus` this read also carries) may ever appear here: the owner's
- * own wish links through the same route.
+ * Only title, description and the re-hosted image go in. If no wish image is
+ * publishable, the static branded preview is used instead. Invariant #6 keeps
+ * every image URL on our own storage, and nothing derived from a reservation
+ * (the `reservationStatus` this read also carries) may ever appear here: the
+ * owner's own wish links through the same route.
  *
  * `robots: index: false` — shared links are for the people they were sent to,
  * not for search engines (Phase 9 production-readiness audit, finding 1).
@@ -70,12 +72,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const t = await getTranslations();
+  const brandDescription = t("meta.description");
   // `absolute` so the root layout's `%s · Wishka` template does not turn the
   // fallback — the card a stranger sees on a dead or restricted link — into
   // "Wishka · Wishka".
   const generic: Metadata = {
     title: { absolute: "Wishka" },
+    description: brandDescription,
     robots: { index: false, follow: false },
+    ...getBrandSocialMetadata(brandDescription),
   };
 
   const wish = await getVisibleWish(getDb(), id, { anonymous: true });
@@ -84,6 +89,7 @@ export async function generateMetadata({
   const description = wish.description ?? t("meta.description");
   const image =
     wish.imageStatus === "ready" && wish.imageKey ? wish.imageKey : null;
+  const images = image ? [image] : [getSocialPreview(description)];
 
   return {
     ...generic,
@@ -93,13 +99,14 @@ export async function generateMetadata({
       type: "website",
       title: wish.title,
       description,
-      ...(image ? { images: [image] } : {}),
+      siteName: "Wishka",
+      images,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: wish.title,
       description,
-      ...(image ? { images: [image] } : {}),
+      images,
     },
   };
 }
