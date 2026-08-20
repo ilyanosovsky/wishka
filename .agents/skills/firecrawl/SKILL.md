@@ -356,4 +356,4 @@ to sign up at https://www.firecrawl.dev/signin.
 
 - In this repo Firecrawl is **parsing layer L3** (see IMPLEMENTATION_PLAN.md Phase 5): called from app code via REST/SDK with `FIRECRAWL_API_KEY` from `.env.local` — that's **Path B** above.
 - For live scraping during development, the `firecrawl` MCP server is registered in the local Codex config (`Codex mcp login firecrawl` to authenticate) — that's Path A; no CLI install needed.
-- **Never put API keys in this or any repo file.** Keys live only in `.env.local` (gitignored) and Vercel env settings.
+- **Never add API keys to tracked repository files.** Keys live only in `.env.local` (gitignored) and Vercel env settings.
