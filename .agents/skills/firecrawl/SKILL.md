@@ -25,7 +25,7 @@ the workflow skills for producing repeatable deliverables. It also opens
 browser auth so the human can sign in or create an account.
 
 ```bash
-npx -y firecrawl-cli@latest init --all --browser
+npx -y firecrawl-cli@1.19.6 init --all --browser
 ```
 
 This gives you:
@@ -243,7 +243,7 @@ CODE_CHALLENGE=$(printf '%s' "$CODE_VERIFIER" | openssl dgst -sha256 -binary | o
 
 **Step 2 — Ask the human to open this URL:**
 
-```
+```text
 https://www.firecrawl.dev/cli-auth?code_challenge=$CODE_CHALLENGE&source=coding-agent#session_id=$SESSION_ID
 ```
 
@@ -267,8 +267,14 @@ Poll every 3 seconds. Responses:
 
 **Step 4 — Save the key and continue:**
 
+Prefer the browser OAuth flow above. If OAuth is unavailable and the human
+must enter an existing dashboard key manually, keep it out of shell history
+and save it only in the gitignored `.env.local` file:
+
 ```bash
-echo "FIRECRAWL_API_KEY=fc-..." >> .env
+read -rsp 'Firecrawl API key: ' FIRECRAWL_API_KEY
+printf '\nFIRECRAWL_API_KEY=%s\n' "$FIRECRAWL_API_KEY" >> .env.local
+unset FIRECRAWL_API_KEY
 ```
 
 ---
@@ -332,7 +338,7 @@ SDK). It is rate-limited, so use it as a fallback rather than the
 default.
 
 - **MCP**: point any MCP-compatible client at `https://mcp.firecrawl.dev/v2/mcp`
-- **CLI**: run `npx -y firecrawl-cli@latest` and use `scrape`, `search`, `interact`, or `parse` with no login
+- **CLI**: run `npx -y firecrawl-cli@1.19.6` and use `scrape`, `search`, `interact`, or `parse` with no login
 - **API**: the research index endpoints (`/search/research/*`) can be called without an `Authorization` header
 
 Search, scrape, interact, parse, and the research index are available
