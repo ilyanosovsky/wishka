@@ -17,7 +17,7 @@
 | 6 | AI assists: text-to-wish, suggestions, image gen, quotas | — | ✅ done |
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
 | 8 | Groups, partner, visibility, view-as | 8a PR #9 · 8b PR #10 | ✅ |
-| 9 | Polish & launch: i18n/dark audit, a11y, prod config | — | ✅ |
+| 9 | Polish & launch: i18n/dark audit, a11y, prod config | PR #12 · PR #13 | ✅ |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
 
@@ -144,6 +144,8 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ✅ Six-way audit (i18n, EN copy, dark/contrast, a11y, states-vs-brief, prod-readiness) + fixes. EN pass: reserve/reservation terminology unified, calques rewritten, dead keys pruned; RU: guest flows on вы, case-safe name strings. Dark/contrast: every applicable text and UI-component token pair reaches WCAG AA in both themes (documented hairline/focus-ring exceptions live under "Accepted deviations"), pinned by `src/styles/tokens-contrast.test.ts`; `color-scheme` declared; non-token color utilities fail the build. A11y: modal focus trap/restore + inert, `--focus-ring` + global `:focus-visible`, roving arrow keys on tabs and radiogroups, 44px targets, aria-invalid/alert semantics, keyboard-reachable file pickers, undo-toast pauses on hover/focus, localized OTP digit labels.
 - ✅ States-vs-brief sweep (full §6 matrix in the Phase 9 audit): public pages show display name + avatar (new `public-identity` read), profile editing added (avatar/name/nickname with live check + old-link warning/base currency), sign-out confirmation, custom size params, offline banner global, edit-not-found CTA, clipboard paste validates URLs, photo errors split (too large / not an image). OTP emails localized through the shared ledger template.
 - ✅ Production config: robots.ts + per-page noindex on share routes, security headers + CSP, localized root 404, Paper Ledger favicon, title template + localized meta description + OG/twitter gated by anonymous visibility, `db-backup.yml` (age-encrypted pg_dump artifact, inert until `BACKUP_ENABLED`; setup in wiki `Deployment.md`).
+- ✅ Launch follow-up: branded 1200×630 Open Graph/Twitter preview on the root URL, absolute metadata URLs from `NEXT_PUBLIC_APP_URL`, and privacy-safe branded fallbacks for public-list/wish links without a publishable image. Preview dimensions and metadata behavior are covered by tests; sharing/deployment wiki pages document crawler and cache behavior.
+- ✅ Repository agent setup: shared `AGENTS.md` rules plus repo-local Firecrawl skill and OAuth MCP declaration (`.agents/`, `.codex/`), with the credential-free setup documented in `Local-Setup.md`.
 - ✅ README refreshed (badges, wiki pointers, honest demo/screenshot placeholders). ⬜ Post-deploy (user actions): Vercel import + envs, Google OAuth prod redirect, Resend domain, UploadThing prod app, backup secrets (`DATABASE_URL`, `AGE_PUBLIC_KEY`, `BACKUP_ENABLED`), then screenshots + live demo link in README. `CONTRIBUTING.md` deferred until community shows up.
 - **Wiki:** ✅ `Deployment.md`. **Model:** Fable orchestration; Opus kit/auth/forms fixers + audits, Sonnet shell/prod.
 

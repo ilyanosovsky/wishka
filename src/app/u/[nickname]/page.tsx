@@ -19,6 +19,7 @@ import {
 import type { PreviewViewer } from "@/db/access/types";
 import { getAudienceCandidates } from "@/db/access/visibility";
 import { getVisibleWishes, getWishesAsSeenBy } from "@/db/access/viewer";
+import { getBrandSocialMetadata, getSocialPreview } from "@/lib/metadata";
 import { extractStorageKey } from "@/lib/storage/uploadthing";
 import { resolveGuestIdentity, resolveViewer } from "@/lib/viewer";
 
@@ -99,8 +100,9 @@ async function resolvePreview(
 /**
  * Share-card metadata (§6.8 — these links are made to be pasted into a chat).
  * Only the owner's *public* identity goes in: display name and the avatar we
- * re-hosted ourselves. Never a wish, never a count, and never anything derived
- * from reservations — the owner opens this URL too.
+ * re-hosted ourselves. Without a publishable avatar, the card uses the static
+ * branded preview. Never a wish, never a count, and never anything derived from
+ * reservations — the owner opens this URL too.
  *
  * `robots: index: false` — a list is shared with the people its owner sends it
  * to, not with search engines (Phase 9 production-readiness audit, finding 1).
@@ -118,9 +120,12 @@ export async function generateMetadata({
   // about whether that nickname exists. `absolute` because the root layout's
   // `%s · Wishka` template would otherwise render "Wishka · Wishka".
   if (!identity) {
+    const description = t("meta.description");
     return {
       title: { absolute: "Wishka" },
+      description,
       robots: { index: false, follow: false },
+      ...getBrandSocialMetadata(description),
     };
   }
 
@@ -133,6 +138,7 @@ export async function generateMetadata({
   // putting it here would publish a Google CDN URL into every link preview.
   const image =
     identity.image && extractStorageKey(identity.image) ? identity.image : null;
+  const images = image ? [image] : [getSocialPreview(description)];
   return {
     title,
     description,
@@ -141,13 +147,14 @@ export async function generateMetadata({
       type: "profile",
       title,
       description,
-      ...(image ? { images: [image] } : {}),
+      siteName: "Wishka",
+      images,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      ...(image ? { images: [image] } : {}),
+      images,
     },
   };
 }

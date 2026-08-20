@@ -29,6 +29,15 @@ Tests do NOT need a database — they run the same migrations on in-process PGli
 
 Google Cloud Console → Credentials → OAuth client (Web): authorized redirect URI = `<NEXT_PUBLIC_APP_URL>/api/auth/callback/google` (add both `http://localhost:3000/...` and the production URL).
 
+### Agent tooling (optional)
+
+The repository includes shared coding-agent instructions in `AGENTS.md`, a
+Firecrawl skill entry point in `.agents/skills/firecrawl/SKILL.md`, and a
+repo-local Codex MCP declaration in `.codex/config.toml`. The MCP declaration
+uses Firecrawl's OAuth endpoint; no API key or session credential is committed.
+Each contributor authorizes their own Firecrawl account locally when they use
+the integration.
+
 ## Quality gate (same as CI)
 
 ```bash

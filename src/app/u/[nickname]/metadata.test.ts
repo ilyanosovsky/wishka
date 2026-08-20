@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { SOCIAL_PREVIEW_PATH } from "@/lib/metadata";
+
 /**
- * §6.8 share card for a public list. Two rules are pinned here, both of which
- * shipped broken in Phase 9:
+ * §6.8 share card for a public list. The privacy and fallback rules are pinned
+ * here because they are easy to regress while polishing messenger previews:
  *  - the unknown-nickname fallback must be an *absolute* title, or the root
  *    layout's `%s · Wishka` template renders "Wishka · Wishka";
- *  - only an image on our own storage may enter `og:image`/`twitter:image`.
+ *  - only an image on our own storage may replace the branded fallback in
+ *    `og:image`/`twitter:image`.
  *    `user.image` is a hotlinked `lh3.googleusercontent.com` URL for anyone
  *    who signed in with Google and never uploaded an avatar (invariant #6 has
  *    re-hosting as a backlog item), and a share card is the one place that URL
@@ -44,7 +47,9 @@ describe("/u/[nickname] share card", () => {
     const meta = await metadataFor("nobody");
     expect(meta.title).toEqual({ absolute: "Wishka" });
     expect(meta.robots).toEqual({ index: false, follow: false });
-    expect(meta.openGraph).toBeUndefined();
+    expect(meta.openGraph?.images).toEqual([
+      expect.objectContaining({ url: SOCIAL_PREVIEW_PATH }),
+    ]);
   });
 
   it("publishes an avatar that lives on our own storage", async () => {
@@ -71,9 +76,10 @@ describe("/u/[nickname] share card", () => {
       image: GOOGLE,
     });
     const meta = await metadataFor("masha");
-    expect(meta.openGraph).not.toHaveProperty("images");
-    expect(meta.twitter).toMatchObject({ card: "summary" });
-    expect(meta.twitter).not.toHaveProperty("images");
+    expect(meta.openGraph?.images).toEqual([
+      expect.objectContaining({ url: SOCIAL_PREVIEW_PATH }),
+    ]);
+    expect(meta.twitter).toMatchObject({ card: "summary_large_image" });
     expect(JSON.stringify(meta)).not.toContain("googleusercontent");
   });
 
