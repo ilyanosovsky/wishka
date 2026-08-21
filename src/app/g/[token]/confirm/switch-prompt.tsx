@@ -16,7 +16,7 @@ export function SwitchPrompt({ token, next }: { token: string; next: string }) {
   const [pending, start] = useTransition();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-5 px-6 text-center">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-5 px-6 text-center lg:max-w-2xl lg:border-x lg:border-rule lg:bg-paper">
       <h1 className="font-serif text-[19px] font-semibold">
         {t("switchTitle")}
       </h1>

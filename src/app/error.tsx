@@ -13,7 +13,7 @@ export default function RouteError({
   const t = useTranslations("list");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-6 text-center">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-6 text-center lg:max-w-2xl lg:border-x lg:border-rule lg:bg-paper">
       <p className="font-serif text-[19px] font-semibold">{t("loadError")}</p>
       <Button onClick={reset}>{t("retry")}</Button>
     </main>

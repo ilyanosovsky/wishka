@@ -225,7 +225,7 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-16">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-16 lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-12">
       <Link
         href="/people"
         className="inline-flex min-h-11 items-center gap-1.5 self-start text-[12.5px] text-mute"
@@ -265,7 +265,7 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
         </button>
       </header>
 
-      <ul className="flex flex-col pt-1.5">
+      <ul className="grid grid-cols-1 pt-1.5 lg:grid-cols-2 lg:gap-x-6">
         {group.members.map((member) => (
           <MemberRow
             key={member.userId}
@@ -290,7 +290,7 @@ export function GroupDetail({ group, viewerId }: GroupDetailProps) {
       </div>
 
       {/* v2 slot (§6.7). Dashed and muted so it reads as "not yet", not "broken". */}
-      <section className="mt-6 border border-dashed border-rule-2 bg-zebra px-3.5 py-3">
+      <section className="mt-6 border border-dashed border-rule-2 bg-zebra px-3.5 py-3 lg:max-w-2xl">
         <h2 className="font-serif text-[14px] font-semibold text-mute">
           {t("groups.soonTitle")}
         </h2>

@@ -16,7 +16,7 @@ export function ServiceScreen({
   ctaHref,
 }: ServiceScreenProps) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-5 text-center">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-5 text-center lg:max-w-2xl lg:border-x lg:border-rule lg:bg-paper">
       <h1 className="font-serif text-[19px] font-semibold">{title}</h1>
       <Link
         href={ctaHref}

@@ -16,6 +16,7 @@ export function AppTabBar() {
   return (
     <TabBar
       ariaLabel={t("navLabel")}
+      desktopBrand="Wishka"
       items={[
         { key: "list", label: t("list"), icon: List, href: "/" },
         { key: "people", label: t("people"), icon: Users, href: "/people" },

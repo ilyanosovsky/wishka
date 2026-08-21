@@ -103,7 +103,7 @@ export function Dialog({
         /* -1: the panel itself takes focus on open when it has no focusable
            child, and stays out of the tab sequence otherwise. */
         tabIndex={-1}
-        className="relative w-[300px] max-w-full border border-rule-2 bg-paper shadow-[var(--shadow-dialog)]"
+        className="relative w-[300px] max-w-full border border-rule-2 bg-paper shadow-[var(--shadow-dialog)] lg:w-[420px]"
       >
         <div
           id={titleId}

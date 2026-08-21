@@ -66,14 +66,15 @@ export function BottomSheet({
       />
       <div
         ref={panelRef}
+        data-open={open}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         /* -1: takes focus on open when the sheet has no focusable child. */
         tabIndex={-1}
-        className={`absolute inset-x-0 bottom-0 border-t border-rule-2 bg-paper shadow-[var(--shadow-bottom-sheet)] transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)] ${
+        className={`bottom-sheet-panel absolute inset-x-0 bottom-0 border-t border-rule-2 bg-paper shadow-[var(--shadow-bottom-sheet)] transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)] ${
           open ? "translate-y-0" : "translate-y-full"
-        }`}
+        } ${open ? "lg:opacity-100" : "lg:opacity-0"}`}
       >
         <div className="flex justify-center pt-2 pb-0.5">
           <span aria-hidden className="h-[3px] w-9 bg-rule-2" />

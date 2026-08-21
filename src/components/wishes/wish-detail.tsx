@@ -199,7 +199,7 @@ export function WishDetail({ wish }: WishDetailProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-40">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-40 lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-12">
       <div className="pb-3">
         <Link
           href="/"
@@ -210,7 +210,11 @@ export function WishDetail({ wish }: WishDetailProps) {
         </Link>
       </div>
 
-      <article className={removed ? "opacity-50" : undefined}>
+      <article
+        className={`lg:grid lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)] lg:items-start lg:gap-8 ${
+          removed ? "opacity-50" : ""
+        }`}
+      >
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-rule-2">
           {/* Keyframes live with whichever component needs them first — see
               the identical block in wish-card.tsx; same href dedupes it. */}
@@ -300,74 +304,76 @@ export function WishDetail({ wish }: WishDetailProps) {
           )}
         </div>
 
-        <h1
-          className="pt-4 font-serif text-[24px] font-semibold tracking-[-0.01em]"
-          style={{ lineHeight: "var(--lead-tight)" }}
-        >
-          {wish.title}
-        </h1>
-
-        <div className="flex flex-wrap items-center gap-1.5 pt-2.5">
-          <TagChip>{t(TYPE_LABEL_KEY[wish.type])}</TagChip>
-          {wish.category && (
-            <TagChip>{t(`wish.category.${wish.category}`)}</TagChip>
-          )}
-        </div>
-
-        <div className="mt-3.5 flex items-center justify-between gap-3 border-y border-rule py-2.5">
-          {price ? (
-            <span className="font-mono text-[18px] font-medium whitespace-nowrap">
-              {price}
-            </span>
-          ) : (
-            <NullPill label={t("wish.noPrice")} />
-          )}
-          <PriorityFlag
-            priority={wish.priority}
-            label={t(`wish.priority.${wish.priority}`)}
-          />
-        </div>
-
-        {wish.description && (
-          <p
-            className="pt-3.5 text-mute"
-            style={{ lineHeight: "var(--lead-prose)" }}
+        <div className="lg:min-w-0 lg:pt-1">
+          <h1
+            className="pt-4 font-serif text-[24px] font-semibold tracking-[-0.01em] lg:pt-0 lg:text-[30px]"
+            style={{ lineHeight: "var(--lead-tight)" }}
           >
-            {wish.description}
-          </p>
-        )}
+            {wish.title}
+          </h1>
 
-        {wish.notes && (
-          <section className="mt-3.5 border border-rule-2 bg-zebra p-3">
-            <h2 className="text-[10.5px] font-semibold tracking-[0.1em] text-mute uppercase">
-              {t("form.notesLabel")}
-            </h2>
-            <p className="pt-1.5" style={{ lineHeight: "var(--lead-prose)" }}>
-              {wish.notes}
+          <div className="flex flex-wrap items-center gap-1.5 pt-2.5">
+            <TagChip>{t(TYPE_LABEL_KEY[wish.type])}</TagChip>
+            {wish.category && (
+              <TagChip>{t(`wish.category.${wish.category}`)}</TagChip>
+            )}
+          </div>
+
+          <div className="mt-3.5 flex items-center justify-between gap-3 border-y border-rule py-2.5">
+            {price ? (
+              <span className="font-mono text-[18px] font-medium whitespace-nowrap">
+                {price}
+              </span>
+            ) : (
+              <NullPill label={t("wish.noPrice")} />
+            )}
+            <PriorityFlag
+              priority={wish.priority}
+              label={t(`wish.priority.${wish.priority}`)}
+            />
+          </div>
+
+          {wish.description && (
+            <p
+              className="pt-3.5 text-mute"
+              style={{ lineHeight: "var(--lead-prose)" }}
+            >
+              {wish.description}
             </p>
-          </section>
-        )}
+          )}
 
-        {wish.url && (
-          /* Styled as the kit's default Button; Button itself renders a
+          {wish.notes && (
+            <section className="mt-3.5 border border-rule-2 bg-zebra p-3">
+              <h2 className="text-[10.5px] font-semibold tracking-[0.1em] text-mute uppercase">
+                {t("form.notesLabel")}
+              </h2>
+              <p className="pt-1.5" style={{ lineHeight: "var(--lead-prose)" }}>
+                {wish.notes}
+              </p>
+            </section>
+          )}
+
+          {wish.url && (
+            /* Styled as the kit's default Button; Button itself renders a
              <button>, and this has to be a real link. */
-          <a
-            href={wish.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-rule-2 bg-paper px-4 text-[13px] font-medium text-ink hover:bg-bg"
-          >
-            <ExternalLink aria-hidden size={15} strokeWidth={2.4} />
-            {t("detail.openInStore")}
-          </a>
-        )}
+            <a
+              href={wish.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-rule-2 bg-paper px-4 text-[13px] font-medium text-ink hover:bg-bg"
+            >
+              <ExternalLink aria-hidden size={15} strokeWidth={2.4} />
+              {t("detail.openInStore")}
+            </a>
+          )}
+        </div>
       </article>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-105 flex-col gap-2 border-t-2 border-ink bg-paper px-5 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-105 flex-col gap-2 border-t-2 border-ink bg-paper px-5 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] lg:static lg:mt-8 lg:max-w-none lg:flex-row lg:border lg:border-rule-2 lg:p-3">
         <Button disabled={removed} onClick={() => setGiftOpen(true)}>
           {t("detail.gifted")}
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-1 gap-2">
           <Button
             className="flex-1"
             disabled={removed}

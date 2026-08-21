@@ -57,6 +57,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The primary app navigation is a bottom bar on mobile and a persistent rail
+   on wide screens. The relational selector lets every authenticated top-level
+   page opt into the rail simply by rendering AppTabBar, without duplicating a
+   shell wrapper through unrelated Server and Client Component trees. */
+@media (min-width: 1024px) {
+  body:has([data-app-navigation="true"]) {
+    padding-left: 17rem;
+  }
+}
+
 ::selection {
   background: var(--accent-soft);
   color: var(--accent-ink);
@@ -87,5 +97,29 @@ body {
   }
   100% {
     background-position: 180px 0;
+  }
+}
+
+/* BottomSheet keeps its touch-first bottom drawer below `lg`. On desktop the
+   same accessible dialog becomes a centered, bounded panel; state remains in
+   React, only the presentation changes. */
+@media (min-width: 1024px) {
+  .bottom-sheet-panel {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(36rem, calc(100vw - 4rem));
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    border: 1px solid var(--rule-2);
+  }
+
+  .bottom-sheet-panel[data-open="true"] {
+    transform: translate(-50%, -50%);
+  }
+
+  .bottom-sheet-panel[data-open="false"] {
+    transform: translate(-50%, calc(-50% + 24px));
   }
 }

@@ -26,7 +26,7 @@ export default async function WelcomePage({
   const t = await getTranslations("auth.onboarding");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-6 pt-14 pb-10">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-6 pt-14 pb-10 lg:max-w-3xl lg:px-8 lg:pt-10 lg:pb-12">
       <header className="mb-8 border-b-2 border-ink pb-4">
         <h1
           className="font-serif text-[24px] font-semibold tracking-[-0.01em]"
@@ -37,13 +37,15 @@ export default async function WelcomePage({
         <p className="mt-1 text-mute">{t("subtitle")}</p>
       </header>
 
-      <OnboardingForm
-        defaultName={session.user.name ?? ""}
-        defaultNickname={sanitizeNickname(
-          session.user.email ?? session.user.name ?? "",
-        )}
-        next={next}
-      />
+      <div className="lg:border lg:border-rule-2 lg:bg-paper lg:p-8 lg:shadow-[var(--shadow-line)]">
+        <OnboardingForm
+          defaultName={session.user.name ?? ""}
+          defaultNickname={sanitizeNickname(
+            session.user.email ?? session.user.name ?? "",
+          )}
+          next={next}
+        />
+      </div>
     </main>
   );
 }

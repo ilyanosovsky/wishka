@@ -35,9 +35,9 @@ export default async function PeoplePage() {
   const t = await getTranslations("people");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-6 pt-14 pb-28">
-      <header className="border-b-2 border-ink pb-4">
-        <h1 className="font-serif text-[24px] font-semibold tracking-[-0.01em]">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-6 pt-14 pb-28 lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-12">
+      <header className="border-b-2 border-ink pb-4 lg:pb-5">
+        <h1 className="font-serif text-[24px] font-semibold tracking-[-0.01em] lg:text-[30px]">
           {t("title")}
         </h1>
       </header>

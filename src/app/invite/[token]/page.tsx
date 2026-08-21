@@ -67,7 +67,7 @@ export default async function InvitePage({
 
   if (!session) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-5 px-6 text-center">
+      <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-5 px-6 text-center lg:max-w-2xl lg:border-x lg:border-rule lg:bg-paper">
         {invite.groupEmoji && (
           <span className="text-[40px] leading-none">{invite.groupEmoji}</span>
         )}
