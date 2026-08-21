@@ -18,7 +18,7 @@
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
 | 8 | Groups, partner, visibility, view-as | 8a PR #9 · 8b PR #10 | ✅ |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | PR #12 · PR #13 | ✅ |
-| 10 | Responsive desktop adaptation | This PR | ✅ done |
+| 10 | Responsive desktop adaptation | PR #14 | ✅ done |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
 
