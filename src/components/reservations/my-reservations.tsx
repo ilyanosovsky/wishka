@@ -26,7 +26,7 @@ export function MyReservations({
       {reservations.length === 0 ? (
         <p className="py-10 text-center text-mute">{t("empty")}</p>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2 lg:gap-3">
           {reservations.map((reservation) => (
             <ReservationCard key={reservation.id} reservation={reservation} />
           ))}

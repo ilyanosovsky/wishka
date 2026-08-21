@@ -162,7 +162,7 @@ function ToastBar({
         focused.current = false;
         sync();
       }}
-      className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-2.5 overflow-hidden bg-ink px-3.5 py-1.5 text-paper"
+      className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-2.5 overflow-hidden bg-ink px-3.5 py-1.5 text-paper lg:right-6 lg:bottom-6 lg:left-auto lg:w-[380px] lg:border lg:border-rule-2 lg:shadow-[var(--shadow-dialog)]"
       style={{ animation: "wishka-toast-in var(--dur-slow) var(--ease-out)" }}
     >
       {/* Keyframes live with the component: globals.css is owned elsewhere. */}

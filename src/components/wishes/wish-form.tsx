@@ -651,7 +651,7 @@ export function WishForm({
   }
 
   return (
-    <div className="flex flex-col gap-5 pb-6">
+    <div className="flex flex-col gap-5 pb-6 lg:border lg:border-rule-2 lg:bg-paper lg:p-8 lg:shadow-[var(--shadow-line)]">
       <div className="flex items-center gap-3">
         <button
           type="button"

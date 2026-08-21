@@ -30,6 +30,10 @@ describe("BottomSheet", () => {
     const { rerender } = render(
       <BottomSheet open onClose={onClose} title="Новое желание" />,
     );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-open", "true");
+    expect(screen.getByRole("dialog").className).toContain(
+      "bottom-sheet-panel",
+    );
     expect(screen.getByRole("dialog").className).toContain("translate-y-0");
     expect(document.body.style.overflow).toBe("hidden");
 
@@ -39,6 +43,10 @@ describe("BottomSheet", () => {
     expect(document.body.style.overflow).not.toBe("hidden");
     expect(document.querySelector('[role="dialog"]')?.className).toContain(
       "translate-y-full",
+    );
+    expect(document.querySelector('[role="dialog"]')).toHaveAttribute(
+      "data-open",
+      "false",
     );
   });
 });

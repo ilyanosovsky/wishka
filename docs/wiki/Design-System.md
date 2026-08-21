@@ -20,11 +20,11 @@
 | Tabs (segmented) | `tabs.tsx` | ink-active (filters) and accent-active (price mode) fills, count badges |
 | Chips | `chip.tsx` | FilterChip, TagChip, NoGiftChip |
 | Avatar | `avatar.tsx` | round + square masthead variant, stacked group with +N |
-| TabBar | `tab-bar.tsx` | 3 tabs, 2px ink top rule, safe-area aware |
-| FAB | `fab.tsx` | square, sits above the tab bar |
+| TabBar | `tab-bar.tsx` | mobile bottom tabs; persistent left rail at `lg` |
+| FAB | `fab.tsx` | square mobile action; labeled rail action at `lg` |
 | Banners | `banner.tsx` | error / warning / success left-rule alerts |
 | Skeleton | `skeleton.tsx` | shimmer + wish-card-shaped skeleton |
-| BottomSheet | `bottom-sheet.tsx` | square, drag handle, scrim, scroll lock |
+| BottomSheet | `bottom-sheet.tsx` | touch drawer below `lg`; centered desktop dialog; scrim + scroll lock |
 | Dialog | `dialog.tsx` | destructive action = right + red; neutral variant for drafts |
 | Toasts | `toast.tsx` | UndoToast (5s progress bar), InfoToast |
 | Badges | `badges.tsx` | StatusBadge, DreamStamp, NullPill, PriorityFlag, VisibilityLockBadge |
@@ -40,6 +40,16 @@ Discriminated union by `role`:
 - `archive` — grayscale, "Подарено" badge, date + optional "от {имя}" meta.
 
 Cross-cutting modifiers: dream stamp, 3 priorities, price exact/range/none (nullpill), image ready/generating(shimmer)/failed(retry+upload)/none(category placeholder), 2-line title clamp, any currency.
+
+## Responsive layout
+
+The 375px mobile composition remains the baseline. Responsive changes begin at Tailwind's `lg` breakpoint (1024px); there is no tablet-only redesign between those modes.
+
+- `AppTabBar` supplies the branded app navigation marker. `globals.css` reserves the 272px rail only on pages that render that marker, so public and focused flows stay centered without a second shell.
+- Primary list surfaces are bounded at `max-w-6xl`: two mobile columns become three at `lg` and four at `xl`. People and Profile use `max-w-5xl`; long forms use `max-w-3xl`.
+- Own and shared wish details use one flow on mobile and an image/content split on desktop. Profile keeps its mobile document order, then places public parameters beside a sticky partner/settings column at `lg`.
+- `BottomSheet` keeps the mobile drawer markup and accessibility behavior. Desktop CSS changes only its position, width and overflow, producing a centered modal without duplicating state or focus logic.
+- Desktop additions reuse the Paper Ledger tokens, square radius rule, one accent and existing type roles. Both color themes and both locales share the same responsive structure.
 
 ## Price formatting
 

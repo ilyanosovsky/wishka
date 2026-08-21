@@ -42,7 +42,7 @@ export default async function NewWishPage({
   ]);
 
   return (
-    <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10">
+    <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10 lg:max-w-3xl lg:px-8 lg:pt-10 lg:pb-12">
       <NewWishForm
         baseCurrency={profile?.baseCurrency ?? "USD"}
         userId={session.user.id}

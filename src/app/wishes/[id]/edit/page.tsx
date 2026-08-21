@@ -39,7 +39,7 @@ export default async function EditWishPage({
   ]);
 
   return (
-    <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10">
+    <main className="mx-auto min-h-dvh max-w-105 px-6 pt-8 pb-10 lg:max-w-3xl lg:px-8 lg:pt-10 lg:pb-12">
       <EditWishForm
         wish={wish}
         audience={audience ?? undefined}
@@ -57,7 +57,7 @@ async function WishNotFound() {
   const t = await getTranslations();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-5 text-center">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col items-center justify-center gap-4 px-5 text-center lg:max-w-2xl">
       <p className="font-serif text-[19px] font-semibold">
         {t("detail.notFound")}
       </p>

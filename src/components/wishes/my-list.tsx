@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, List, Search, Share2, User, Users } from "lucide-react";
+import { Archive, Search, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,6 +10,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { generateWishImageAction } from "@/app/wishes/ai-actions";
 import { updateWishAction } from "@/app/wishes/actions";
+import { AppTabBar } from "@/components/app-tab-bar";
 import {
   NullPill,
   PriorityFlag,
@@ -20,7 +21,6 @@ import { SquareAvatar } from "@/components/ui/avatar";
 import { FilterChip } from "@/components/ui/chip";
 import { Fab } from "@/components/ui/fab";
 import { Field } from "@/components/ui/field";
-import { TabBar } from "@/components/ui/tab-bar";
 import { Tabs } from "@/components/ui/tabs";
 import { InfoToast } from "@/components/ui/toast";
 import { WishCard } from "@/components/ui/wish-card";
@@ -225,12 +225,12 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-32">
-      <header className="flex items-center gap-3 pb-3 [border-bottom:3px_double_var(--ink)]">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pt-14 pb-32 lg:max-w-6xl lg:px-8 lg:pt-8 lg:pb-12">
+      <header className="flex items-center gap-3 pb-3 [border-bottom:3px_double_var(--ink)] lg:gap-4 lg:pb-5">
         <SquareAvatar initial={nickname.charAt(0).toUpperCase()} />
         <div className="min-w-0 flex-1">
           <h1
-            className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em]"
+            className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em] lg:text-[27px]"
             style={{ lineHeight: "var(--lead-tight)" }}
           >
             {t("list.title")}
@@ -281,7 +281,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
 
       {wishes.length > 0 && (
         <div className="flex flex-col gap-2.5 pt-3">
-          <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5">
+          <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 lg:mx-0 lg:flex-wrap lg:px-0">
             <FilterChip
               selected={filter === "all"}
               onClick={() => setFilter("all")}
@@ -345,7 +345,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
           <Button onClick={resetFilters}>{t("list.resetFilters")}</Button>
         </section>
       ) : view === "cards" ? (
-        <div className="grid grid-cols-2 gap-3.5 pt-3.5">
+        <div className="grid grid-cols-2 gap-3.5 pt-3.5 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
           {visible.map((wish) => (
             <WishCard
               key={wish.id}
@@ -426,23 +426,7 @@ export function MyList({ wishes, nickname, ai }: MyListProps) {
         onDismiss={() => setImageErrorToast(null)}
       />
 
-      <TabBar
-        items={[
-          { key: "list", label: t("tabs.list"), icon: List, href: "/" },
-          {
-            key: "people",
-            label: t("tabs.people"),
-            icon: Users,
-            href: "/people",
-          },
-          {
-            key: "profile",
-            label: t("tabs.profile"),
-            icon: User,
-            href: "/profile",
-          },
-        ]}
-      />
+      <AppTabBar />
     </main>
   );
 }
@@ -474,7 +458,7 @@ function LedgerView({
   const locale = isLocale(rawLocale) ? rawLocale : "en";
 
   return (
-    <div className="mt-3.5 border border-rule-2 bg-paper shadow-[var(--shadow-line)]">
+    <div className="mt-3.5 border border-rule-2 bg-paper shadow-[var(--shadow-line)] lg:grid lg:grid-cols-2 lg:[&>button:nth-child(odd)]:border-r">
       {wishes.map((wish, index) => {
         const price = formatPrice(wish, locale);
         return (
@@ -553,7 +537,7 @@ function LedgerView({
         );
       })}
 
-      <div className="flex items-center justify-between border-t border-ink px-3.5 py-2.5 [border-bottom:3px_double_var(--ink)]">
+      <div className="flex items-center justify-between border-t border-ink px-3.5 py-2.5 [border-bottom:3px_double_var(--ink)] lg:col-span-2">
         <span className="text-[10px] font-semibold tracking-[0.08em] text-mute uppercase">
           {t("list.totalRow")}
         </span>

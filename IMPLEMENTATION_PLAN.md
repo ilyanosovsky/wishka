@@ -18,6 +18,7 @@
 | 7 | Sharing & reservations: public lists, guests, surprise mode | 7a PR #7 · 7b PR #8 | ✅ done |
 | 8 | Groups, partner, visibility, view-as | 8a PR #9 · 8b PR #10 | ✅ |
 | 9 | Polish & launch: i18n/dark audit, a11y, prod config | PR #12 · PR #13 | ✅ |
+| 10 | Responsive desktop adaptation | PR #14 | ✅ done |
 
 Design-debt items carried from mockup analysis are folded into phases 1 and 3 (see "Design deviations to resolve" below).
 
@@ -148,6 +149,17 @@ Repo initialized with docs (VISION, DESIGN_BRIEF, this plan), CLAUDE.md, README,
 - ✅ Repository agent setup: shared `AGENTS.md` rules plus repo-local Firecrawl skill and OAuth MCP declaration (`.agents/`, `.codex/`), with the credential-free setup documented in `Local-Setup.md`.
 - ✅ README refreshed (badges, wiki pointers, honest demo/screenshot placeholders). ⬜ Post-deploy (user actions): Vercel import + envs, Google OAuth prod redirect, Resend domain, UploadThing prod app, backup secrets (`DATABASE_URL`, `AGE_PUBLIC_KEY`, `BACKUP_ENABLED`), then screenshots + live demo link in README. `CONTRIBUTING.md` deferred until community shows up.
 - **Wiki:** ✅ `Deployment.md`. **Model:** Fable orchestration; Opus kit/auth/forms fixers + audits, Sonnet shell/prod.
+
+## Phase 10 — Responsive desktop adaptation
+
+**Goal:** keep the shipped mobile experience intact while making wide screens feel like a first-class web application.
+
+- ✅ The three-tab mobile bottom bar becomes a persistent Paper Ledger sidebar at `lg`; the existing FAB becomes a labeled primary action inside that rail. Route labels, active-state semantics and mobile geometry stay unchanged.
+- ✅ Core screens use bounded desktop canvases instead of the 420px mobile column: list/archive/public grids expand to 3-4 columns, People collections to two columns, Profile to an editor/settings split, and own/shared wish details to an image/content split.
+- ✅ Focused flows (login, onboarding, wish forms, invites and service states) get purpose-sized desktop panels while retaining their single-column mobile layout.
+- ✅ Bottom sheets become centered, scroll-bounded desktop dialogs; confirmation dialogs and toasts use desktop-appropriate widths and placement. Focus management, body locking, Escape handling and reduced-motion behavior are unchanged.
+- ✅ Verified at the 390px mobile baseline and wide desktop viewports, in RU/EN and light/dark themes. Responsive shell and sheet state are covered by component tests.
+- **Wiki:** ✅ `Design-System.md` responsive layout section.
 
 ---
 

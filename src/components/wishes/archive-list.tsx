@@ -86,7 +86,7 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-5 px-5 pt-14 pb-10">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-5 px-5 pt-14 pb-10 lg:max-w-6xl lg:px-8 lg:pt-8 lg:pb-12">
       <header className="flex items-center gap-3 border-b-2 border-ink pb-4">
         <Link
           href="/"
@@ -127,7 +127,7 @@ export function ArchiveList({ wishes }: ArchiveListProps) {
               <h2 className="font-mono text-[10px] tracking-[0.14em] text-mute-2">
                 — {group.year ?? "—"} —
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
                 {group.wishes.map((wish) => (
                   <WishCard
                     key={wish.id}

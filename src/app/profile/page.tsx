@@ -40,7 +40,7 @@ export default async function ProfilePage() {
   const displayName = session.user.name?.trim() || profile.nickname;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-6 px-6 pt-14 pb-28">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col gap-6 px-6 pt-14 pb-28 lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-12">
       <ProfileIdentity
         name={displayName}
         image={session.user.image ?? null}
@@ -53,36 +53,40 @@ export default async function ProfilePage() {
         <ViewAsSheet nickname={profile.nickname} candidates={candidates} />
       </div>
 
-      <ParamsEditor
-        initial={{
-          sizes: profile.sizes,
-          tastes: profile.tastes,
-          noGift: profile.noGift,
-        }}
-      />
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
+        <ParamsEditor
+          initial={{
+            sizes: profile.sizes,
+            tastes: profile.tastes,
+            noGift: profile.noGift,
+          }}
+        />
 
-      <PartnerBlock partner={partner} candidates={candidates.people} />
+        <div className="flex flex-col gap-6 lg:sticky lg:top-8">
+          <PartnerBlock partner={partner} candidates={candidates.people} />
 
-      <section className="flex flex-col gap-4 border border-rule-2 bg-paper p-4 shadow-[var(--shadow-line)]">
-        <h2 className="font-mono text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
-          {t("profile.settings")}
-        </h2>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
-            {t("theme.label")}
-          </span>
-          <ThemeSwitcher />
+          <section className="flex flex-col gap-4 border border-rule-2 bg-paper p-4 shadow-[var(--shadow-line)]">
+            <h2 className="font-mono text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
+              {t("profile.settings")}
+            </h2>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
+                {t("theme.label")}
+              </span>
+              <ThemeSwitcher />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
+                {t("locale.label")}
+              </span>
+              <LocaleSwitcher />
+            </div>
+            <BaseCurrencySelect value={profile.baseCurrency} />
+            <SignOutButton />
+            <DeleteAccount />
+          </section>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-mute">
-            {t("locale.label")}
-          </span>
-          <LocaleSwitcher />
-        </div>
-        <BaseCurrencySelect value={profile.baseCurrency} />
-        <SignOutButton />
-        <DeleteAccount />
-      </section>
+      </div>
 
       <AppTabBar />
     </main>

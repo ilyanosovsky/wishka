@@ -90,12 +90,12 @@ export function PublicList({
 
   return (
     <main
-      className={`mx-auto flex min-h-dvh max-w-105 flex-col px-5 ${
+      className={`mx-auto flex min-h-dvh max-w-105 flex-col px-5 lg:max-w-6xl lg:px-8 ${
         isGuest ? "pb-16" : "pb-32"
-      }`}
+      } lg:pb-12`}
     >
       {isGuest && (
-        <div className="-mx-5 flex flex-wrap items-center justify-between gap-2 border-b border-rule-2 bg-zebra px-5 py-2.5">
+        <div className="-mx-5 flex flex-wrap items-center justify-between gap-2 border-b border-rule-2 bg-zebra px-5 py-2.5 lg:mx-0 lg:mt-5 lg:px-4">
           <span className="text-[12px] text-mute">
             {t("publicList.guestBanner", { name })}
           </span>
@@ -115,14 +115,14 @@ export function PublicList({
 
       <header
         className={`flex items-center gap-3 pb-3 [border-bottom:3px_double_var(--ink)] ${
-          isGuest ? "pt-5" : "pt-14"
+          isGuest ? "pt-5" : "pt-14 lg:pt-8"
         }`}
       >
         {/* Decorative: the adjacent <h1> already announces the owner's name. */}
         <Avatar src={image} name={name} alt="" />
         <div className="min-w-0 flex-1">
           <h1
-            className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em]"
+            className="truncate font-serif text-[21px] font-semibold tracking-[-0.01em] lg:text-[27px]"
             style={{ lineHeight: "var(--lead-tight)" }}
           >
             {name}
@@ -179,7 +179,7 @@ export function PublicList({
           </p>
         </section>
       ) : (
-        <div className="grid grid-cols-2 gap-3.5 pt-3.5">
+        <div className="grid grid-cols-2 gap-3.5 pt-3.5 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
           {visible.map((wish) => (
             <WishCard
               key={wish.id}
@@ -246,7 +246,7 @@ function WhatMatters({
       </button>
 
       {open && (
-        <div className="flex flex-col gap-3.5 border-t border-dashed border-rule-2 px-3.5 py-3">
+        <div className="flex flex-col gap-3.5 border-t border-dashed border-rule-2 px-3.5 py-3 lg:grid lg:grid-cols-3 lg:gap-6 lg:px-5 lg:py-4">
           {sizes.length > 0 && (
             <div className="flex flex-col gap-1.5">
               <h3 className="text-[10.5px] font-semibold tracking-[0.1em] text-mute-2 uppercase">

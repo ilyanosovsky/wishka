@@ -85,12 +85,12 @@ export function GroupsTab({ groups }: GroupsTabProps) {
         </section>
       ) : (
         <section className="flex flex-1 flex-col gap-2">
-          <ul className="flex flex-col gap-2">
+          <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
             {groups.map((group) => (
               <li key={group.id}>
                 <Link
                   href={`/groups/${group.id}`}
-                  className="flex min-h-11 items-center gap-3 border border-rule-2 bg-paper p-2.5"
+                  className="flex min-h-11 items-center gap-3 border border-rule-2 bg-paper p-2.5 lg:min-h-20 lg:p-3.5"
                 >
                   <GroupMark
                     name={group.name}

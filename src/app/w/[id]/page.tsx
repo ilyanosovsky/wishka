@@ -160,9 +160,9 @@ export default async function SharedWishPage({
       : 0;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pb-16">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col px-5 pb-16 lg:max-w-5xl lg:px-8 lg:pb-12">
       {isGuest && (
-        <div className="-mx-5 flex flex-wrap items-center justify-between gap-2 border-b border-rule-2 bg-zebra px-5 py-2.5">
+        <div className="-mx-5 flex flex-wrap items-center justify-between gap-2 border-b border-rule-2 bg-zebra px-5 py-2.5 lg:mx-0 lg:mt-5 lg:px-4">
           <span className="text-[12px] text-mute">
             {t("publicList.guestBanner", { name: ownerName })}
           </span>
@@ -182,7 +182,7 @@ export default async function SharedWishPage({
 
       <header
         className={`pb-3 [border-bottom:3px_double_var(--ink)] ${
-          isGuest ? "pt-5" : "pt-14"
+          isGuest ? "pt-5" : "pt-14 lg:pt-8"
         }`}
       >
         <p className="font-mono text-[10px] tracking-[0.08em] text-mute uppercase">
@@ -190,7 +190,7 @@ export default async function SharedWishPage({
         </p>
       </header>
 
-      <article className="pt-4">
+      <article className="pt-4 lg:grid lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)] lg:items-start lg:gap-8 lg:pt-6">
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-rule-2">
           {hasImage ? (
             /* eslint-disable-next-line @next/next/no-img-element -- images live
@@ -220,73 +220,75 @@ export default async function SharedWishPage({
           )}
         </div>
 
-        <h1
-          className="pt-4 font-serif text-[24px] font-semibold tracking-[-0.01em]"
-          style={{ lineHeight: "var(--lead-tight)" }}
-        >
-          {wish.title}
-        </h1>
+        <div className="lg:min-w-0 lg:pt-1">
+          <h1
+            className="pt-4 font-serif text-[24px] font-semibold tracking-[-0.01em] lg:pt-0 lg:text-[30px]"
+            style={{ lineHeight: "var(--lead-tight)" }}
+          >
+            {wish.title}
+          </h1>
 
-        <div className="mt-3.5 flex items-center justify-between gap-3 border-y border-rule py-2.5">
-          {price ? (
-            <span className="font-mono text-[18px] font-medium whitespace-nowrap">
-              {price}
-            </span>
-          ) : (
-            <NullPill label={t("wish.noPrice")} />
-          )}
-          <div className="flex items-center gap-2.5">
-            {!isOwner && (
-              <StatusBadge
-                status={badgeStatus}
-                label={t(`wish.status.${badgeStatus}`)}
-              />
+          <div className="mt-3.5 flex items-center justify-between gap-3 border-y border-rule py-2.5">
+            {price ? (
+              <span className="font-mono text-[18px] font-medium whitespace-nowrap">
+                {price}
+              </span>
+            ) : (
+              <NullPill label={t("wish.noPrice")} />
             )}
-            <PriorityFlag
-              priority={wish.priority}
-              label={t(`wish.priority.${wish.priority}`)}
-            />
+            <div className="flex items-center gap-2.5">
+              {!isOwner && (
+                <StatusBadge
+                  status={badgeStatus}
+                  label={t(`wish.status.${badgeStatus}`)}
+                />
+              )}
+              <PriorityFlag
+                priority={wish.priority}
+                label={t(`wish.priority.${wish.priority}`)}
+              />
+            </div>
           </div>
-        </div>
 
-        {wish.description && (
-          <p
-            className="pt-3.5 text-mute"
-            style={{ lineHeight: "var(--lead-prose)" }}
-          >
-            {wish.description}
-          </p>
-        )}
+          {wish.description && (
+            <p
+              className="pt-3.5 text-mute"
+              style={{ lineHeight: "var(--lead-prose)" }}
+            >
+              {wish.description}
+            </p>
+          )}
 
-        {wish.url && (
-          /* A real link, styled as the kit's default Button (which renders a
+          {wish.url && (
+            /* A real link, styled as the kit's default Button (which renders a
              <button>, so it cannot be used here). */
-          <a
-            href={wish.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-rule-2 bg-paper px-4 text-[13px] font-medium text-ink hover:bg-bg"
+            <a
+              href={wish.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-rule-2 bg-paper px-4 text-[13px] font-medium text-ink hover:bg-bg"
+            >
+              <ExternalLink aria-hidden size={15} strokeWidth={2.4} />
+              {t("detail.openInStore")}
+            </a>
+          )}
+
+          {!isOwner && (
+            <ReservePanel
+              wishId={wish.id}
+              reservationStatus={wish.reservationStatus}
+              isGuest={isGuest}
+              listHref={listHref}
+            />
+          )}
+
+          <Link
+            href={listHref}
+            className="mt-4 inline-flex min-h-11 items-center text-[13px] font-medium text-accent hover:underline"
           >
-            <ExternalLink aria-hidden size={15} strokeWidth={2.4} />
-            {t("detail.openInStore")}
-          </a>
-        )}
-
-        {!isOwner && (
-          <ReservePanel
-            wishId={wish.id}
-            reservationStatus={wish.reservationStatus}
-            isGuest={isGuest}
-            listHref={listHref}
-          />
-        )}
-
-        <Link
-          href={listHref}
-          className="mt-4 inline-flex min-h-11 items-center text-[13px] font-medium text-accent hover:underline"
-        >
-          {t("publicList.backToList", { name: ownerName })}
-        </Link>
+            {t("publicList.backToList", { name: ownerName })}
+          </Link>
+        </div>
       </article>
     </main>
   );
